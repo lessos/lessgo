@@ -12,13 +12,6 @@ type Keeper struct {
     apiuri string
 }
 
-
-type Node struct {
-    P   string
-    C   string
-    R   uint64
-}
-
 func NewKeeper(dsn string) (Keeper, error) {
     var kpr Keeper
 
@@ -70,35 +63,3 @@ func (this *Keeper) req(m string, req interface{}) (rpl *Reply) {
     return rpl
 }
 
-func (this *Keeper) NodeGet(path string) (rpl *Reply) {
-    req := map[string]string{
-        "method": "get",
-        "path":   path,
-    }
-    return this.req("POST", req)
-}
-
-func (this *Keeper) NodeList(path string) (rpl *Reply) {
-    req := map[string]string{
-        "method": "list",
-        "path":   path,
-    }
-    return this.req("POST", req)
-}
-
-func (this *Keeper) NodeSet(path, val string) (rpl *Reply) {
-    req := map[string]string{
-        "method": "list",
-        "path":   path,
-        "val":    val,
-    }
-    return this.req("POST", req)
-}
-
-func (this *Keeper) NodeDel(path string) (rpl *Reply) {
-    req := map[string]string{
-        "method": "del",
-        "path":   path,
-    }
-    return this.req("POST", req)
-}
