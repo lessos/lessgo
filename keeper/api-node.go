@@ -65,7 +65,7 @@ func (this *Keeper) NodeListAndGet(path string) (rpl *Reply) {
 
 func (this *Keeper) NodeSet(path, val string) (rpl *Reply) {
     req := map[string]string{
-        "method": "list",
+        "method": "set",
         "path":   path,
         "val":    val,
     }
