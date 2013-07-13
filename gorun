@@ -1,0 +1,18 @@
+#!/bin/bash
+
+echo "DIRs"
+find . -type d  | wc -l
+echo "FILEs"
+find . -type f  | wc -l
+echo "LINEs"
+find . -name "*.go" |xargs cat|grep -v ^$|wc -l
+echo "DETAILs"
+find . -type f -name "*.go" | xargs wc -l | sort -n
+
+dirs=`find . -type d | grep -v .git |xargs`
+for dir in $dirs; do
+    echo ${dir}
+    gofmt -tabwidth=4 -tabs=false -w=true ${dir}/*.go
+done
+
+

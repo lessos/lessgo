@@ -62,4 +62,3 @@ func (this *Keeper) req(m string, req interface{}) (rpl *Reply) {
 
     return rpl
 }
-

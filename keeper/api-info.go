@@ -28,12 +28,12 @@ func (this *Keeper) SysInfo() (rpl *Reply) {
     return this.req("POST", req)
 }
 func (this *Keeper) SysInfoWithObj() (rpl *KprInfo, err error) {
-    
-    rs := this.SysInfo()    
-    
+
+    rs := this.SysInfo()
+
     if err := JsonDecode(rs.Body, &rpl); err != nil {
         return nil, err
     }
-    
+
     return rpl, nil
 }

@@ -7,10 +7,10 @@ const (
 )
 
 type Node struct {
-    P string
-    C string
-    R uint64
-    T uint8
+    P   string
+    C   string
+    R   uint64
+    T   uint8
 }
 
 func (this *Keeper) NodeGet(path string) (rpl *Reply) {
@@ -32,7 +32,7 @@ func (this *Keeper) NodeList(path string) (rpl *Reply) {
 func (this *Keeper) NodeListAndGet(path string) (rpl *Reply) {
 
     rpl = this.NodeList(path)
-    
+
     str, err := rpl.Str()
     if err != nil {
         rpl.Type = ReplyError
@@ -44,22 +44,22 @@ func (this *Keeper) NodeListAndGet(path string) (rpl *Reply) {
         rpl.Type = ReplyError
         return
     }
-    
+
     rpl.Type = ReplyMulti
     for _, v := range lsis {
 
         if v.T != NodeTypeFile {
             continue
         }
-        
-        rs := this.NodeGet(path +"/"+ v.P)
+
+        rs := this.NodeGet(path + "/" + v.P)
         if rs.Type == ReplyError {
             continue
         }
-                
+
         rpl.Elems = append(rpl.Elems, rs)
     }
-    
+
     return
 }
 
