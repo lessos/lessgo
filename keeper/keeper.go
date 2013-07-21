@@ -20,7 +20,7 @@ func NewKeeper(dsn string) (Keeper, error) {
         //MaxIdleConnsPerHost: 100,
     }
     kpr.client = &http.Client{Transport: tr}
-    kpr.apiuri = "http://" + dsn + "/h5keeper/api"
+    kpr.apiuri = "http://" + dsn + "/lesskeeper/api"
 
     if false {
         fmt.Println("DDDDDDDDD")
