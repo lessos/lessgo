@@ -6,7 +6,6 @@ import (
     "io"
 )
 
-
 func StringNewRand(len int) string {
 
     u := make([]byte, len/2)
