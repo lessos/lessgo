@@ -1,6 +1,7 @@
 package keeper
 
 import (
+    "../utils"
     "bytes"
     "fmt"
     "io/ioutil"
@@ -31,7 +32,7 @@ func NewKeeper(dsn string) (Keeper, error) {
 
 func (this *Keeper) req(m string, req interface{}) (rpl *Reply) {
 
-    rqj, err := JsonEncode(req)
+    rqj, err := utils.JsonEncode(req)
     if err != nil {
         rpl.Type = ReplyError
         return
@@ -55,7 +56,7 @@ func (this *Keeper) req(m string, req interface{}) (rpl *Reply) {
         return
     }
 
-    err = JsonDecode(string(rpb), &rpl)
+    err = utils.JsonDecode(string(rpb), &rpl)
     if err != nil {
         return
     }

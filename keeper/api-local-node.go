@@ -1,5 +1,9 @@
 package keeper
 
+import (
+    "../utils"
+)
+
 func (this *Keeper) LocalNodeGet(path string) (rpl *Reply) {
     req := map[string]string{
         "method": "locget",
@@ -27,7 +31,7 @@ func (this *Keeper) LocalNodeListAndGet(path string) (rpl *Reply) {
     }
 
     var lsis []Node
-    if err := JsonDecode(str, &lsis); err != nil {
+    if err := utils.JsonDecode(str, &lsis); err != nil {
         rpl.Type = ReplyError
         return
     }

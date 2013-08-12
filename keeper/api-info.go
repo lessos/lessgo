@@ -1,5 +1,9 @@
 package keeper
 
+import (
+    "../utils"
+)
+
 type KprInfo struct {
     Leader  string          `json:"leader"`
     Vote    uint64          `json:"vote"`
@@ -31,7 +35,7 @@ func (this *Keeper) SysInfoWithObj() (rpl *KprInfo, err error) {
 
     rs := this.SysInfo()
 
-    if err := JsonDecode(rs.Body, &rpl); err != nil {
+    if err := utils.JsonDecode(rs.Body, &rpl); err != nil {
         return nil, err
     }
 

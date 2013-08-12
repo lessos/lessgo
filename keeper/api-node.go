@@ -1,5 +1,9 @@
 package keeper
 
+import (
+    "../utils"
+)
+
 const (
     NodeTypeNil  = uint8(0)
     NodeTypeDir  = uint8(1)
@@ -40,7 +44,7 @@ func (this *Keeper) NodeListAndGet(path string) (rpl *Reply) {
     }
 
     var lsis []Node
-    if err := JsonDecode(str, &lsis); err != nil {
+    if err := utils.JsonDecode(str, &lsis); err != nil {
         rpl.Type = ReplyError
         return
     }
