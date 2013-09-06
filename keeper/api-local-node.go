@@ -47,6 +47,7 @@ func (this *Keeper) LocalNodeListAndGet(path string) (rpl *Reply) {
         if rs.Type == ReplyError {
             continue
         }
+        rs.Name = v.P
 
         rpl.Elems = append(rpl.Elems, rs)
     }

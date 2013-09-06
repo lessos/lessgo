@@ -23,6 +23,7 @@ type Reply struct {
     Err   error     `json:"err"`
     Type  ReplyType `json:"type"`
     Body  string    `json:"body"`
+    Name  string    `json:"name"`
     Elems []*Reply  `json:"elems"`
 }
 
