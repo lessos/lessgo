@@ -3,8 +3,8 @@ package pagelet
 import (
     "net/http"
     "os"
+    "path/filepath"
     "reflect"
-    "regexp"
     "strings"
 )
 
@@ -69,12 +69,11 @@ func RouterFilter(c *Controller, fc []Filter) {
         fc[0](c, fc[1:])
     }()
 
-    if c.Request.URL.Path == "/favicon.ico" {
+    urlpath := strings.Trim(filepath.Clean(c.Request.URL.Path), "/")
+
+    if urlpath == "favicon.ico" {
         return
     }
-
-    reg, _ := regexp.Compile("/+")
-    urlpath := strings.Trim(reg.ReplaceAllString(c.Request.URL.Path, "/"), "/")
 
     rt := strings.Split(urlpath, "/")
     rtlen := len(rt)
