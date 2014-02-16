@@ -1,44 +1,66 @@
 package pagelet
 
 import (
+    "net/http"
+    "os"
     "reflect"
+    "regexp"
+    "strings"
 )
 
 type Router struct {
-    StaticDir map[string]string
+    Routes []Route
 }
 
 type Route struct {
+    Type           string
     Path           string
+    Tree           []string
+    TreeLen        int
     ControllerName string
     MethodName     string
-    Type           string
 }
 
 type RouteMatch struct {
-    ControllerName string // e.g. App
-    MethodName     string // e.g. Login
-    //Params         map[string][]string // e.g. {id: 123}
+    ControllerName string            // e.g. App
+    MethodName     string            // e.g. Login
+    Params         map[string]string // e.g. {id: 123}
 }
 
-func NewRouter() *Router {
+func (r *Router) RouteStaticAppend(path, pathto string) {
 
-    var r Router
-
-    r.StaticDir = map[string]string{
-        "/static": "static",
+    route := Route{
+        Type: "static",
+        Path: strings.Trim(path, "/"),
+        Tree: []string{pathto},
     }
 
-    return &r
+    r.Routes = append(r.Routes, route)
 }
 
-func (r *Router) SetStatic(route, path string) {
-    r.StaticDir[route] = path
-    Println("SetStatic", route, path)
-}
+func (r *Router) RouteAppend(path, action string) {
 
-func (r *Router) SetRoute(route, action string) {
+    actions := strings.Split(action, ".")
 
+    if len(actions) != 2 {
+        return
+    }
+
+    tree := strings.Split(strings.Trim(path, "/"), "/")
+    if len(tree) < 1 {
+        return
+    }
+
+    route := Route{
+        Type:           "std",
+        Path:           path,
+        Tree:           tree,
+        TreeLen:        len(tree),
+        ControllerName: actions[0],
+        MethodName:     actions[1],
+    }
+
+    r.Routes = append(r.Routes, route)
 }
 
 func RouterFilter(c *Controller, fc []Filter) {
@@ -47,47 +69,87 @@ func RouterFilter(c *Controller, fc []Filter) {
         fc[0](c, fc[1:])
     }()
 
-    c.Name = "Index"
-    c.MethodName = "Index"
+    if c.Request.URL.Path == "/favicon.ico" {
+        return
+    }
 
-    /* var route *RouteMatch = MainRouter.Route(c.Request.Request)
-       if route == nil {
-           c.Result = c.NotFound("No matching route found")
-           return
-       } */
+    reg, _ := regexp.Compile("/+")
+    urlpath := strings.Trim(reg.ReplaceAllString(c.Request.URL.Path, "/"), "/")
 
-    /* for prefix, staticDir := range this.StaticDir {
+    rt := strings.Split(urlpath, "/")
+    rtlen := len(rt)
 
-        //fmt.Println(prefix, staticDir)
+    for _, route := range MainRouter.Routes {
 
-        if r.URL.Path == "/favicon.ico" {
-            file := staticDir + r.URL.Path
-            http.ServeFile(w, r, file)
-            return
-        }
+        if route.Type == "static" && strings.HasPrefix(urlpath, route.Path) {
 
-        if strings.HasPrefix(r.URL.Path, prefix) {
-
-            file := staticDir + r.URL.Path[len(prefix):]
+            file := route.Tree[0] + "/" + urlpath[len(route.Path):]
             finfo, err := os.Stat(file)
 
             if err != nil {
-                http.NotFound(w, r)
+                http.NotFound(c.Response.Out, c.Request.Request)
                 return
             }
 
-            // if the request is dir
             if finfo.IsDir() {
-                http.NotFound(w, r)
+                http.NotFound(c.Response.Out, c.Request.Request)
                 return
             }
 
-            http.ServeFile(w, r, file)
+            http.ServeFile(c.Response.Out, c.Request.Request, file)
             return
         }
 
-        // TODO Compress
-    } */
+        // TODO
+        if route.Type != "std" {
+            continue
+        }
+
+        if rtlen < route.TreeLen {
+            continue
+        }
+
+        matRoute := 0
+        ctrlName := ""
+        methodName := ""
+
+        for i, node := range route.Tree {
+
+            if node == ":controller" {
+                ctrlName = rt[i]
+                matRoute++
+                continue
+            }
+
+            if node == ":action" {
+                methodName = rt[i]
+                matRoute++
+                continue
+            }
+
+            if node == rt[i] {
+                matRoute++
+            }
+        }
+
+        if matRoute == route.TreeLen {
+
+            if len(ctrlName) > 0 {
+                c.Name = strings.Replace(strings.Title(ctrlName), "-", "", -1)
+            } else {
+                c.Name = "Index"
+            }
+
+            if len(methodName) > 0 {
+                c.MethodName = strings.Replace(strings.Title(methodName), "-", "", -1)
+
+            } else {
+                c.MethodName = "Index"
+            }
+
+            break
+        }
+    }
 
     ctrl, ok := controllers[c.Name]
     if !ok {

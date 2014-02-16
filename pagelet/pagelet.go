@@ -7,18 +7,32 @@ import (
 )
 
 var (
-    MainRouter         *Router
+    MainRouter         = &Router{Routes: []Route{}}
     MainTemplateLoader *TemplateLoader
     Server             *http.Server
 )
 
-func Println(str string, args ...interface{}) {
-    fmt.Printf(str+"\n", args...)
+func Println(args ...interface{}) {
+    fmt.Println(args...)
 }
 
 func Run(port string) {
 
-    MainRouter = NewRouter()
+    //
+    MainRouter.RouteStaticAppend("/static", "static")
+
+    //
+    route := Route{
+        Type:    "std",
+        Path:    "/:controller/:action",
+        Tree:    []string{":controller", ":action"},
+        TreeLen: 2,
+    }
+    MainRouter.Routes = append(MainRouter.Routes, route)
+
+    fmt.Println(MainRouter.Routes)
+
+    //
     MainTemplateLoader = NewTemplateLoader([]string{"../src/views", "src/views"})
 
     go func() {
