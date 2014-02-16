@@ -7,6 +7,7 @@ import (
 )
 
 var (
+    UrlBasePath        = ""
     MainRouter         = &Router{Routes: []Route{}}
     MainTemplateLoader *TemplateLoader
     Server             *http.Server
@@ -14,6 +15,9 @@ var (
 
 func Println(args ...interface{}) {
     fmt.Println(args...)
+}
+func Printf(str string, args ...interface{}) {
+    fmt.Printf(str+"\n", args...)
 }
 
 func Run(port string) {
@@ -29,8 +33,6 @@ func Run(port string) {
         TreeLen: 2,
     }
     MainRouter.Routes = append(MainRouter.Routes, route)
-
-    fmt.Println(MainRouter.Routes)
 
     //
     MainTemplateLoader = NewTemplateLoader([]string{"../src/views", "src/views"})
@@ -50,7 +52,7 @@ func Run(port string) {
 
     go func() {
         time.Sleep(100 * time.Millisecond)
-        Println("lessgo/pagelet: Listening on port %s ...", port)
+        Printf("lessgo/pagelet: Listening on port %s ...", port)
     }()
 }
 
