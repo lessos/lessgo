@@ -3,11 +3,12 @@ package pagelet
 import (
     "fmt"
     "net/http"
+    "strconv"
     "time"
 )
 
 var (
-    UrlBasePath        = ""
+    Config             = ConfigStruct{HttpPort: 1024}
     MainRouter         = &Router{Routes: []Route{}}
     MainTemplateLoader *TemplateLoader
     Server             *http.Server
@@ -20,7 +21,7 @@ func Printf(str string, args ...interface{}) {
     fmt.Printf(str+"\n", args...)
 }
 
-func Run(port string) {
+func Run() {
 
     //
     MainRouter.RouteStaticAppend("/static", "static")
@@ -40,7 +41,7 @@ func Run(port string) {
     go func() {
 
         Server = &http.Server{
-            Addr:           ":" + port,
+            Addr:           ":" + strconv.Itoa(Config.HttpPort),
             Handler:        http.HandlerFunc(handle),
             ReadTimeout:    30 * time.Second,
             WriteTimeout:   30 * time.Second,
@@ -52,7 +53,7 @@ func Run(port string) {
 
     go func() {
         time.Sleep(100 * time.Millisecond)
-        Printf("lessgo/pagelet: Listening on port %s ...", port)
+        Printf("lessgo/pagelet: Listening on port %d ...", Config.HttpPort)
     }()
 }
 

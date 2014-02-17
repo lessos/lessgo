@@ -9,7 +9,7 @@ import (
 )
 
 type Router struct {
-    Routes   []Route
+    Routes []Route
 }
 
 type Route struct {
@@ -70,9 +70,9 @@ func RouterFilter(c *Controller, fc []Filter) {
     }()
 
     urlpath := strings.Trim(filepath.Clean(c.Request.URL.Path), "/")
-    
-    if UrlBasePath != "" {
-        urlpath = strings.TrimLeft(strings.TrimLeft(urlpath, UrlBasePath), "/")
+
+    if Config.UrlBasePath != "" {
+        urlpath = strings.TrimLeft(strings.TrimLeft(urlpath, Config.UrlBasePath), "/")
     }
 
     if urlpath == "favicon.ico" {
