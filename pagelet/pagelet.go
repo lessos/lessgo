@@ -4,6 +4,7 @@ import (
     "fmt"
     "net/http"
     "strconv"
+    "strings"
     "time"
 )
 
@@ -35,8 +36,12 @@ func Run() {
     }
     MainRouter.Routes = append(MainRouter.Routes, route)
 
+    paths := strings.Split(Config.ViewPaths, ",")
+    paths = append(paths, "../src/views")
+    paths = append(paths, "src/views")
+
     //
-    MainTemplateLoader = NewTemplateLoader([]string{"../src/views", "src/views"})
+    MainTemplateLoader = NewTemplateLoader(paths)
 
     go func() {
 

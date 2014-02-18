@@ -9,7 +9,8 @@ import (
 )
 
 type Router struct {
-    Routes []Route
+    Routes  []Route
+    Modules map[string][]Route
 }
 
 type Route struct {
