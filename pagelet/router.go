@@ -28,42 +28,6 @@ type RouteMatch struct {
     Params         map[string]string // e.g. {id: 123}
 }
 
-func (r *Router) RouteStaticAppend(path, pathto string) {
-
-    route := Route{
-        Type: "static",
-        Path: strings.Trim(path, "/"),
-        Tree: []string{pathto},
-    }
-
-    r.Routes = append(r.Routes, route)
-}
-
-func (r *Router) RouteAppend(path, action string) {
-
-    actions := strings.Split(action, ".")
-
-    if len(actions) != 2 {
-        return
-    }
-
-    tree := strings.Split(strings.Trim(path, "/"), "/")
-    if len(tree) < 1 {
-        return
-    }
-
-    route := Route{
-        Type:           "std",
-        Path:           path,
-        Tree:           tree,
-        TreeLen:        len(tree),
-        ControllerName: actions[0],
-        MethodName:     actions[1],
-    }
-
-    r.Routes = append(r.Routes, route)
-}
-
 func RouterFilter(c *Controller, fc []Filter) {
 
     defer func() {
@@ -73,102 +37,121 @@ func RouterFilter(c *Controller, fc []Filter) {
     urlpath := strings.Trim(filepath.Clean(c.Request.URL.Path), "/")
 
     if Config.UrlBasePath != "" {
-        urlpath = strings.TrimLeft(strings.TrimLeft(urlpath, Config.UrlBasePath), "/")
+        urlpath = strings.TrimPrefix(strings.TrimPrefix(urlpath, Config.UrlBasePath), "/")
     }
 
     if urlpath == "favicon.ico" {
         return
     }
 
-    rt := strings.Split(urlpath, "/")
-    rtlen := len(rt)
+    for _, mod := range Config.Module {
 
-    for _, route := range MainRouter.Routes {
-
-        if route.Type == "static" && strings.HasPrefix(urlpath, route.Path) {
-
-            file := route.Tree[0] + "/" + urlpath[len(route.Path):]
-            finfo, err := os.Stat(file)
-
-            if err != nil {
-                http.NotFound(c.Response.Out, c.Request.Request)
-                return
-            }
-
-            if finfo.IsDir() {
-                http.NotFound(c.Response.Out, c.Request.Request)
-                return
-            }
-
-            http.ServeFile(c.Response.Out, c.Request.Request, file)
-            return
-        }
-
-        // TODO
-        if route.Type != "std" {
+        if !strings.HasPrefix(urlpath, mod.Name) && mod.Name != "default" {
             continue
         }
 
-        if rtlen < route.TreeLen {
-            continue
-        }
+        urlpath = strings.TrimPrefix(strings.TrimPrefix(urlpath, mod.Name), "/")
+        rt := strings.Split(urlpath, "/")
+        rtlen := len(rt)
 
-        matRoute := 0
-        ctrlName := ""
-        methodName := ""
+        //Println("Router MAT", mod)
 
-        for i, node := range route.Tree {
+        for _, route := range mod.Routes {
 
-            if node == ":controller" {
-                ctrlName = rt[i]
-                matRoute++
+            if route.Type == "static" && strings.HasPrefix(urlpath, route.Path) {
+
+                file := route.Tree[0] + "/" + urlpath[len(route.Path):]
+                finfo, err := os.Stat(file)
+
+                if err != nil {
+                    http.NotFound(c.Response.Out, c.Request.Request)
+                    return
+                }
+
+                if finfo.IsDir() {
+                    http.NotFound(c.Response.Out, c.Request.Request)
+                    return
+                }
+
+                http.ServeFile(c.Response.Out, c.Request.Request, file)
+                return
+            }
+
+            // TODO
+            if route.Type != "std" {
                 continue
             }
 
-            if node == ":action" {
-                methodName = rt[i]
-                matRoute++
+            if rtlen < route.TreeLen {
                 continue
             }
 
-            if node == rt[i] {
-                matRoute++
+            matRoute := 0
+            ctrlName := ""
+            methodName := ""
+
+            for i, node := range route.Tree {
+
+                if node == ":controller" {
+                    ctrlName = rt[i]
+                    matRoute++
+                    continue
+                }
+
+                if node == ":action" {
+                    methodName = rt[i]
+                    matRoute++
+                    continue
+                }
+
+                if node == rt[i] {
+                    matRoute++
+                }
+            }
+
+            if matRoute == route.TreeLen {
+
+                if len(ctrlName) > 0 {
+                    c.Name = strings.Replace(strings.Title(ctrlName), "-", "", -1)
+                } else {
+                    c.Name = "Index"
+                }
+
+                if len(methodName) > 0 {
+                    c.MethodName = strings.Replace(strings.Title(methodName), "-", "", -1)
+
+                } else {
+                    c.MethodName = "Index"
+                }
+
+                break
             }
         }
 
-        if matRoute == route.TreeLen {
+        c.ModuleName = mod.Name
 
-            if len(ctrlName) > 0 {
-                c.Name = strings.Replace(strings.Title(ctrlName), "-", "", -1)
-            } else {
-                c.Name = "Index"
-            }
+        //Println("Router controllers added")
 
-            if len(methodName) > 0 {
-                c.MethodName = strings.Replace(strings.Title(methodName), "-", "", -1)
-
-            } else {
-                c.MethodName = "Index"
-            }
-
-            break
+        ctrl, ok := controllers[c.ModuleName+c.Name]
+        if !ok {
+            return // TODO
         }
+
+        //Println("Router controllers added", c)
+
+        var (
+            appControllerPtr = reflect.New(ctrl.Type)
+            appController    = appControllerPtr.Elem()
+            cValue           = reflect.ValueOf(c)
+        )
+
+        for _, index := range ctrl.ControllerIndexes {
+            appController.FieldByIndex(index).Set(cValue)
+        }
+
+        c.AppController = appControllerPtr.Interface()
+
+        break
     }
 
-    ctrl, ok := controllers[c.Name]
-    if !ok {
-        return // TODO
-    }
-
-    var (
-        appControllerPtr = reflect.New(ctrl.Type)
-        appController    = appControllerPtr.Elem()
-        cValue           = reflect.ValueOf(c)
-    )
-
-    for _, index := range ctrl.ControllerIndexes {
-        appController.FieldByIndex(index).Set(cValue)
-    }
-
-    c.AppController = appControllerPtr.Interface()
 }

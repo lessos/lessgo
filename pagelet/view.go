@@ -22,14 +22,19 @@ var (
 // This object handles loading and parsing of templates.
 // Everything below the application's views directory is treated as a template.
 type TemplateLoader struct {
+
     // This is the set of all templates under views
-    templateSet *template.Template
+    //templateSet *template.Template
+
     // If an error was encountered parsing the templates, it is stored here.
     //compileError *Error
     // Paths to search for templates, in priority order.
-    paths []string
+    //paths []string
+
     // Map from template name to the path from whence it was loaded.
     templatePaths map[string]string
+
+    templateSets map[string]*template.Template
 }
 
 type Template interface {
@@ -38,20 +43,41 @@ type Template interface {
     Render(wr io.Writer, arg interface{}) error
 }
 
-func NewTemplateLoader(paths []string) *TemplateLoader {
+func NewTemplateLoader() *TemplateLoader {
 
     loader := &TemplateLoader{
-        paths:         paths,
+        //paths: []string{},
+        //paths2:        map[string][]string{},
         templatePaths: map[string]string{},
-        templateSet:   nil,
+        //templateSet:   nil,
+        templateSets: map[string]*template.Template{},
     }
     //fmt.Println("NewTemplateLoader", loader)
 
+    for _, v := range Config.Module {
+        loader.Init(v)
+    }
+
+    return loader
+}
+
+func (loader *TemplateLoader) Init(cfgMod ConfigModule) {
+
+    //var ok bool
+    //var set *template.Template = nil
+    loaderTemplateSet, _ := loader.templateSets[cfgMod.Name]
+
     var splitDelims []string
+
     ViewsPath := ""
+
+    //set, ok := loader.templateSets[module]
+    //if !ok {
+    //set = &TemplateModule{}
+    //}
     //var templateSet *template.Template = nil
 
-    for _, baseDir := range loader.paths {
+    for _, baseDir := range cfgMod.ViewPaths {
 
         _ = filepath.Walk(baseDir, func(path string, info os.FileInfo, err error) error {
 
@@ -63,17 +89,15 @@ func NewTemplateLoader(paths []string) *TemplateLoader {
                 return nil
             }
 
-            fmt.Println(info.Name())
-
             var fileStr string
 
             addTemplate := func(templateName string) (err error) {
 
-                if _, ok := loader.templatePaths[templateName]; ok {
+                if _, ok := loader.templatePaths[cfgMod.Name+templateName]; ok {
                     return nil
                 }
 
-                loader.templatePaths[templateName] = path
+                loader.templatePaths[cfgMod.Name+templateName] = path
 
                 // Load the file if we haven't already
                 if fileStr == "" {
@@ -86,7 +110,7 @@ func NewTemplateLoader(paths []string) *TemplateLoader {
                     fileStr = string(fileBytes)
                 }
 
-                if loader.templateSet == nil {
+                if loaderTemplateSet == nil {
 
                     var funcError error
 
@@ -98,17 +122,19 @@ func NewTemplateLoader(paths []string) *TemplateLoader {
                             }
                         }()
 
-                        loader.templateSet = template.New(templateName).Funcs(TemplateFuncs)
+                        loaderTemplateSet = template.New(templateName).Funcs(TemplateFuncs)
                         // If alternate delimiters set for the project, change them for this set
                         if splitDelims != nil && baseDir == ViewsPath {
-                            loader.templateSet.Delims(splitDelims[0], splitDelims[1])
+                            loaderTemplateSet.Delims(splitDelims[0], splitDelims[1])
                         } else {
                             // Reset to default otherwise
-                            loader.templateSet.Delims("", "")
+                            loaderTemplateSet.Delims("", "")
                         }
 
                         //fmt.Println("fileStr", templateName)
-                        _, err = loader.templateSet.Parse(fileStr)
+                        _, err = loaderTemplateSet.Parse(fileStr)
+
+                        loader.templateSets[cfgMod.Name] = loaderTemplateSet
                     }()
 
                     if funcError != nil {
@@ -118,11 +144,11 @@ func NewTemplateLoader(paths []string) *TemplateLoader {
                 } else {
 
                     if splitDelims != nil && baseDir == ViewsPath {
-                        loader.templateSet.Delims(splitDelims[0], splitDelims[1])
+                        loaderTemplateSet.Delims(splitDelims[0], splitDelims[1])
                     } else {
-                        loader.templateSet.Delims("", "")
+                        loaderTemplateSet.Delims("", "")
                     }
-                    _, err = loader.templateSet.New(templateName).Parse(fileStr)
+                    _, err = loaderTemplateSet.New(templateName).Parse(fileStr)
 
                 }
 
@@ -148,12 +174,15 @@ func NewTemplateLoader(paths []string) *TemplateLoader {
 
     //fmt.Println("loader.templateSet", loader.templateSet)
 
-    return loader
 }
 
-func (loader *TemplateLoader) Template(name string) (Template, error) {
+func (loader *TemplateLoader) Template(module, name string) (Template, error) {
 
-    //fmt.Println(tmpl)
+    set, ok := loader.templateSets[module]
+    if !ok {
+        return nil, fmt.Errorf("Template %s:%s not found.", module, name)
+    }
+    //Println("loader.templateSet", module, name)
     // This is necessary.
     // If a nil loader.compileError is returned directly, a caller testing against
     // nil will get the wrong result.  Something to do with casting *Error to error.
@@ -162,7 +191,7 @@ func (loader *TemplateLoader) Template(name string) (Template, error) {
     //	err = loader.compileError
     //}
 
-    tmpl := loader.templateSet.Lookup(name)
+    tmpl := set.Lookup(name)
     //fmt.Println("loader.templateSet.Lookup", tmpl)
     if tmpl == nil && err == nil {
         return nil, fmt.Errorf("Template %s not found.", name)

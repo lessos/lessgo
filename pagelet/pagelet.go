@@ -4,13 +4,27 @@ import (
     "fmt"
     "net/http"
     "strconv"
-    "strings"
+    //"strings"
     "time"
 )
 
+// APIs
+//
+//  pagelet.Config.UrlBasePath string
+//  pagelet.Config.HttpPort int
+//
+//  pagelet.Config.ViewPath(module, path string)
+//  pagelet.Config.RouteAppend(patten, action string)
+//  pagelet.Config.RouteStaticAppend(patten, path string)
+//
+//  pagelet.RegisterController(module string, (*Object)(nil), []string)
+//  pagelet.Run()
+
 var (
-    Config             = ConfigStruct{HttpPort: 1024}
-    MainRouter         = &Router{Routes: []Route{}}
+    Config = ConfigBase{
+        HttpPort: 1024,
+    }
+    MainRouter         = &Router{Routes: []Route{}, Modules: map[string][]Route{}}
     MainTemplateLoader *TemplateLoader
     Server             *http.Server
 )
@@ -25,23 +39,31 @@ func Printf(str string, args ...interface{}) {
 func Run() {
 
     //
-    MainRouter.RouteStaticAppend("/static", "static")
+    /*
+       MainRouter.RouteStaticAppend("/static", "static")
 
+       //
+       route := Route{
+           Type:    "std",
+           Path:    "/:controller/:action",
+           Tree:    []string{":controller", ":action"},
+           TreeLen: 2,
+       }
+       MainRouter.Routes = append(MainRouter.Routes, route)
+    */
+
+    //Println("config", Config)
+    //for k, v := range Config.ViewPaths {
+
+    //}
+
+    //paths := strings.Split(Config.ViewPaths["def"], ",")
+    //paths = append(paths, "../src/views")
+    //paths = append(paths, "src/views")
+
+    //Println(Config)
     //
-    route := Route{
-        Type:    "std",
-        Path:    "/:controller/:action",
-        Tree:    []string{":controller", ":action"},
-        TreeLen: 2,
-    }
-    MainRouter.Routes = append(MainRouter.Routes, route)
-
-    paths := strings.Split(Config.ViewPaths, ",")
-    paths = append(paths, "../src/views")
-    paths = append(paths, "src/views")
-
-    //
-    MainTemplateLoader = NewTemplateLoader(paths)
+    MainTemplateLoader = NewTemplateLoader()
 
     go func() {
 

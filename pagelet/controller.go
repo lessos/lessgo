@@ -9,6 +9,7 @@ import (
 type Controller struct {
     Name          string // The controller name, e.g. "App"
     MethodName    string // The method name, e.g. "Index"
+    ModuleName    string
     Request       *Request
     Response      *Response
     AppController interface{} // The controller that was instantiated.
@@ -39,9 +40,11 @@ func NewController(req *Request, resp *Response) *Controller {
 
 func ActionInvoker(c *Controller, _ []Filter) {
 
+    //
     if c.AppController == nil {
         return
     }
+    //Println("AAA")
 
     execController := reflect.ValueOf(c.AppController).MethodByName(c.MethodName)
 
@@ -67,6 +70,7 @@ func (c *Controller) Render(args ...interface{}) {
         templatePath = args[1].(string)
     }
 
+    //Println(c.ModuleName, templatePath)
     // Handle panics when rendering templates.
     defer func() {
         if err := recover(); err != nil {
@@ -74,7 +78,7 @@ func (c *Controller) Render(args ...interface{}) {
         }
     }()
 
-    template, err := MainTemplateLoader.Template(templatePath)
+    template, err := MainTemplateLoader.Template(c.ModuleName, templatePath)
     if err != nil {
         return //c.RenderError(err)
     }
@@ -89,7 +93,7 @@ func (c *Controller) Render(args ...interface{}) {
     }
 }
 
-func RegisterController(c interface{}, methods []string) {
+func RegisterController(module string, c interface{}, methods []string) {
 
     v := reflect.ValueOf(c)
     if !v.IsValid() {
@@ -112,7 +116,7 @@ func RegisterController(c interface{}, methods []string) {
         }
     }
 
-    controllers[elem.Name()] = cm
+    controllers[module+elem.Name()] = cm
 }
 
 func findControllers(appControllerType reflect.Type) (indexes [][]int) {
