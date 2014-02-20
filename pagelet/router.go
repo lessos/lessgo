@@ -54,7 +54,7 @@ func RouterFilter(c *Controller, fc []Filter) {
         rt := strings.Split(urlpath, "/")
         rtlen := len(rt)
 
-        //Println("Router MAT", mod)
+        //println("Router MAT", mod)
 
         for _, route := range mod.Routes {
 
@@ -130,14 +130,14 @@ func RouterFilter(c *Controller, fc []Filter) {
 
         c.ModuleName = mod.Name
 
-        //Println("Router controllers added")
+        //println("Router controllers added")
 
         ctrl, ok := controllers[c.ModuleName+c.Name]
         if !ok {
             return // TODO
         }
 
-        //Println("Router controllers added", c)
+        //println("Router controllers added", c)
 
         var (
             appControllerPtr = reflect.New(ctrl.Type)

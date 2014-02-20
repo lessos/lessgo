@@ -197,21 +197,26 @@ func (loader *TemplateLoader) Template(module, name string) (Template, error) {
         return nil, fmt.Errorf("Template %s not found.", name)
     }
 
-    return GoTemplate{tmpl, loader}, err
+    return goTemplate{tmpl, loader}, err
 }
 
 // Adapter for Go Templates.
-type GoTemplate struct {
+type goTemplate struct {
     *template.Template
     loader *TemplateLoader
 }
 
 // return a 'revel.Template' from Go's template.
-func (gotmpl GoTemplate) Render(wr io.Writer, arg interface{}) error {
+func (gotmpl goTemplate) Render(wr io.Writer, arg interface{}) error {
     return gotmpl.Execute(wr, arg)
 }
 
-func (gotmpl GoTemplate) Content() []string {
-    content, _ := ReadLines(gotmpl.loader.templatePaths[gotmpl.Name()])
-    return content
+func (gotmpl goTemplate) Content() []string {
+
+    bytes, err := ioutil.ReadFile(gotmpl.loader.templatePaths[gotmpl.Name()])
+    if err != nil {
+        return []string{}
+    }
+
+    return strings.Split(string(bytes), "\n")
 }

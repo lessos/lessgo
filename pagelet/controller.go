@@ -44,7 +44,7 @@ func ActionInvoker(c *Controller, _ []Filter) {
     if c.AppController == nil {
         return
     }
-    //Println("AAA")
+    //println("AAA")
 
     execController := reflect.ValueOf(c.AppController).MethodByName(c.MethodName)
 
@@ -60,7 +60,7 @@ func ActionInvoker(c *Controller, _ []Filter) {
         c.Render()
     }
 
-    //Println("ActionInvoker DONE")
+    //println("ActionInvoker DONE")
 }
 
 func (c *Controller) Render(args ...interface{}) {
@@ -70,7 +70,7 @@ func (c *Controller) Render(args ...interface{}) {
         templatePath = args[1].(string)
     }
 
-    //Println(c.ModuleName, templatePath)
+    //println(c.ModuleName, templatePath)
     // Handle panics when rendering templates.
     defer func() {
         if err := recover(); err != nil {

@@ -34,6 +34,7 @@ func (c *ConfigBase) moduleInit(module string) {
     c.Module = append(c.Module, m)
 }
 
+// RouteStaticAppend
 func (c *ConfigBase) RouteStaticAppend(module, path, pathto string) {
 
     c.moduleInit(module)
@@ -49,7 +50,7 @@ func (c *ConfigBase) RouteStaticAppend(module, path, pathto string) {
             Path: strings.Trim(path, "/"),
             Tree: []string{pathto},
         }
-        //Println(route)
+        //println(route)
         c.Module[i].Routes = append(v.Routes, route)
 
         break

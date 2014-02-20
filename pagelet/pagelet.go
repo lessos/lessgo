@@ -29,10 +29,10 @@ var (
     Server             *http.Server
 )
 
-func Println(args ...interface{}) {
+func println(args ...interface{}) {
     fmt.Println(args...)
 }
-func Printf(str string, args ...interface{}) {
+func printf(str string, args ...interface{}) {
     fmt.Printf(str+"\n", args...)
 }
 
@@ -52,7 +52,7 @@ func Run() {
        MainRouter.Routes = append(MainRouter.Routes, route)
     */
 
-    //Println("config", Config)
+    //println("config", Config)
     //for k, v := range Config.ViewPaths {
 
     //}
@@ -61,7 +61,7 @@ func Run() {
     //paths = append(paths, "../src/views")
     //paths = append(paths, "src/views")
 
-    //Println(Config)
+    //println(Config)
     //
     MainTemplateLoader = NewTemplateLoader()
 
@@ -80,7 +80,7 @@ func Run() {
 
     go func() {
         time.Sleep(100 * time.Millisecond)
-        Printf("lessgo/pagelet: Listening on port %d ...", Config.HttpPort)
+        printf("lessgo/pagelet: Listening on port %d ...", Config.HttpPort)
     }()
 }
 
@@ -89,7 +89,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
     defer func() {
 
         if err := recover(); err != nil {
-            Println("handle", err)
+            println("handle", err)
         }
     }()
 
