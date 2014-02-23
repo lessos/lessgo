@@ -1,6 +1,7 @@
 package pagelet
 
 import (
+    "../i18n"
     "errors"
     "fmt"
     "html/template"
@@ -16,7 +17,11 @@ type View interface {
 }
 
 var (
-    TemplateFuncs = map[string]interface{}{}
+    TemplateFuncs = map[string]interface{}{
+        "T": func(format string) string {
+            return i18n.T(format)
+        },
+    }
 )
 
 // This object handles loading and parsing of templates.

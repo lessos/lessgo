@@ -1,6 +1,7 @@
 package pagelet
 
 import (
+    "../i18n"
     "strings"
 )
 
@@ -112,4 +113,8 @@ func (c *ConfigBase) ViewPath(module, path string) {
 
         break
     }
+}
+
+func (c *ConfigBase) I18n(file string) {
+    i18n.Config(file)
 }

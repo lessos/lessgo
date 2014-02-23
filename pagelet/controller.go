@@ -1,6 +1,7 @@
 package pagelet
 
 import (
+    "../i18n"
     "io"
     "net/http"
     "reflect"
@@ -35,6 +36,7 @@ func NewController(req *Request, resp *Response) *Controller {
         Request:    req,
         Response:   resp,
         AutoRender: true,
+        ViewData:   map[string]interface{}{},
     }
 }
 
@@ -83,14 +85,20 @@ func (c *Controller) Render(args ...interface{}) {
         return //c.RenderError(err)
     }
 
+    //c.ViewData["test"] = "TEST"
     // If it's a HEAD request, throw away the bytes.
     out := io.Writer(c.Response.Out)
 
     c.Response.WriteHeader(http.StatusOK, "text/html; charset=utf-8")
+    //println(c.ViewData)
 
     if err = template.Render(out, c.ViewData); err != nil {
         //
     }
+}
+
+func (c *Controller) Lang(str string) string {
+    return i18n.T(str)
 }
 
 func RegisterController(module string, c interface{}, methods []string) {

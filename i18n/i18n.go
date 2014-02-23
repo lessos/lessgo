@@ -38,7 +38,7 @@ func Config(path string) {
         return
     }
 
-    if Locale == cfg.Locale {
+    if Locale != cfg.Locale {
         Locale = cfg.Locale
     }
 
@@ -51,17 +51,14 @@ func Config(path string) {
         }
     }
 
-    //fmt.Println(i18n)
 }
 
 func T(key string) string {
 
     key = strings.ToLower(Locale + "." + key)
-
     if v, ok := i18n[key]; ok {
         return v
     }
-
     return key
 }
 
