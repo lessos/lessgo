@@ -96,8 +96,8 @@ func (c *Controller) Render(args ...interface{}) {
     }
 }
 
-func (c *Controller) Lang(str string) string {
-    return i18nTranslate(c.Request.Locale, str)
+func (c *Controller) T(msg string, args ...interface{}) string {
+    return i18nTranslate(c.Request.Locale, msg, args...)
 }
 
 func RegisterController(module string, c interface{}, methods []string) {

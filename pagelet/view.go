@@ -17,8 +17,8 @@ type View interface {
 
 var (
     TemplateFuncs = map[string]interface{}{
-        "T": func(lang, format string) string {
-            return i18nTranslate(lang, format)
+        "T": func(lang map[string]interface{}, msg string, args ...interface{}) string {
+            return i18nTranslate(lang["LANG"].(string), msg, args...)
         },
     }
 )
@@ -27,17 +27,10 @@ var (
 // Everything below the application's views directory is treated as a template.
 type TemplateLoader struct {
 
-    // This is the set of all templates under views
-    //templateSet *template.Template
-
-    // If an error was encountered parsing the templates, it is stored here.
-    //compileError *Error
-    // Paths to search for templates, in priority order.
-    //paths []string
-
     // Map from template name to the path from whence it was loaded.
     templatePaths map[string]string
 
+    // This is the set of all templates under views
     templateSets map[string]*template.Template
 }
 

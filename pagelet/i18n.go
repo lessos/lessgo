@@ -65,17 +65,22 @@ func i18nLoadMessages(file string) {
     }
 }
 
-func i18nTranslate(locale, format string) string {
+func i18nTranslate(locale, msg string, args ...interface{}) string {
 
-    key := strings.ToLower(locale + "." + format)
+    key := strings.ToLower(locale + "." + msg)
+    keydef := strings.ToLower(sysLocale + "." + msg)
+
     if v, ok := i18n[key]; ok {
-        return v
+        msg = v
+    } else if v, ok := i18n[keydef]; ok {
+        msg = v
     }
-    key = strings.ToLower(sysLocale + "." + format)
-    if v, ok := i18n[key]; ok {
-        return v
+
+    if len(args) > 0 {
+        return fmt.Sprintf(msg, args...)
+    } else {
+        return msg
     }
-    return key
 }
 
 func i18nFsFileGetRead(path string) (string, error) {
