@@ -1,4 +1,4 @@
-package i18n
+package pagelet
 
 import (
     "../utils"
@@ -11,24 +11,39 @@ import (
 )
 
 var (
-    i18n   map[string]string = map[string]string{}
-    Locale string            = "en_US"
+    i18n      map[string]string = map[string]string{}
+    sysLocale string            = "en"
 )
 
-type config struct {
+type i18nConfig struct {
     Locale string `json:"locale"`
-    Data   []configItem
+    Data   []i18nConfigItem
 }
-type configItem struct {
+type i18nConfigItem struct {
     Key string `json:"key"`
     Val string `json:"val"`
 }
 
-func Config(path string) {
+func I18nFilter(c *Controller, fc []Filter) {
 
-    var cfg config
+    if v, e := c.Request.Cookie(Config.LocaleCookieKey); e == nil {
+        c.Request.Locale = v.Value
+    } else if len(c.Request.AcceptLanguage) > 0 {
+        c.Request.Locale = c.Request.AcceptLanguage[0].Language
+    } else {
+        c.Request.Locale = sysLocale
+    }
 
-    str, err := fsFileGetRead(path)
+    c.ViewData["LANG"] = c.Request.Locale
+
+    fc[0](c, fc[1:])
+}
+
+func i18nLoadMessages(file string) {
+
+    var cfg i18nConfig
+
+    str, err := i18nFsFileGetRead(file)
     if err != nil {
         return
     }
@@ -38,9 +53,7 @@ func Config(path string) {
         return
     }
 
-    if Locale != cfg.Locale {
-        Locale = cfg.Locale
-    }
+    cfg.Locale = strings.Replace(cfg.Locale, "_", "-", 1)
 
     for _, v := range cfg.Data {
 
@@ -50,19 +63,22 @@ func Config(path string) {
             i18n[key] = v.Val
         }
     }
-
 }
 
-func T(key string) string {
+func i18nTranslate(locale, format string) string {
 
-    key = strings.ToLower(Locale + "." + key)
+    key := strings.ToLower(locale + "." + format)
+    if v, ok := i18n[key]; ok {
+        return v
+    }
+    key = strings.ToLower(sysLocale + "." + format)
     if v, ok := i18n[key]; ok {
         return v
     }
     return key
 }
 
-func fsFileGetRead(path string) (string, error) {
+func i18nFsFileGetRead(path string) (string, error) {
 
     reg, _ := regexp.Compile("/+")
     path = "/" + strings.Trim(reg.ReplaceAllString(path, "/"), "/")

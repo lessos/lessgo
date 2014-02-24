@@ -1,7 +1,6 @@
 package pagelet
 
 import (
-    "../i18n"
     "io"
     "net/http"
     "reflect"
@@ -98,7 +97,7 @@ func (c *Controller) Render(args ...interface{}) {
 }
 
 func (c *Controller) Lang(str string) string {
-    return i18n.T(str)
+    return i18nTranslate(c.Request.Locale, str)
 }
 
 func RegisterController(module string, c interface{}, methods []string) {

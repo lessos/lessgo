@@ -1,14 +1,14 @@
 package pagelet
 
 import (
-    "../i18n"
     "strings"
 )
 
 type ConfigBase struct {
-    UrlBasePath string
-    HttpPort    int
-    Module      []ConfigModule
+    UrlBasePath     string
+    HttpPort        int
+    Module          []ConfigModule
+    LocaleCookieKey string
 }
 
 type ConfigModule struct {
@@ -116,5 +116,5 @@ func (c *ConfigBase) ViewPath(module, path string) {
 }
 
 func (c *ConfigBase) I18n(file string) {
-    i18n.Config(file)
+    i18nLoadMessages(file)
 }
