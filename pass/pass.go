@@ -6,41 +6,67 @@ import (
     "encoding/base64"
     "io"
     "strconv"
+    "errors"
 )
 
-var DefVersion = "L1"
+const (
+    // Define the radix 64 encoding/decoding scheme,
+    alphabet = "jbzB3WM6uYrPd20plhngE1U45QZLTOcsCy8mVwHkq9RFI/SKGeAXJifNaxt7oD+v"
+)
 
-func Hash(algo, passwd string) string {
+var (
+    // Define the default hashing algorithm
+    AlgoDefault = "L001"
+    // New base64 encoder
+    b64Encoding = base64.NewEncoding(alphabet)
+)
 
-    u := make([]byte, 16)
-    _, err := io.ReadFull(rand.Reader, u)
-    if err != nil {
-        return ""
+
+func HashDefault(passwd string) (string, error) {
+
+    u := make([]byte, 15) // 120-bit
+    if _, err := io.ReadFull(rand.Reader, u); err != nil {
+        return "", errors.New("Error: rand.Reader")
     }
-    salt := base64.StdEncoding.EncodeToString(u)
 
-    hash, _ := scrypt.Key([]byte(passwd), []byte(salt), 1<<16, 8, 1, 32)
+    salt := b64Encoding.EncodeToString(u)
+    if len(salt) != 20 {
+        return "", errors.New("Error: base64.Encode")
+    }
 
-    return "L1g81" +
+    hash, err := scrypt.Key([]byte(passwd), u, 1<<16, 8, 1, 36)
+    if err != nil {
+        return "", err
+    }
+
+    //  0,4   A     The string name of a hashing algorithm
+    //  4,1   N     CPU cost parameter, 0-9a-z (0~35)   
+    //  5,1   r     Memory cost parameter, 0-9a-z (0~35)
+    //  6,1   p     Parallelization parameter, 0-9a-z (0~35)
+    //  7,20  salt  120-bit salt, convert to base64
+    // 27,48  hash  288-bit derived key, convert to base64
+    return AlgoDefault + 
+        "g81" +
         salt +
-        base64.StdEncoding.EncodeToString(hash)
+        b64Encoding.EncodeToString(hash), nil
 }
 
-func Check(passwd, hashed string) bool {
 
-    if len(hashed) < 40 {
+func Check(passwd, hash string) bool {
+
+    if len(hash) < 40 {
         return false
     }
 
-    if hashed[:2] == "L1" {
-        N, _ := strconv.ParseUint(hashed[2:3], 36, 32)
-        r, _ := strconv.ParseUint(hashed[3:4], 36, 32)
-        p, _ := strconv.ParseUint(hashed[4:5], 36, 32)
-        salt := hashed[5:29]
+    if hash[:4] == AlgoDefault {
+        N, _ := strconv.ParseUint(hash[4:5], 36, 32)
+        r, _ := strconv.ParseUint(hash[5:6], 36, 32)
+        p, _ := strconv.ParseUint(hash[6:7], 36, 32)
+        salt, _ := b64Encoding.DecodeString(hash[7:27])
 
-        hash, _ := scrypt.Key([]byte(passwd), []byte(salt), 1<<N, int(r), int(p), 32)
+        key, _ := scrypt.Key([]byte(passwd), salt, 1<<N, int(r), int(p), 36)
 
-        return hashed[29:] == base64.StdEncoding.EncodeToString(hash)
+        return hash[27:] == b64Encoding.EncodeToString(key)
     }
 
     return false
