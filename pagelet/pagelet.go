@@ -4,7 +4,6 @@ import (
     "fmt"
     "net/http"
     "strconv"
-    //"strings"
     "time"
 )
 
@@ -38,29 +37,6 @@ func printf(str string, args ...interface{}) {
 }
 
 func Run() {
-
-    //
-    /*
-       MainRouter.RouteStaticAppend("/static", "static")
-
-       //
-       route := Route{
-           Type:    "std",
-           Path:    "/:controller/:action",
-           Tree:    []string{":controller", ":action"},
-           TreeLen: 2,
-       }
-       MainRouter.Routes = append(MainRouter.Routes, route)
-    */
-
-    //println("config", Config)
-    //for k, v := range Config.ViewPaths {
-
-    //}
-
-    //paths := strings.Split(Config.ViewPaths["def"], ",")
-    //paths = append(paths, "../src/views")
-    //paths = append(paths, "src/views")
 
     //println(Config)
     //

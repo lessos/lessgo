@@ -1,13 +1,12 @@
 package utils
 
 import (
+    "errors"
     "math/rand"
     "net"
     "strconv"
     "time"
-    "errors"
 )
-
 
 func NetFreePort(start, end int) (error, int, string) {
 
@@ -30,7 +29,7 @@ func NetFreePort(start, end int) (error, int, string) {
         if try < 0 {
             return errors.New("Error"), 0, "0"
         }
-        iport := start + r.Intn(end - start)
+        iport := start + r.Intn(end-start)
 
         port := strconv.Itoa(iport)
         ln, err := net.Listen("tcp", ":"+port)
