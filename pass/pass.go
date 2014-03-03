@@ -21,7 +21,7 @@ var (
     b64Encoding = base64.NewEncoding(alphabet)
 )
 
-
+// HashDefault derives a key from password
 func HashDefault(passwd string) (string, error) {
 
     u := make([]byte, 15) // 120-bit
@@ -34,7 +34,7 @@ func HashDefault(passwd string) (string, error) {
         return "", errors.New("Error: base64.Encode")
     }
 
-    hash, err := scrypt.Key([]byte(passwd), u, 1<<16, 8, 1, 36)
+    hash, err := scrypt.Key([]byte(passwd), u, 1<<15, 8, 1, 36)
     if err != nil {
         return "", err
     }
@@ -46,12 +46,12 @@ func HashDefault(passwd string) (string, error) {
     //  7,20  salt  120-bit salt, convert to base64
     // 27,48  hash  288-bit derived key, convert to base64
     return AlgoDefault + 
-        "g81" +
+        "f81" +
         salt +
         b64Encoding.EncodeToString(hash), nil
 }
 
-
+// Check reports whether the given password and hashed key match
 func Check(passwd, hash string) bool {
 
     if len(hash) < 40 {
