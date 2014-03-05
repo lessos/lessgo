@@ -76,5 +76,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
         c    = NewController(req, resp)
     )
 
-    Filters[0](c, Filters[1:])
+    for _, filter := range Filters {
+        filter(c)
+    }
 }

@@ -28,11 +28,7 @@ type RouteMatch struct {
     Params         map[string]string // e.g. {id: 123}
 }
 
-func RouterFilter(c *Controller, fc []Filter) {
-
-    defer func() {
-        fc[0](c, fc[1:])
-    }()
+func RouterFilter(c *Controller) {
 
     urlpath := strings.Trim(filepath.Clean(c.Request.URL.Path), "/")
 

@@ -24,7 +24,7 @@ type i18nConfigItem struct {
     Val string `json:"val"`
 }
 
-func I18nFilter(c *Controller, fc []Filter) {
+func I18nFilter(c *Controller) {
 
     if v, e := c.Request.Cookie(Config.LocaleCookieKey); e == nil {
         c.Request.Locale = v.Value
@@ -35,8 +35,6 @@ func I18nFilter(c *Controller, fc []Filter) {
     }
 
     c.ViewData["LANG"] = c.Request.Locale
-
-    fc[0](c, fc[1:])
 }
 
 func i18nLoadMessages(file string) {
