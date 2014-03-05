@@ -47,7 +47,7 @@ func ActionInvoker(c *Controller) {
     }
     //println("AAA")
 
-    execController := reflect.ValueOf(c.AppController).MethodByName(c.MethodName)
+    execController := reflect.ValueOf(c.AppController).MethodByName(c.MethodName + "Action")
 
     args := []reflect.Value{}
     if execController.Type().IsVariadic() {
@@ -108,7 +108,7 @@ func (c *Controller) T(msg string, args ...interface{}) string {
     return i18nTranslate(c.Request.Locale, msg, args...)
 }
 
-func RegisterController(module string, c interface{}, methods []string) {
+func RegisterController(module string, c interface{}) {
 
     v := reflect.ValueOf(c)
     if !v.IsValid() {
@@ -117,6 +117,14 @@ func RegisterController(module string, c interface{}, methods []string) {
 
     t := reflect.TypeOf(c)
     elem := t.Elem()
+
+    methods := []string{}
+    for i := 0; i < elem.NumMethod(); i++ {
+        m := elem.Method(i)
+        if len(m.Name) > 6 && m.Name[len(m.Name)-6:] == "Action" {
+            methods = append(methods, m.Name)
+        }
+    }
 
     cm := &ControllerType{
         Type:              elem,
