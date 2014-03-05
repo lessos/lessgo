@@ -39,7 +39,7 @@ func NewController(req *Request, resp *Response) *Controller {
     }
 }
 
-func ActionInvoker(c *Controller, _ []Filter) {
+func ActionInvoker(c *Controller) {
 
     //
     if c.AppController == nil {
@@ -65,6 +65,8 @@ func ActionInvoker(c *Controller, _ []Filter) {
 }
 
 func (c *Controller) Render(args ...interface{}) {
+
+    c.AutoRender = false
 
     templatePath := c.Name + "/" + c.MethodName + ".tpl"
     if len(args) == 1 && reflect.TypeOf(args[0]).Kind() == reflect.String {
@@ -94,6 +96,12 @@ func (c *Controller) Render(args ...interface{}) {
     if err = template.Render(out, c.ViewData); err != nil {
         //
     }
+}
+
+func (c *Controller) RenderError(status int, msg string) {
+    c.AutoRender = false
+    c.Response.WriteHeader(status, "text/html; charset=utf-8")
+    io.WriteString(c.Response.Out, msg)
 }
 
 func (c *Controller) T(msg string, args ...interface{}) string {
