@@ -3,7 +3,8 @@ package rdc
 import (
     "database/sql"
     "errors"
-    //"fmt"
+    "fmt"
+    "strings"
     _ "github.com/mattn/go-sqlite3"
     "reflect"
     "time"
@@ -48,7 +49,32 @@ func (cn *Conn) Close() {
     cn.db.Close()
 }
 
-func (cn *Conn) Insert(tblname string, item interface{}) error {
+func (cn *Conn) Insert(tblname string, item map[string]interface{}) error {
+
+    cols, vars, vals := []string{}, []string{}, []interface{}{}
+    for key, val := range item {
+        cols = append(cols, key)
+        vars = append(vars, "?")
+        vals = append(vals, val)
+    }
+
+    sql := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)",
+        tblname, 
+        strings.Join(cols, ","),
+        strings.Join(vars, ","))
+
+    stmt, err := cn.db.Prepare(sql)
+    if err != nil {
+        return err
+    }
+    defer stmt.Close()
+
+
+    _, err = stmt.Exec(vals...)
+    if err != nil {
+        return err
+    }
+
     return nil
 }
 
@@ -57,6 +83,7 @@ func (cn *Conn) Delete(tblname string, where interface{}) error {
 }
 
 func (cn *Conn) Update(tblname string, item interface{}, where interface{}) error {
+    //
     return nil
 }
 
