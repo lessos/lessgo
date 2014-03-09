@@ -78,7 +78,28 @@ func (cn *Conn) Insert(tblname string, item map[string]interface{}) error {
     return nil
 }
 
-func (cn *Conn) Delete(tblname string, where interface{}) error {
+func (cn *Conn) Delete(tblname string, fr Filter) error {
+
+    frsql, params := fr.Parse()
+    if len(params) == 0 {
+        return errors.New("Error in query syntax")
+    }
+
+    sql := fmt.Sprintf("DELETE FROM %s WHERE %s", tblname, frsql)
+
+    //fmt.Println(sql, params)
+
+    stmt, err := cn.db.Prepare(sql)
+    if err != nil {
+        return err
+    }
+    defer stmt.Close()
+
+    _, err = stmt.Exec(params...)
+    if err != nil {
+        return err
+    }
+
     return nil
 }
 
