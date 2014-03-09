@@ -4,9 +4,9 @@ import (
     "../deps/go.crypto/scrypt"
     "crypto/rand"
     "encoding/base64"
+    "errors"
     "io"
     "strconv"
-    "errors"
 )
 
 const (
@@ -40,12 +40,12 @@ func HashDefault(passwd string) (string, error) {
     }
 
     //  0,4   A     The string name of a hashing algorithm
-    //  4,1   N     CPU cost parameter, 0-9a-z (0~35)   
+    //  4,1   N     CPU cost parameter, 0-9a-z (0~35)
     //  5,1   r     Memory cost parameter, 0-9a-z (0~35)
     //  6,1   p     Parallelization parameter, 0-9a-z (0~35)
     //  7,20  salt  120-bit salt, convert to base64
     // 27,48  hash  288-bit derived key, convert to base64
-    return AlgoDefault + 
+    return AlgoDefault +
         "f81" +
         salt +
         b64Encoding.EncodeToString(hash), nil
