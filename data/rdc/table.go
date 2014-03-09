@@ -4,9 +4,9 @@ import (
     "database/sql"
     "errors"
     "fmt"
-    "strings"
     _ "github.com/mattn/go-sqlite3"
     "reflect"
+    "strings"
     "time"
 )
 
@@ -59,7 +59,7 @@ func (cn *Conn) Insert(tblname string, item map[string]interface{}) error {
     }
 
     sql := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)",
-        tblname, 
+        tblname,
         strings.Join(cols, ","),
         strings.Join(vars, ","))
 
@@ -68,7 +68,6 @@ func (cn *Conn) Insert(tblname string, item map[string]interface{}) error {
         return err
     }
     defer stmt.Close()
-
 
     _, err = stmt.Exec(vals...)
     if err != nil {
@@ -87,8 +86,6 @@ func (cn *Conn) Delete(tblname string, fr Filter) error {
 
     sql := fmt.Sprintf("DELETE FROM %s WHERE %s", tblname, frsql)
 
-    //fmt.Println(sql, params)
-
     stmt, err := cn.db.Prepare(sql)
     if err != nil {
         return err
@@ -103,8 +100,37 @@ func (cn *Conn) Delete(tblname string, fr Filter) error {
     return nil
 }
 
-func (cn *Conn) Update(tblname string, item interface{}, where interface{}) error {
-    //
+func (cn *Conn) Update(tblname string, item map[string]interface{}, fr Filter) error {
+
+    frsql, params := fr.Parse()
+    if len(params) == 0 {
+        return errors.New("Error in query syntax")
+    }
+
+    cols, vals := []string{}, []interface{}{}
+    for key, val := range item {
+        cols = append(cols, key+" = ?")
+        vals = append(vals, val)
+    }
+
+    vals = append(vals, params...)
+
+    sql := fmt.Sprintf("UPDATE %s SET %s WHERE %s",
+        tblname,
+        strings.Join(cols, ","),
+        frsql)
+
+    stmt, err := cn.db.Prepare(sql)
+    if err != nil {
+        return err
+    }
+    defer stmt.Close()
+
+    _, err = stmt.Exec(vals...)
+    if err != nil {
+        return err
+    }
+
     return nil
 }
 
