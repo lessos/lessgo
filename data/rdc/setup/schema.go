@@ -1,23 +1,25 @@
 package setup
 
-import (
-)
+import ()
 
 const (
-    FieldIndexIndex   int = 1
-    FieldIndexPrimary int = 2
-    FieldIndexUnique  int = 3
+
+    //FieldIndexPrimary     int = 1
+    //FieldIndexAutoPrimary int = 2
+    FieldIndexIndex  int = 3
+    FieldIndexUnique int = 4
 
     FieldTypeInt       string = "int"       // Integer
     FieldTypeUint      string = "uint"      // Integer - Unsigned
-    FieldTypeUinti     string = "uinti"     // Integer - Auto Increment
+    FieldTypeChar      string = "char"      // Char
     FieldTypeVarchar   string = "varchar"   // Varchar
     FieldTypeString    string = "text"      // Text
     FieldTypeTimestamp string = "timestamp" // Integer
 )
 
 type DataSet struct {
-    Tables []Table
+    Version uint `json:"version"`
+    Tables  []Table
 }
 
 type Table struct {
@@ -47,5 +49,3 @@ func NewDataSet() DataSet {
 func (s *DataSet) TableAdd(t Table) {
     s.Tables = append(s.Tables, t)
 }
-
-

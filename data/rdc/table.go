@@ -20,7 +20,8 @@ var configDrivers = map[string]bool{
 }
 
 type Conn struct {
-    db *sql.DB
+    db  *sql.DB
+    cfg Config
 }
 
 func NewConfig() Config {
@@ -41,6 +42,8 @@ func (c Config) Instance() (*Conn, error) {
     if err != nil {
         return nil, err
     }
+
+    cn.cfg = c
 
     return &cn, nil
 }
@@ -134,13 +137,9 @@ func (cn *Conn) Update(tblname string, item map[string]interface{}, fr Filter) e
     return nil
 }
 
-func (cn *Conn) Query(q *QuerySet) (rs []map[string]interface{}, err error) {
+func (cn *Conn) QueryRaw(sql string, params ...interface{}) (rs []map[string]interface{}, err error) {
 
-    sql, params := q.Parse()
-    if len(params) == 0 {
-        return rs, errors.New("Error in query syntax")
-    }
-
+    //fmt.Println("sql", sql, params)
     stmt, err := cn.db.Prepare(sql)
     if err != nil {
         return
@@ -151,6 +150,8 @@ func (cn *Conn) Query(q *QuerySet) (rs []map[string]interface{}, err error) {
     if err2 != nil {
         return
     }
+    defer rows.Close()
+    fmt.Println("query 2")
 
     fields, err3 := rows.Columns()
     if err3 != nil {
@@ -208,4 +209,14 @@ func (cn *Conn) Query(q *QuerySet) (rs []map[string]interface{}, err error) {
     }
 
     return
+}
+
+func (cn *Conn) Query(q *QuerySet) (rs []map[string]interface{}, err error) {
+
+    sql, params := q.Parse()
+    if len(params) == 0 {
+        return rs, errors.New("Error in query syntax")
+    }
+
+    return cn.QueryRaw(sql, params...)
 }

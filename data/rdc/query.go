@@ -32,6 +32,11 @@ func (q *QuerySet) From(s string) *QuerySet {
     return q
 }
 
+func (q *QuerySet) Order(s string) *QuerySet {
+    q.order = s
+    return q
+}
+
 func (q *QuerySet) Limit(num int64) *QuerySet {
     q.limit = num
     return q
@@ -57,7 +62,7 @@ func (q *QuerySet) Parse() (sql string, params []interface{}) {
     }
 
     if len(q.order) > 0 {
-        sql += q.order + " "
+        sql += "ORDER BY " + q.order + " "
     }
 
     if q.offset > 0 {
