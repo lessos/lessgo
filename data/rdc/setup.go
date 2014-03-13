@@ -30,13 +30,13 @@ func (cn *Conn) Setup(dsname string, ds setup.DataSet) error {
         return err
     }
 
-    dsVersionCurrent := 0
+    dsVerPrev := 0
     q := NewQuerySet().From("less_dataset_version").Order("version desc").Limit(1)
     if rs, err := cn.Query(q); err != nil {
         return err
     } else if len(rs) == 1 {
-        dsVersionCurrent = int(reflect.ValueOf(rs[0]["version"]).Int())
-        if dsVersionCurrent >= int(ds.Version) {
+        dsVerPrev = int(reflect.ValueOf(rs[0]["version"]).Int())
+        if dsVerPrev >= int(ds.Version) {
             return nil
         }
     }
@@ -110,7 +110,7 @@ func (cn *Conn) Setup(dsname string, ds setup.DataSet) error {
         //
         backup := ""
         if len(fscur) > 0 {
-            backup = v.Name + "_" + strconv.Itoa(dsVersionCurrent) + "_" + time.Now().Format("20060102_150405")
+            backup = v.Name + "_" + strconv.Itoa(dsVerPrev) + "_" + time.Now().Format("20060102_150405")
             // TODO driver/sqlite*
             sql := fmt.Sprintf("ALTER TABLE %s RENAME TO %s", v.Name, backup)
             if _, err = cn.db.Exec(sql); err != nil {
@@ -170,7 +170,7 @@ func (cn *Conn) Setup(dsname string, ds setup.DataSet) error {
     item := map[string]interface{}{
         "version": ds.Version,
         "action":  "update",
-        "created": time.Now(),
+        "created": time.Now().Format("2006-01-02 15:04:05"),
     }
     _ = cn.Insert("less_dataset_version", item)
 
