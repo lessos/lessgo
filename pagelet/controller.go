@@ -94,7 +94,7 @@ func (c *Controller) Render(args ...interface{}) {
     //println(c.ViewData)
 
     if err = template.Render(out, c.ViewData); err != nil {
-        //
+        println(err)
     }
 }
 
