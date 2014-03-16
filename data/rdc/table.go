@@ -151,7 +151,6 @@ func (cn *Conn) QueryRaw(sql string, params ...interface{}) (rs []map[string]int
         return
     }
     defer rows.Close()
-    fmt.Println("query 2")
 
     fields, err3 := rows.Columns()
     if err3 != nil {

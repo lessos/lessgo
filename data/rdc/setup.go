@@ -122,6 +122,16 @@ func (cn *Conn) Setup(dsname string, ds setup.DataSet) error {
         fs := []string{}
         for _, v2 := range v.Fields {
             if fstr := cn.FieldType(v2.Type); len(fstr) > 0 {
+
+                if v2.Type == "string" {
+
+                    if v2.Len < 1 || v2.Len > 256 {
+                        v2.Len = 50
+                    }
+
+                    fstr = fmt.Sprintf(fstr, v2.Len)
+                }
+
                 fs = append(fs, v2.Name+" "+fstr)
             }
         }
