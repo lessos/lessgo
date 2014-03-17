@@ -197,7 +197,9 @@ func (cn *Conn) QueryRaw(sql string, params ...interface{}) (rs []map[string]int
             case reflect.String:
                 vi = vv.String()
             case reflect.Struct:
-                vi = rawValue.Interface().(time.Time).Format("2006-01-02 15:04:05.000 -0700")
+                if aa.String() == "time.Time" {
+                    vi = rawValue.Interface().(time.Time) //.Format("2006-01-02 15:04:05 -0700")
+                }
             }
 
             ret[key] = vi
