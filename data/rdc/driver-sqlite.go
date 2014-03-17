@@ -2,7 +2,8 @@ package rdc
 
 var sqliteFieldTypes = map[string]string{
     "auto":            "integer NOT NULL PRIMARY KEY AUTOINCREMENT",
-    "pk":              "NOT NULL PRIMARY KEY",
+    "pk":              "integer NOT NULL PRIMARY KEY",
+    "pk-string":       "varchar(%d) NOT NULL PRIMARY KEY",
     "bool":            "bool",
     "string":          "varchar(%d)",
     "string-text":     "text",
