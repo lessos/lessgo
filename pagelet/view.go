@@ -9,6 +9,7 @@ import (
     "os"
     "path/filepath"
     "strings"
+    "time"
 )
 
 type View interface {
@@ -17,6 +18,13 @@ type View interface {
 
 var (
     TemplateFuncs = map[string]interface{}{
+        "date": func(t time.Time) string {
+            return t.Format("2006-01-02")
+        },
+        "datetime": func(t time.Time) string {
+            //t, _ := time.Parse("2006-01-02 15:04:05.000 -0700", fmttime)
+            return t.Format("2006-01-02 15:04")
+        },
         "T": func(lang map[string]interface{}, msg string, args ...interface{}) string {
             return i18nTranslate(lang["LANG"].(string), msg, args...)
         },
