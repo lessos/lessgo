@@ -168,10 +168,11 @@ func (cn *Conn) Setup(dsname string, ds setup.DataSet) error {
                     }
                 }
             }
-            sql := fmt.Sprintf("INSERT INTO %s SELECT %s FROM %s",
-                v.Name, strings.Join(fs, ","), backup)
+            sql := fmt.Sprintf("INSERT INTO %s (%s) SELECT %s FROM %s",
+                v.Name, strings.Join(fs, ","), strings.Join(fs, ","), backup)
             //fmt.Println("sql", sql)
             if _, err = cn.db.Exec(sql); err != nil {
+                fmt.Println(err)
                 return err
             }
         }
