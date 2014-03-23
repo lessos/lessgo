@@ -12,6 +12,7 @@ type Controller struct {
     ModuleName    string
     Request       *Request
     Response      *Response
+    Params        *Params     // Parameters from URL and form (including multipart).
     AppController interface{} // The controller that was instantiated.
     AutoRender    bool
     ViewData      map[string]interface{}
@@ -34,6 +35,7 @@ func NewController(req *Request, resp *Response) *Controller {
     return &Controller{
         Request:    req,
         Response:   resp,
+        Params:     new(Params),
         AutoRender: true,
         ViewData:   map[string]interface{}{},
     }
