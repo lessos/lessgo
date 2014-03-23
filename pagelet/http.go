@@ -29,7 +29,7 @@ func NewResponse(w http.ResponseWriter) *Response {
 func NewRequest(r *http.Request) *Request {
     return &Request{
         Request:        r,
-        ContentType:    "text/html",
+        ContentType:    resolveContentType(r),
         AcceptLanguage: resolveAcceptLanguage(r),
         Locale:         "",
     }
@@ -46,6 +46,17 @@ func (resp *Response) WriteHeader(status int, ctype string) {
         resp.ContentType = ctype
         resp.Out.Header().Set("Content-Type", resp.ContentType)
     }
+}
+
+// Get the content type.
+// e.g. From "multipart/form-data; boundary=--" to "multipart/form-data"
+// If none is specified, returns "text/html" by default.
+func resolveContentType(r *http.Request) string {
+    contentType := r.Header.Get("Content-Type")
+    if contentType == "" {
+        return "text/html"
+    }
+    return strings.ToLower(strings.TrimSpace(strings.Split(contentType, ";")[0]))
 }
 
 // Resolve the Accept-Language header value.
