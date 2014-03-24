@@ -23,10 +23,13 @@ func ParamsFilter(c *Controller) {
         }
     }
 
-    c.Params.Form = c.Request.Form
-    for k, v := range c.Params.Form {
-        if _, ok := c.Params.Values[k]; !ok {
-            c.Params.Values[k] = v
+    if c.Request.ContentType == "application/x-www-form-urlencoded" {
+        c.Request.ParseForm()
+        c.Params.Form = c.Request.Form
+        for k, v := range c.Params.Form {
+            if _, ok := c.Params.Values[k]; !ok {
+                c.Params.Values[k] = v
+            }
         }
     }
 }
