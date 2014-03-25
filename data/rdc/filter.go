@@ -10,12 +10,13 @@ const (
 )
 
 var filterOperators = map[string]string{
-    "eq": "= ?",
-    "ne": "<> ?",
-    "gt": "> ?",
-    "ge": ">= ?",
-    "lt": "< ?",
-    "le": "<= ?",
+    "eq":   "= ?",
+    "ne":   "<> ?",
+    "gt":   "> ?",
+    "ge":   ">= ?",
+    "lt":   "< ?",
+    "le":   "<= ?",
+    "like": "LIKE ?",
 }
 
 type filterItem struct {
@@ -112,7 +113,7 @@ func (fr *Filter) Parse() (where string, params []interface{}) {
 
             where += fmt.Sprintf("%s %s ", p.exprs[0], operator)
 
-            params = append(params, p.args...)
+            params = append(params, p.args[0])
         }
     }
 
