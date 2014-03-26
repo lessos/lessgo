@@ -68,6 +68,8 @@ func handle(w http.ResponseWriter, r *http.Request) {
         if err := recover(); err != nil {
             println("handle", err)
         }
+
+        r.Body.Close()
     }()
 
     var (

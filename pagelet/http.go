@@ -3,6 +3,7 @@ package pagelet
 import (
     "bytes"
     "fmt"
+    "io/ioutil"
     "net/http"
     "sort"
     "strconv"
@@ -33,6 +34,17 @@ func NewRequest(r *http.Request) *Request {
         AcceptLanguage: resolveAcceptLanguage(r),
         Locale:         "",
     }
+}
+
+func (req *Request) RawBody() ([]byte, error) {
+    return ioutil.ReadAll(req.Body)
+}
+
+func (req *Request) RawBodyString() string {
+    if body, err := ioutil.ReadAll(req.Body); err == nil {
+        return string(body)
+    }
+    return ""
 }
 
 func (resp *Response) WriteHeader(status int, ctype string) {
