@@ -58,7 +58,7 @@ func (c *ConfigBase) RouteStaticAppend(module, path, pathto string) {
     }
 }
 
-func (c *ConfigBase) RouteAppend(module, path string) {
+func (c *ConfigBase) RouteAppend(module, path string, args ...map[string]string) {
 
     c.moduleInit(module)
 
@@ -73,6 +73,9 @@ func (c *ConfigBase) RouteAppend(module, path string) {
         Path:    path,
         Tree:    tree,
         TreeLen: len(tree),
+    }
+    if len(args) == 1 {
+        route.Params = args[0]
     }
 
     for i, v := range c.Module {

@@ -33,9 +33,11 @@ var controllers = make(map[string]*ControllerType)
 func NewController(req *Request, resp *Response) *Controller {
 
     return &Controller{
+        Name:       "Index",
+        MethodName: "Index",
         Request:    req,
         Response:   resp,
-        Params:     new(Params),
+        Params:     newParams(),
         AutoRender: true,
         ViewData:   map[string]interface{}{},
     }

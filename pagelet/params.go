@@ -12,9 +12,13 @@ type Params struct {
     Form  url.Values // Parameters from the request body.
 }
 
-func ParamsFilter(c *Controller) {
+func newParams() *Params {
+    return &Params{
+        Values: make(url.Values, 0),
+    }
+}
 
-    c.Params.Values = make(url.Values, 0)
+func ParamsFilter(c *Controller) {
 
     c.Params.Query = c.Request.URL.Query()
     for k, v := range c.Params.Query {

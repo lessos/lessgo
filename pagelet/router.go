@@ -18,11 +18,6 @@ type Route struct {
     Path           string
     Tree           []string
     TreeLen        int
-    ControllerName string
-    MethodName     string
-}
-
-type RouteMatch struct {
     ControllerName string            // e.g. App
     MethodName     string            // e.g. Login
     Params         map[string]string // e.g. {id: 123}
@@ -85,22 +80,21 @@ func RouterFilter(c *Controller) {
             matRoute := 0
             ctrlName := ""
             methodName := ""
+            params := map[string]string{}
 
             for i, node := range route.Tree {
 
-                if node == ":controller" {
-                    ctrlName = rt[i]
+                if node[0:1] == ":" {
+                    switch node[1:] {
+                    case "controller":
+                        ctrlName = rt[i]
+                    case "action":
+                        methodName = rt[i]
+                    default:
+                        params[node[1:]] = rt[i]
+                    }
                     matRoute++
-                    continue
-                }
-
-                if node == ":action" {
-                    methodName = rt[i]
-                    matRoute++
-                    continue
-                }
-
-                if node == rt[i] {
+                } else if node == rt[i] {
                     matRoute++
                 }
             }
@@ -109,15 +103,22 @@ func RouterFilter(c *Controller) {
 
                 if len(ctrlName) > 0 {
                     c.Name = strings.Replace(strings.Title(ctrlName), "-", "", -1)
-                } else {
-                    c.Name = "Index"
+                } else if val, ok := route.Params["controller"]; ok {
+                    c.Name = strings.Replace(strings.Title(val), "-", "", -1)
                 }
 
                 if len(methodName) > 0 {
                     c.MethodName = strings.Replace(strings.Title(methodName), "-", "", -1)
+                } else if val, ok := route.Params["action"]; ok {
+                    c.MethodName = strings.Replace(strings.Title(val), "-", "", -1)
+                }
 
-                } else {
-                    c.MethodName = "Index"
+                for k, v := range params {
+                    c.Params.Values[k] = append(c.Params.Values[k], v)
+                }
+
+                for k, v := range route.Params {
+                    c.Params.Values[k] = append(c.Params.Values[k], v)
                 }
 
                 break
@@ -126,14 +127,10 @@ func RouterFilter(c *Controller) {
 
         c.ModuleName = mod.Name
 
-        //println("Router controllers added")
-
         ctrl, ok := controllers[c.ModuleName+c.Name]
         if !ok {
             return // TODO
         }
-
-        //println("Router controllers added", c)
 
         var (
             appControllerPtr = reflect.New(ctrl.Type)
