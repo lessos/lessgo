@@ -5,7 +5,7 @@ import (
     "errors"
 )
 
-func JsonDecode(str string, rs interface{}) (err error) {
+func JsonDecode(src, rs interface{}) (err error) {
 
     defer func() {
         if r := recover(); r != nil {
@@ -13,7 +13,17 @@ func JsonDecode(str string, rs interface{}) (err error) {
         }
     }()
 
-    if err = json.Unmarshal([]byte(str), &rs); err != nil {
+    var bf []byte
+    switch src.(type) {
+    case string:
+        bf = []byte(src.(string))
+    case []byte:
+        bf = src.([]byte)
+    default:
+        panic("invalid format")
+    }
+
+    if err = json.Unmarshal(bf, &rs); err != nil {
         return err
     }
 
