@@ -15,6 +15,7 @@ type Request struct {
     ContentType    string
     AcceptLanguage []AcceptLanguage
     Locale         string
+    RequestPath    string
 }
 
 type Response struct {

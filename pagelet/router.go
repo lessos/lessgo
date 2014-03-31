@@ -142,6 +142,7 @@ func RouterFilter(c *Controller) {
             appController.FieldByIndex(index).Set(cValue)
         }
 
+        c.Request.RequestPath = urlpath
         c.AppController = appControllerPtr.Interface()
 
         break
