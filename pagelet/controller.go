@@ -108,6 +108,11 @@ func (c *Controller) RenderError(status int, msg string) {
     io.WriteString(c.Response.Out, msg)
 }
 
+func (c *Controller) RenderRedirect(url string) {
+    c.Response.Out.Header().Set("Location", url)
+    c.Response.Out.WriteHeader(http.StatusFound)
+}
+
 func (c *Controller) T(msg string, args ...interface{}) string {
     return i18nTranslate(c.Request.Locale, msg, args...)
 }
