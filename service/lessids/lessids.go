@@ -29,7 +29,7 @@ var (
     ServiceUrl        = ""
     sessions          = map[string]Session{}
     nextClean         = time.Now()
-    innerExpiredRange = time.Second * 3600
+    innerExpiredRange = time.Second * 1800
 )
 
 func innerExpiredClean() {
@@ -53,6 +53,10 @@ func innerExpiredClean() {
     nextClean = time.Now().Add(time.Second * 60)
 }
 
+func LoginUrl(backurl string) string {
+    return ServiceUrl + "/service/login?continue=" + backurl
+}
+
 func IsLogin(r *pagelet.Request) bool {
 
     if ServiceUrl == "" {
@@ -60,13 +64,13 @@ func IsLogin(r *pagelet.Request) bool {
     }
 
     cookie, err := r.Request.Cookie("access_token")
-    if err == nil {
+    if err != nil {
+        return false
+    }
+    if _, ok := sessions[cookie.Value]; ok {
 
-        if _, ok := sessions[cookie.Value]; ok {
-
-            innerExpiredClean()
-            return true
-        }
+        innerExpiredClean()
+        return true
     }
 
     hc := httpclient.Get(ServiceUrl + "/service/auth?access_token=" + cookie.Value)
@@ -88,8 +92,7 @@ func IsLogin(r *pagelet.Request) bool {
     }
 
     locker.Lock()
-    // TODO Cache API
-    sessions[cookie.Value] = rsjson.Data
+    sessions[cookie.Value] = rsjson.Data // TODO Cache API
     locker.Unlock()
 
     return true
