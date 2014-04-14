@@ -37,6 +37,14 @@ func NewRequest(r *http.Request) *Request {
     }
 }
 
+func (req *Request) RawAbsUrl() string {
+    scheme := "http"
+    if len(req.URL.Scheme) > 0 {
+        scheme = req.URL.Scheme
+    }
+    return fmt.Sprintf("%s://%s%s", scheme, req.Host, req.RequestURI)
+}
+
 func (req *Request) RawBody() ([]byte, error) {
     return ioutil.ReadAll(req.Body)
 }
