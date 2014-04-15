@@ -79,7 +79,7 @@ func HttpIsLogin(r *pagelet.Controller) bool {
         return false
     }
 
-    if cookie_err == nil && token != token_cookie.Value {
+    if cookie_err != nil || token != token_cookie.Value {
 
         ck := &http.Cookie{
             Name:     "access_token",
