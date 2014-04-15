@@ -109,6 +109,7 @@ func (c *Controller) RenderError(status int, msg string) {
 }
 
 func (c *Controller) RenderRedirect(url string) {
+    c.AutoRender = false
     c.Response.Out.Header().Set("Location", url)
     c.Response.Out.WriteHeader(http.StatusFound)
 }
