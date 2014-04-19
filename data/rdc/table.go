@@ -221,3 +221,8 @@ func (cn *Conn) Query(q *QuerySet) (rs []map[string]interface{}, err error) {
 
     return cn.QueryRaw(sql, params...)
 }
+
+func (cn *Conn) ExecRaw(query string, args ...interface{}) (sql.Result, error) {
+    return cn.db.Exec(query, args...)
+}
+
