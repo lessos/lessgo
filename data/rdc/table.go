@@ -19,6 +19,8 @@ var configDrivers = map[string]bool{
     "sqlite3": true,
 }
 
+type Result sql.Result
+
 type Conn struct {
     db  *sql.DB
     cfg Config
@@ -52,7 +54,9 @@ func (cn *Conn) Close() {
     cn.db.Close()
 }
 
-func (cn *Conn) Insert(tblname string, item map[string]interface{}) error {
+func (cn *Conn) Insert(tblname string, item map[string]interface{}) (Result, error) {
+
+    var res Result
 
     cols, vars, vals := []string{}, []string{}, []interface{}{}
     for key, val := range item {
@@ -68,46 +72,50 @@ func (cn *Conn) Insert(tblname string, item map[string]interface{}) error {
 
     stmt, err := cn.db.Prepare(sql)
     if err != nil {
-        return err
+        return res, err
     }
     defer stmt.Close()
 
-    _, err = stmt.Exec(vals...)
+    res, err = stmt.Exec(vals...)
     if err != nil {
-        return err
+        return res, err
     }
 
-    return nil
+    return res, nil
 }
 
-func (cn *Conn) Delete(tblname string, fr Filter) error {
+func (cn *Conn) Delete(tblname string, fr Filter) (Result, error) {
+
+    var res Result
 
     frsql, params := fr.Parse()
     if len(params) == 0 {
-        return errors.New("Error in query syntax")
+        return res, errors.New("Error in query syntax")
     }
 
     sql := fmt.Sprintf("DELETE FROM %s WHERE %s", tblname, frsql)
 
     stmt, err := cn.db.Prepare(sql)
     if err != nil {
-        return err
+        return res, err
     }
     defer stmt.Close()
 
     _, err = stmt.Exec(params...)
     if err != nil {
-        return err
+        return res, err
     }
 
-    return nil
+    return res, nil
 }
 
-func (cn *Conn) Update(tblname string, item map[string]interface{}, fr Filter) error {
+func (cn *Conn) Update(tblname string, item map[string]interface{}, fr Filter) (Result, error) {
+
+    var res Result
 
     frsql, params := fr.Parse()
     if len(params) == 0 {
-        return errors.New("Error in query syntax")
+        return res, errors.New("Error in query syntax")
     }
 
     cols, vals := []string{}, []interface{}{}
@@ -125,16 +133,16 @@ func (cn *Conn) Update(tblname string, item map[string]interface{}, fr Filter) e
 
     stmt, err := cn.db.Prepare(sql)
     if err != nil {
-        return err
+        return res, err
     }
     defer stmt.Close()
 
     _, err = stmt.Exec(vals...)
     if err != nil {
-        return err
+        return res, err
     }
 
-    return nil
+    return res, nil
 }
 
 func (cn *Conn) QueryRaw(sql string, params ...interface{}) (rs []map[string]interface{}, err error) {
@@ -222,7 +230,6 @@ func (cn *Conn) Query(q *QuerySet) (rs []map[string]interface{}, err error) {
     return cn.QueryRaw(sql, params...)
 }
 
-func (cn *Conn) ExecRaw(query string, args ...interface{}) (sql.Result, error) {
+func (cn *Conn) ExecRaw(query string, args ...interface{}) (Result, error) {
     return cn.db.Exec(query, args...)
 }
-

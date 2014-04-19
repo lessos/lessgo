@@ -183,7 +183,7 @@ func (cn *Conn) Setup(dsname string, ds setup.DataSet) error {
         "action":  "update",
         "created": time.Now().Format("2006-01-02 15:04:05"),
     }
-    _ = cn.Insert("less_dataset_version", item)
+    _, _ = cn.Insert("less_dataset_version", item)
 
     return nil
 }
