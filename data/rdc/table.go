@@ -65,9 +65,9 @@ func (cn *Conn) Insert(tblname string, item map[string]interface{}) (Result, err
         vals = append(vals, val)
     }
 
-    sql := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)",
+    sql := fmt.Sprintf("INSERT INTO `%s` (`%s`) VALUES (%s)",
         tblname,
-        strings.Join(cols, ","),
+        strings.Join(cols, "`,`"),
         strings.Join(vars, ","))
 
     stmt, err := cn.db.Prepare(sql)
@@ -93,7 +93,7 @@ func (cn *Conn) Delete(tblname string, fr Filter) (Result, error) {
         return res, errors.New("Error in query syntax")
     }
 
-    sql := fmt.Sprintf("DELETE FROM %s WHERE %s", tblname, frsql)
+    sql := fmt.Sprintf("DELETE FROM `%s` WHERE %s", tblname, frsql)
 
     stmt, err := cn.db.Prepare(sql)
     if err != nil {
@@ -120,13 +120,13 @@ func (cn *Conn) Update(tblname string, item map[string]interface{}, fr Filter) (
 
     cols, vals := []string{}, []interface{}{}
     for key, val := range item {
-        cols = append(cols, key+" = ?")
+        cols = append(cols, "`"+key+"` = ?")
         vals = append(vals, val)
     }
 
     vals = append(vals, params...)
 
-    sql := fmt.Sprintf("UPDATE %s SET %s WHERE %s",
+    sql := fmt.Sprintf("UPDATE `%s` SET %s WHERE %s",
         tblname,
         strings.Join(cols, ","),
         frsql)

@@ -111,7 +111,7 @@ func (fr *Filter) Parse() (where string, params []interface{}) {
                 operator = "= ?"
             }
 
-            where += fmt.Sprintf("%s %s ", p.exprs[0], operator)
+            where += fmt.Sprintf("`%s` %s ", p.exprs[0], operator)
 
             params = append(params, p.args[0])
         }
