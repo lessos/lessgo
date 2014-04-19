@@ -131,7 +131,7 @@ func (cn *Conn) Setup(dsname string, ds setup.DataSet) error {
                     fstr = fmt.Sprintf(fstr, v2.Len)
                 }
 
-                fs = append(fs, v2.Name+" "+fstr)
+                fs = append(fs, "`"+v2.Name+"` "+fstr)
             }
         }
 
