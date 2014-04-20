@@ -5,10 +5,12 @@ import (
 )
 
 type ConfigBase struct {
-    UrlBasePath     string
-    HttpPort        int
-    Module          []ConfigModule
-    LocaleCookieKey string
+    UrlBasePath       string
+    HttpPort          int
+    Module            []ConfigModule
+    LocaleCookieKey   string
+    InstanceId        string
+    LessIdsServiceUrl string
 }
 
 type ConfigModule struct {

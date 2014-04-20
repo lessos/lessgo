@@ -2,9 +2,7 @@ package lessids
 
 import (
     "../../net/httpclient"
-    "../../pagelet"
     "errors"
-    "net/http"
     "sync"
     "time"
 )
@@ -59,41 +57,6 @@ func LoginUrl(backurl string) string {
     return ServiceUrl + "/service/login?continue=" + backurl
 }
 
-func HttpIsLogin(r *pagelet.Controller) bool {
-
-    token := r.Params.Get("access_token")
-
-    token_cookie, cookie_err := r.Request.Cookie("access_token")
-
-    if token == "" {
-
-        if cookie_err != nil {
-            return false
-        }
-
-        token = token_cookie.Value
-    }
-
-    session, err := SessionFetch(token)
-    if err != nil {
-        return false
-    }
-
-    if cookie_err != nil || token != token_cookie.Value {
-
-        ck := &http.Cookie{
-            Name:     "access_token",
-            Value:    token,
-            Path:     "/",
-            HttpOnly: true,
-            Expires:  session.Expired.UTC(),
-        }
-        http.SetCookie(r.Response.Out, ck)
-    }
-
-    return true
-}
-
 func IsLogin(token string) bool {
 
     if _, err := SessionFetch(token); err != nil {
@@ -136,4 +99,9 @@ func SessionFetch(token string) (session SessionEntry, err error) {
     locker.Unlock()
 
     return rsjson.Data, nil
+}
+
+func IsAllowed(privilege, instanceid, token string) bool {
+
+    return false
 }

@@ -13,6 +13,7 @@ type Controller struct {
     Request       *Request
     Response      *Response
     Params        *Params     // Parameters from URL and form (including multipart).
+    Session       Session     // Session, stored in cookie, signed.
     AppController interface{} // The controller that was instantiated.
     AutoRender    bool
     ViewData      map[string]interface{}
