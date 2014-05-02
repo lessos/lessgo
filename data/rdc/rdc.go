@@ -4,7 +4,9 @@ import (
     "errors"
 )
 
-var databases = map[string]*Conn{}
+var (
+    databases = map[string]*Conn{}
+)
 
 func InstanceRegister(name string, cn *Conn) {
     if _, ok := databases[name]; ok {

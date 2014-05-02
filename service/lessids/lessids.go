@@ -2,7 +2,9 @@ package lessids
 
 import (
     "../../net/httpclient"
+    "../../utils"
     "errors"
+    "fmt"
     "sync"
     "time"
 )
@@ -20,6 +22,7 @@ type SessionEntry struct {
     Uname        string    `json:"uname"`
     Name         string    `json:"name"`
     Data         string    `json:"data"`
+    Roles        string    `json:"roles"`
     Expired      time.Time `json:"expired"`
     InnerExpired time.Time
 }
@@ -101,7 +104,37 @@ func SessionFetch(token string) (session SessionEntry, err error) {
     return rsjson.Data, nil
 }
 
-func IsAllowed(privilege, instanceid, token string) bool {
+func AccessAllowed(privilege, instanceid, token string) bool {
 
-    return false
+    //fmt.Println("lessids.AccessAllowed", ServiceUrl, privilege, instanceid, token)
+
+    if !IsLogin(token) {
+        return false
+    }
+
+    var req struct {
+        AccessToken string `json:"access_token"`
+        Data        struct {
+            InstanceId string `json:"instanceid"`
+            Privilege  string `json:"privilege"`
+        }   `json:"data"`
+    }
+    req.AccessToken = token
+    req.Data.InstanceId = instanceid
+    req.Data.Privilege = privilege
+
+    reqjson, _ := utils.JsonEncode(req)
+
+    hc := httpclient.Post(ServiceUrl + "/service/access-allowed")
+    hc.Header("contentType", "application/json; charset=utf-8")
+    hc.Body(reqjson)
+
+    var rsjson ResponseJson
+    err := hc.ReplyJson(&rsjson)
+    fmt.Println("rsjson", rsjson)
+    if err != nil || rsjson.Status != 200 {
+        return false
+    }
+
+    return true
 }

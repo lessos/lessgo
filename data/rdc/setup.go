@@ -181,7 +181,7 @@ func (cn *Conn) Setup(dsname string, ds setup.DataSet) error {
     item := map[string]interface{}{
         "version": ds.Version,
         "action":  "update",
-        "created": time.Now().Format("2006-01-02 15:04:05"),
+        "created": time.Now().Format(timeFormatDateTime),
     }
     _, _ = cn.Insert("less_dataset_version", item)
 

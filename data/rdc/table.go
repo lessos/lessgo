@@ -206,7 +206,7 @@ func (cn *Conn) QueryRaw(sql string, params ...interface{}) (rs []map[string]int
                 vi = vv.String()
             case reflect.Struct:
                 if aa.String() == "time.Time" {
-                    vi = rawValue.Interface().(time.Time) //.Format("2006-01-02 15:04:05 -0700")
+                    vi = rawValue.Interface().(time.Time).In(TimeZone)
                 }
             }
 

@@ -42,8 +42,6 @@ func (s *Session) SessionFetch() (session lessids.SessionEntry, err error) {
 
 func (s *Session) IsLogin() bool {
 
-    println(s)
-
     session, err := s.SessionFetch()
     if err != nil || session.Uid == 0 {
         return false
@@ -52,6 +50,6 @@ func (s *Session) IsLogin() bool {
     return true
 }
 
-func (s *Session) IsAllowed(privilege string) bool {
-    return lessids.IsAllowed(privilege, Config.InstanceId, s.AccessToken)
+func (s *Session) AccessAllowed(privilege string) bool {
+    return lessids.AccessAllowed(privilege, Config.InstanceId, s.AccessToken)
 }
