@@ -28,11 +28,16 @@ func ParamsFilter(c *Controller) {
     }
 
     if c.Request.ContentType == "application/x-www-form-urlencoded" {
-        c.Request.ParseForm()
-        c.Params.Form = c.Request.Form
-        for k, v := range c.Params.Form {
-            if _, ok := c.Params.Values[k]; !ok {
-                c.Params.Values[k] = v
+        // Typical form.
+        if err := c.Request.ParseForm(); err != nil {
+            // Error parsing request body
+        } else {
+            c.Params.Form = c.Request.Form
+
+            for k, v := range c.Params.Form {
+                if _, ok := c.Params.Values[k]; !ok {
+                    c.Params.Values[k] = v
+                }
             }
         }
     }

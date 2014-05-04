@@ -18,6 +18,16 @@ type View interface {
 
 var (
     TemplateFuncs = map[string]interface{}{
+        "eq": Equal,
+        // Skips sanitation on the parameter.  Do not use with dynamic data.
+        "raw": func(text string) template.HTML {
+            return template.HTML(text)
+        },
+        // Returns a copy of the string s with the old replaced by new
+        "replace": func(s, old, new string) string {
+            return strings.Replace(s, old, new, -1)
+        },
+        // Format a date according to the application's default date(time) format.
         "date": func(t time.Time) string {
             return t.Format("2006-01-02")
         },
@@ -25,6 +35,7 @@ var (
             //t, _ := time.Parse("2006-01-02 15:04:05.000 -0700", fmttime)
             return t.Format("2006-01-02 15:04")
         },
+        // Perform a message look-up for the given locale and message using the given arguments
         "T": func(lang map[string]interface{}, msg string, args ...interface{}) string {
             return i18nTranslate(lang["LANG"].(string), msg, args...)
         },

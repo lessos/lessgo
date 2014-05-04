@@ -4,7 +4,6 @@ import (
     "../../net/httpclient"
     "../../utils"
     "errors"
-    "fmt"
     "sync"
     "time"
 )
@@ -131,7 +130,6 @@ func AccessAllowed(privilege, instanceid, token string) bool {
 
     var rsjson ResponseJson
     err := hc.ReplyJson(&rsjson)
-    fmt.Println("rsjson", rsjson)
     if err != nil || rsjson.Status != 200 {
         return false
     }

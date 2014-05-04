@@ -5,16 +5,16 @@ import (
 )
 
 const (
-    timeFormatDate = "2006-01-02"
+    timeFormatDate     = "2006-01-02"
     timeFormatDateTime = "2006-01-02 15:04:05"
-    timeFormatAtom = time.RFC3339
+    timeFormatAtom     = time.RFC3339
 )
 
 var (
     TimeZone = time.UTC
 )
 
-func TimeFormat(format string) string{
+func TimeFormat(format string) string {
 
     switch format {
     case "datetime":
