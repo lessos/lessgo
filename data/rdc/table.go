@@ -145,6 +145,28 @@ func (cn *Conn) Update(tblname string, item map[string]interface{}, fr Filter) (
     return res, nil
 }
 
+func (cn *Conn) Count(tblname string, fr Filter) (num int64, err error) {
+
+    frsql, params := fr.Parse()
+    hasWhere := "WHERE"
+    if len(params) == 0 {
+        hasWhere = ""
+    }
+
+    sql := fmt.Sprintf("SELECT COUNT(*) FROM `%s` %s %s", tblname, hasWhere, frsql)
+
+    stmt, err := cn.db.Prepare(sql)
+    if err != nil {
+        return
+    }
+    defer stmt.Close()
+
+    row := stmt.QueryRow(params...)
+    err = row.Scan(&num)
+
+    return
+}
+
 func (cn *Conn) QueryRaw(sql string, params ...interface{}) (rs []map[string]interface{}, err error) {
 
     //fmt.Println("sql", sql, params)
