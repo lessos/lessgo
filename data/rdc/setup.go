@@ -164,11 +164,11 @@ func (cn *Conn) Setup(dsname string, ds setup.DataSet) error {
             for _, v2 := range v.Fields {
                 for _, v3 := range fscur {
                     if v2.Name == v3["name"] {
-                        fs = append(fs, v2.Name)
+                        fs = append(fs, "`"+v2.Name+"`")
                     }
                 }
             }
-            sql := fmt.Sprintf("INSERT INTO %s (%s) SELECT %s FROM %s",
+            sql := fmt.Sprintf("INSERT INTO `%s` (%s) SELECT %s FROM %s",
                 v.Name, strings.Join(fs, ","), strings.Join(fs, ","), backup)
             //fmt.Println("sql", sql)
             if _, err = cn.db.Exec(sql); err != nil {

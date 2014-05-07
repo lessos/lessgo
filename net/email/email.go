@@ -9,19 +9,26 @@ import (
 var mailers = map[string]*Mailer{}
 
 type Mailer struct {
+    Host string
+    Port string
     User string
     Pass string
-    Host string
     auth smtp.Auth
 }
 
-func MailerRegister(name, user, password, host string) {
+func MailerRegister(name, host, port, user, pass string) {
 
-    if _, ok := mailers[name]; ok {
-        return
+    if ml, ok := mailers[name]; ok {
+
+        if host == ml.Host &&
+            port == ml.Port &&
+            user == ml.User &&
+            pass == ml.Pass {
+            return
+        }
     }
 
-    mailers[name] = NewMailer(user, password, host)
+    mailers[name] = NewMailer(host, port, user, pass)
 }
 
 func MailerPull(name string) (*Mailer, error) {
@@ -33,15 +40,13 @@ func MailerPull(name string) (*Mailer, error) {
     return nil, errors.New("No Mailer Found")
 }
 
-func NewMailer(host, user, password string) *Mailer {
-
-    hs := strings.Split(host, ":")
-
+func NewMailer(host, port, user, pass string) *Mailer {
     return &Mailer{
         User: user,
-        Pass: password,
+        Pass: pass,
         Host: host,
-        auth: smtp.PlainAuth("", user, password, hs[0]),
+        Port: port,
+        auth: smtp.PlainAuth("", user, pass, host),
     }
 }
 
@@ -60,5 +65,5 @@ func (m Mailer) SendMail(to, subject, body string) error {
 
     send_to := strings.Split(to, ";")
 
-    return smtp.SendMail(m.Host, m.auth, m.User, send_to, []byte(msg))
+    return smtp.SendMail(m.Host+":"+m.Port, m.auth, m.User, send_to, []byte(msg))
 }
