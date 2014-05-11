@@ -17,6 +17,7 @@ var filterOperators = map[string]string{
     "lt":   "< ?",
     "le":   "<= ?",
     "like": "LIKE ?",
+    "in":   "IN (?)",
 }
 
 type filterItem struct {
@@ -111,9 +112,21 @@ func (fr *Filter) Parse() (where string, params []interface{}) {
                 operator = "= ?"
             }
 
-            where += fmt.Sprintf("`%s` %s ", p.exprs[0], operator)
+            if len(p.exprs) > 1 && p.exprs[1] == "in" && len(p.args) > 1 {
 
-            params = append(params, p.args[0])
+                res := []string{}
+                for i := 0; i < len(p.args); i++ {
+                    res = append(res, "?")
+                }
+
+                where += fmt.Sprintf("`%s` IN (%s) ", p.exprs[0], strings.Join(res, ","))
+                params = append(params, p.args...)
+
+            } else {
+
+                where += fmt.Sprintf("`%s` %s ", p.exprs[0], operator)
+                params = append(params, p.args[0])
+            }
         }
     }
 
