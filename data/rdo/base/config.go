@@ -22,6 +22,9 @@ type Config struct {
     // Name of the database.
     Dbname string `json:"dbname"`
 
+    // Database engine.
+    Engine string `json:"engine"`
+
     // Database charset.
     Charset string `json:"charset"`
 

@@ -1,4 +1,4 @@
-package schema
+package base
 
 type DataSet struct {
     Version uint `json:"version"`

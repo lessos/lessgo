@@ -1,8 +1,10 @@
-package schema
+package base
 
 const (
-    IndexType = iota + 1
-    UniqueType
+    IndexTypeEmpty      int = 0
+    IndexTypeIndex      int = 1
+    IndexTypeUnique     int = 2
+    IndexTypePrimaryKey int = 3
 )
 
 // database index
@@ -20,6 +22,6 @@ func (index *Index) AddColumn(cols ...string) {
 }
 
 // new an index
-func IndexNew(name string, indexType int) *Index {
-    return &Index{name, indexType, make([]string, 0)}
+func NewIndex(name string, indexType int) *Index {
+    return &Index{name, indexType, []string{}}
 }

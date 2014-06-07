@@ -1,17 +1,125 @@
 package mysql
 
 import (
-    "../base/schema"
+    "../base"
+    "errors"
+    "fmt"
     "strconv"
     "strings"
-    //"fmt"
 )
 
-func (dc *mysqlDialect) SchemaTables(dbName string) (map[string]*schema.Table, error) {
+func (dc *mysqlDialect) SchemaColumnTypeSql(col *base.Column) string {
 
-    tables := map[string]*schema.Table{}
+    sql, ok := columnTypes[col.Type]
+    if !ok {
+        return dc.QuoteStr(col.Name) + col.Type
+        //, errors.New("Unsupported column type `" + col.Type + "`")
+    }
 
-    q := "SELECT `TABLE_NAME`, `ENGINE`, `TABLE_ROWS`, `AUTO_INCREMENT` from `INFORMATION_SCHEMA`.`TABLES` WHERE `TABLE_SCHEMA`=?"
+    switch col.Type {
+    case "string":
+        sql = fmt.Sprintf(sql, col.Length)
+    case "float64-decimal":
+        sql = fmt.Sprintf(sql, col.Length, col.Length2)
+    }
+
+    if col.Nullable {
+        sql += " NULL"
+    } else {
+        sql += " NOT NULL"
+    }
+
+    if col.IsPrimaryKey && col.IsAutoIncrement {
+        sql += " AUTO_INCREMENT"
+    }
+
+    if col.Default != "" {
+        if col.Default == "NULL" {
+            sql += " DEFAULT NULL"
+        } else {
+            sql += " DEFAULT " + dc.QuoteStr(col.Default)
+        }
+    }
+
+    return dc.QuoteStr(col.Name) + " " + sql
+}
+
+func (dc *mysqlDialect) SchemaTableCreateSql(table *base.Table) (string, error) {
+
+    if len(table.PrimaryKeys) == 0 {
+        return "", errors.New("No PRIMARY KEY")
+    }
+
+    if len(table.Columns) == 0 {
+        return "", errors.New("No Columns")
+    }
+
+    sql := "CREATE TABLE IF NOT EXISTS " + dc.QuoteStr(table.Name) + " (\n"
+
+    for _, col := range table.Columns {
+        sql += " " + dc.SchemaColumnTypeSql(col) + ",\n"
+    }
+
+    for _, idx := range table.Indexes {
+        if len(idx.Cols) == 0 {
+            continue
+        }
+        switch idx.Type {
+        case base.IndexTypeIndex:
+            sql += " KEY " + dc.QuoteStr(idx.Name) +
+                " (" + dc.QuoteStr(strings.Join(idx.Cols, dc.QuoteStr(","))) + "), \n"
+        case base.IndexTypeUnique:
+            sql += " UNIQUE KEY " + dc.QuoteStr(idx.Name) +
+                " (" + dc.QuoteStr(strings.Join(idx.Cols, dc.QuoteStr(","))) + "), \n"
+        }
+    }
+
+    sql += " PRIMARY KEY ("
+    sql += dc.QuoteStr(strings.Join(table.PrimaryKeys, dc.QuoteStr(",")))
+    sql += ")\n"
+
+    sql += ")"
+
+    if table.Engine != "" {
+        sql += " ENGINE=" + table.Engine
+    } else if dc.Base().Config.Engine != "" {
+        sql += " ENGINE=" + dc.Base().Config.Engine
+    }
+
+    if table.Charset != "" {
+        sql += " DEFAULT CHARSET=" + table.Charset
+    } else if dc.Base().Config.Charset != "" {
+        sql += " DEFAULT CHARSET=" + dc.Base().Config.Charset
+    }
+
+    if table.Comment != "" {
+        sql += " COMMENT='" + table.Comment + "'"
+    }
+
+    sql += ";"
+
+    return sql, nil
+}
+
+func (dc *mysqlDialect) SchemaTableExist(dbName, tableName string) bool {
+
+    q := "SELECT `TABLE_NAME` from `INFORMATION_SCHEMA`.`TABLES` "
+    q += "WHERE `TABLE_SCHEMA` = ? and `TABLE_NAME` = ?"
+
+    rows, err := dc.Base().QueryRaw(q, dbName, tableName)
+    if err != nil {
+        return false
+    }
+
+    return len(rows) > 0
+}
+
+func (dc *mysqlDialect) SchemaTables(dbName string) (map[string]*base.Table, error) {
+
+    tables := map[string]*base.Table{}
+
+    q := "SELECT `TABLE_NAME`, `ENGINE`, `TABLE_ROWS`, `AUTO_INCREMENT` "
+    q += "FROM `INFORMATION_SCHEMA`.`TABLES` WHERE `TABLE_SCHEMA` = ?"
 
     rows, err := dc.Base().Conn.Query(q, dbName)
     if err != nil {
@@ -27,22 +135,29 @@ func (dc *mysqlDialect) SchemaTables(dbName string) (map[string]*schema.Table, e
             return nil, err
         }
 
-        //cols, _ := dc.SchemaColumns(dbName, name)
-        tables[name] = &schema.Table{
-            Name:      name,
-            Engine:    engine,
-            AutoIncr:  autoIncr,
-            TableRows: tableRows,
-            //Columns:   cols,
+        pks := []string{}
+        cols, _ := dc.SchemaColumns(dbName, name)
+        for _, v := range cols {
+            if v.IsPrimaryKey {
+                pks = append(pks, v.Name)
+            }
+        }
+        tables[name] = &base.Table{
+            Name:        name,
+            Engine:      engine,
+            AutoIncr:    autoIncr,
+            TableRows:   tableRows,
+            PrimaryKeys: pks,
+            Columns:     cols,
         }
     }
 
     return tables, nil
 }
 
-func (dc *mysqlDialect) SchemaColumns(dbName, tableName string) (map[string]*schema.Column, error) {
+func (dc *mysqlDialect) SchemaColumns(dbName, tableName string) (map[string]*base.Column, error) {
 
-    cols := map[string]*schema.Column{}
+    cols := map[string]*base.Column{}
 
     q := "SELECT `COLUMN_NAME`, `IS_NULLABLE`, `COLUMN_DEFAULT`, `COLUMN_TYPE`," +
         " `COLUMN_KEY`, `EXTRA` FROM `INFORMATION_SCHEMA`.`COLUMNS` " +
@@ -55,7 +170,7 @@ func (dc *mysqlDialect) SchemaColumns(dbName, tableName string) (map[string]*sch
 
     for _, record := range res {
 
-        col := &schema.Column{}
+        col := &base.Column{}
 
         for name, v := range record {
             content := v.(string)
@@ -106,7 +221,7 @@ func (dc *mysqlDialect) SchemaColumns(dbName, tableName string) (map[string]*sch
                     col.IsPrimaryKey = true
                 }
                 if key == "UNI" {
-                    //col.is
+                    col.IndexType = base.IndexTypeUnique
                 }
             case "EXTRA":
                 extra := content
@@ -134,7 +249,7 @@ func (dc *mysqlDialect) SchemaColumns(dbName, tableName string) (map[string]*sch
     return cols, nil
 }
 
-func (dc *mysqlDialect) SchemaIndexes(dbName, tableName string) (map[string]*schema.Index, error) {
+func (dc *mysqlDialect) SchemaIndexes(dbName, tableName string) (map[string]*base.Index, error) {
 
     s := "SELECT `INDEX_NAME`, `NON_UNIQUE`, `COLUMN_NAME` FROM `INFORMATION_SCHEMA`.`STATISTICS` WHERE `TABLE_SCHEMA` = ? AND `TABLE_NAME` = ?"
 
@@ -144,7 +259,7 @@ func (dc *mysqlDialect) SchemaIndexes(dbName, tableName string) (map[string]*sch
     }
     defer rows.Close()
 
-    indexes := map[string]*schema.Index{}
+    indexes := map[string]*base.Index{}
 
     for rows.Next() {
 
@@ -160,9 +275,9 @@ func (dc *mysqlDialect) SchemaIndexes(dbName, tableName string) (map[string]*sch
         }
 
         if "YES" == nonUnique || nonUnique == "1" {
-            indexType = schema.IndexType
+            indexType = base.IndexTypeIndex
         } else {
-            indexType = schema.UniqueType
+            indexType = base.IndexTypeUnique
         }
 
         //fmt.Println("AA", indexType, indexName, colName, nonUnique)
@@ -172,10 +287,10 @@ func (dc *mysqlDialect) SchemaIndexes(dbName, tableName string) (map[string]*sch
             indexName = indexName[5+len(tableName) : len(indexName)]
         }
 
-        var index *schema.Index
+        var index *base.Index
         var ok bool
         if index, ok = indexes[indexName]; !ok {
-            index = &schema.Index{
+            index = &base.Index{
                 Name: indexName,
                 Type: indexType,
             }
