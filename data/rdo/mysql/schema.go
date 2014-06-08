@@ -23,18 +23,18 @@ func (dc *mysqlDialect) SchemaColumnTypeSql(col *base.Column) string {
         sql = fmt.Sprintf(sql, col.Length, col.Length2)
     }
 
-    if col.Nullable {
+    if col.Nullable == "null" {
         sql += " NULL"
-    } else {
+    } else if col.Nullable == "not-null" {
         sql += " NOT NULL"
     }
 
-    if col.IsPrimaryKey && col.IsAutoIncrement {
+    if col.IndexType == base.IndexTypePrimaryKeyIncr {
         sql += " AUTO_INCREMENT"
     }
 
     if col.Default != "" {
-        if col.Default == "NULL" {
+        if col.Default == "null" {
             sql += " DEFAULT NULL"
         } else {
             sql += " DEFAULT " + dc.QuoteStr(col.Default)
@@ -66,11 +66,13 @@ func (dc *mysqlDialect) SchemaTableCreateSql(table *base.Table) (string, error) 
         }
         switch idx.Type {
         case base.IndexTypeIndex:
-            sql += " KEY " + dc.QuoteStr(idx.Name) +
-                " (" + dc.QuoteStr(strings.Join(idx.Cols, dc.QuoteStr(","))) + "), \n"
+            sql += " KEY " + dc.QuoteStr(idx.Name) + " ("
+            sql += dc.QuoteStr(strings.Join(idx.Cols, dc.QuoteStr(",")))
+            sql += "),\n"
         case base.IndexTypeUnique:
-            sql += " UNIQUE KEY " + dc.QuoteStr(idx.Name) +
-                " (" + dc.QuoteStr(strings.Join(idx.Cols, dc.QuoteStr(","))) + "), \n"
+            sql += " UNIQUE KEY " + dc.QuoteStr(idx.Name) + " ("
+            sql += dc.QuoteStr(strings.Join(idx.Cols, dc.QuoteStr(",")))
+            sql += "),\n"
         }
     }
 
@@ -138,7 +140,7 @@ func (dc *mysqlDialect) SchemaTables(dbName string) (map[string]*base.Table, err
         pks := []string{}
         cols, _ := dc.SchemaColumns(dbName, name)
         for _, v := range cols {
-            if v.IsPrimaryKey {
+            if v.IsPrimaryKey() {
                 pks = append(pks, v.Name)
             }
         }
@@ -179,13 +181,13 @@ func (dc *mysqlDialect) SchemaColumns(dbName, tableName string) (map[string]*bas
                 col.Name = strings.Trim(content, "` ")
             case "IS_NULLABLE":
                 if "YES" == content {
-                    col.Nullable = true
+                    col.Nullable = "null"
                 }
             case "COLUMN_DEFAULT":
                 // add ''
                 col.Default = content
                 if col.Default == "" {
-                    col.DefaultIsEmpty = true
+                    //col.DefaultIsEmpty = true
                 }
             case "COLUMN_TYPE":
                 cts := strings.Split(content, "(")
@@ -218,7 +220,10 @@ func (dc *mysqlDialect) SchemaColumns(dbName, tableName string) (map[string]*bas
             case "COLUMN_KEY":
                 key := content
                 if key == "PRI" {
-                    col.IsPrimaryKey = true
+                    //col.IsPrimaryKey = true
+                    if col.IndexType != base.IndexTypePrimaryKeyIncr {
+                        col.IndexType = base.IndexTypePrimaryKey
+                    }
                 }
                 if key == "UNI" {
                     col.IndexType = base.IndexTypeUnique
@@ -226,7 +231,8 @@ func (dc *mysqlDialect) SchemaColumns(dbName, tableName string) (map[string]*bas
             case "EXTRA":
                 extra := content
                 if extra == "auto_increment" {
-                    col.IsAutoIncrement = true
+                    //col.IsAutoIncrement = true
+                    col.IndexType = base.IndexTypePrimaryKeyIncr
                 }
             }
 

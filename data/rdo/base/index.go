@@ -1,10 +1,11 @@
 package base
 
 const (
-    IndexTypeEmpty      int = 0
-    IndexTypeIndex      int = 1
-    IndexTypeUnique     int = 2
-    IndexTypePrimaryKey int = 3
+    IndexTypeEmpty          int = 0
+    IndexTypeIndex          int = 1
+    IndexTypeUnique         int = 2
+    IndexTypePrimaryKey     int = 3
+    IndexTypePrimaryKeyIncr int = 4
 )
 
 // database index

@@ -27,32 +27,40 @@ var columnTypes = map[string]string{
 
 // database column
 type Column struct {
-    Name            string `json:"name"`
-    Type            string `json:"type"`
-    Length          int    `json:"length"`
-    Length2         int    `json:"length2"`
-    Nullable        bool   `json:"nullable"`
-    Default         string `json:"default"`
-    IndexType       int    `json:"index_type"`
-    IsPrimaryKey    bool
-    IsAutoIncrement bool
-    DefaultIsEmpty  bool
-    Comment         string `json:"comment"`
+    Name      string `json:"name"`
+    Type      string `json:"type"`
+    Length    int    `json:"length"`
+    Length2   int    `json:"length2"`
+    Nullable  string `json:"nullable"`
+    Default   string `json:"default"`
+    IndexType int    `json:"index_type"`
+    //IsPrimaryKey    bool
+    //IsAutoIncrement bool
+    //DefaultIsEmpty  bool
+    Comment string `json:"comment"`
 }
 
-func NewColumn(colName, colType string, len1, len2 int, null bool, def string) *Column {
+func NewColumn(colName, colType string, len1, len2 int, null, def string) *Column {
     return &Column{
-        Name:            colName,
-        Type:            colType,
-        Length:          len1,
-        Length2:         len2,
-        Nullable:        null,
-        Default:         def,
-        IndexType:       IndexTypeEmpty,
-        IsPrimaryKey:    false,
-        IsAutoIncrement: false,
-        DefaultIsEmpty:  true,
+        Name:      colName,
+        Type:      colType,
+        Length:    len1,
+        Length2:   len2,
+        Nullable:  null,
+        Default:   def,
+        IndexType: IndexTypeEmpty,
+        //IsPrimaryKey:    false,
+        //IsAutoIncrement: false,
+        //DefaultIsEmpty:  true,
     }
+}
+
+func (col *Column) IsPrimaryKey() bool {
+    if col.IndexType == IndexTypePrimaryKey ||
+        col.IndexType == IndexTypePrimaryKeyIncr {
+        return true
+    }
+    return false
 }
 
 // generate column description string according dialect

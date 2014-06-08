@@ -27,7 +27,7 @@ func (table *Table) AddColumn(col *Column) {
 
     table.Columns[col.Name] = col
 
-    if col.IsPrimaryKey {
+    if col.IsPrimaryKey() {
         table.PrimaryKeys = append(table.PrimaryKeys, col.Name)
     }
 }
