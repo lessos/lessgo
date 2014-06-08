@@ -8,6 +8,6 @@ type DialectInterface interface {
     SchemaTableExist(dbName, tableName string) bool
     SchemaTables(dbName string) (map[string]*Table, error)
     SchemaColumnTypeSql(col *Column) string
-    SchemaColumns(dbName, tableName string) (map[string]*Column, error)
+    SchemaColumns(dbName, tableName string) ([]*Column, error)
     SchemaIndexes(dbName, tableName string) (map[string]*Index, error)
 }

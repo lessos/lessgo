@@ -157,9 +157,9 @@ func (dc *mysqlDialect) SchemaTables(dbName string) (map[string]*base.Table, err
     return tables, nil
 }
 
-func (dc *mysqlDialect) SchemaColumns(dbName, tableName string) (map[string]*base.Column, error) {
+func (dc *mysqlDialect) SchemaColumns(dbName, tableName string) ([]*base.Column, error) {
 
-    cols := map[string]*base.Column{}
+    cols := []*base.Column{}
 
     q := "SELECT `COLUMN_NAME`, `IS_NULLABLE`, `COLUMN_DEFAULT`, `COLUMN_TYPE`," +
         " `COLUMN_KEY`, `EXTRA` FROM `INFORMATION_SCHEMA`.`COLUMNS` " +
@@ -186,9 +186,9 @@ func (dc *mysqlDialect) SchemaColumns(dbName, tableName string) (map[string]*bas
             case "COLUMN_DEFAULT":
                 // add ''
                 col.Default = content
-                if col.Default == "" {
-                    //col.DefaultIsEmpty = true
-                }
+                // if col.Default == "" {
+                //     col.DefaultIsEmpty = true
+                // }
             case "COLUMN_TYPE":
                 cts := strings.Split(content, "(")
                 var len1, len2 int
@@ -212,11 +212,11 @@ func (dc *mysqlDialect) SchemaColumns(dbName, tableName string) (map[string]*bas
                 col.Type = strings.ToLower(cts[0])
                 col.Length = len1
                 col.Length2 = len2
-                //if _, ok := sqlTypes[colType]; ok {
+                // if _, ok := sqlTypes[colType]; ok {
                 //  col.SQLType = SQLType{colType, len1, len2}
-                //} else {
+                // } else {
                 //  return nil, nil, errors.New(fmt.Sprintf("unkonw colType %v", colType))
-                //}
+                // }
             case "COLUMN_KEY":
                 key := content
                 if key == "PRI" {
@@ -236,20 +236,18 @@ func (dc *mysqlDialect) SchemaColumns(dbName, tableName string) (map[string]*bas
                 }
             }
 
-            /*
-               if col.SQLType.IsText() {
-               if col.Default != "" {
-                   col.Default = "'" + col.Default + "'"
-               } else {
-                   if col.DefaultIsEmpty {
-                       col.Default = "''"
-                   }
-               }
-               }
-            */
+            // if col.SQLType.IsText() {
+            //     if col.Default != "" {
+            //         col.Default = "'" + col.Default + "'"
+            //     } else {
+            //         if col.DefaultIsEmpty {
+            //             col.Default = "''"
+            //         }
+            //     }
+            // }
         }
 
-        cols[col.Name] = col
+        cols = append(cols, col)
     }
 
     return cols, nil
