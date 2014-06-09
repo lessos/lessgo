@@ -1,7 +1,7 @@
 package mysql
 
 import (
-    "../base"
+//"../base"
 )
 
 const (
@@ -32,9 +32,4 @@ var mysqlStmt = map[string]string{
 
 func (dc *mysqlDialect) QuoteStr(str string) string {
     return mysqlQuote + str + mysqlQuote
-}
-
-func SqlType(col base.Column) string {
-
-    return ""
 }

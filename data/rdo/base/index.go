@@ -1,11 +1,11 @@
 package base
 
 const (
-    IndexTypeEmpty          int = 0
-    IndexTypeIndex          int = 1
-    IndexTypeUnique         int = 2
-    IndexTypePrimaryKey     int = 3
-    IndexTypePrimaryKeyIncr int = 4
+    IndexTypeEmpty      int = 0
+    IndexTypeIndex      int = 1
+    IndexTypeUnique     int = 2
+    IndexTypePrimaryKey int = 3
+    IndexTypeMultiple   int = 4
 )
 
 // database index
@@ -16,10 +16,23 @@ type Index struct {
 }
 
 // add columns which will be composite index
-func (index *Index) AddColumn(cols ...string) {
+func (index *Index) AddColumn(cols ...string) *Index {
+
     for _, col := range cols {
-        index.Cols = append(index.Cols, col)
+
+        exist := false
+        for _, v := range index.Cols {
+            if v == col {
+                exist = true
+            }
+        }
+
+        if !exist {
+            index.Cols = append(index.Cols, col)
+        }
     }
+
+    return index
 }
 
 // new an index

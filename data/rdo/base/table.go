@@ -1,15 +1,15 @@
 package base
 
 type Table struct {
-    Name        string            `json:"name"`
-    Engine      string            `json:"engine"`
-    Charset     string            `json:"charset"`
-    PrimaryKeys []string          `json:"primary_keys"`
-    Columns     []*Column         `json:"columns"`
-    Indexes     map[string]*Index `json:"indexes"`
-    Comment     string            `json:"comment"`
-    AutoIncr    string
-    TableRows   string
+    Name        string    `json:"name"`
+    Engine      string    `json:"engine"`
+    Charset     string    `json:"charset"`
+    PrimaryKeys []string  `json:"primary_keys"`
+    Columns     []*Column `json:"columns"`
+    Indexes     []*Index  `json:"indexes"`
+    Comment     string    `json:"comment"`
+    //AutoIncr    string
+    //TableRows   string
 }
 
 func NewTable(name, engine, charset string) *Table {
@@ -19,7 +19,7 @@ func NewTable(name, engine, charset string) *Table {
         Charset:     charset,
         PrimaryKeys: []string{},
         Columns:     []*Column{},
-        Indexes:     map[string]*Index{},
+        Indexes:     []*Index{},
     }
 }
 
@@ -45,5 +45,11 @@ func (table *Table) AddColumn(col *Column) {
 }
 
 func (table *Table) AddIndex(index *Index) {
-    table.Indexes[index.Name] = index
+    for _, v := range table.Indexes {
+        if v.Name == index.Name {
+            return
+        }
+    }
+
+    table.Indexes = append(table.Indexes, index)
 }

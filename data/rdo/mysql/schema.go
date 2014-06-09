@@ -29,7 +29,7 @@ func (dc *mysqlDialect) SchemaColumnTypeSql(col *base.Column) string {
         sql += " NOT NULL"
     }
 
-    if col.IndexType == base.IndexTypePrimaryKeyIncr {
+    if col.IsAutoIncrement && col.IndexType == base.IndexTypePrimaryKey {
         sql += " AUTO_INCREMENT"
     }
 
@@ -116,12 +116,14 @@ func (dc *mysqlDialect) SchemaTableExist(dbName, tableName string) bool {
     return len(rows) > 0
 }
 
-func (dc *mysqlDialect) SchemaTables(dbName string) (map[string]*base.Table, error) {
+func (dc *mysqlDialect) SchemaTables(dbName string) ([]*base.Table, error) {
 
-    tables := map[string]*base.Table{}
+    tables := []*base.Table{}
 
-    q := "SELECT `TABLE_NAME`, `ENGINE`, `TABLE_ROWS`, `AUTO_INCREMENT` "
-    q += "FROM `INFORMATION_SCHEMA`.`TABLES` WHERE `TABLE_SCHEMA` = ?"
+    q := "SELECT `TABLE_NAME`, `ENGINE`, `TABLE_ROWS`, `AUTO_INCREMENT`, "
+    q += "`TABLE_COLLATION`, `TABLE_COMMENT` "
+    q += "FROM `INFORMATION_SCHEMA`.`TABLES` "
+    q += "WHERE `TABLE_SCHEMA` = ?"
 
     rows, err := dc.Base().Conn.Query(q, dbName)
     if err != nil {
@@ -131,27 +133,56 @@ func (dc *mysqlDialect) SchemaTables(dbName string) (map[string]*base.Table, err
 
     for rows.Next() {
 
-        var name, engine, tableRows, autoIncr string
-        err = rows.Scan(&name, &engine, &tableRows, &autoIncr)
-        if err != nil {
+        var name, engine, tableRows, autoIncr, charset, comment string
+        if err = rows.Scan(&name, &engine, &tableRows, &autoIncr, &charset, &comment); err != nil {
             return nil, err
         }
 
+        if charset == "utf8_general_ci" {
+            charset = "utf8"
+        }
+
+        idxs, _ := dc.SchemaIndexes(dbName, name)
+
         pks := []string{}
         cols, _ := dc.SchemaColumns(dbName, name)
-        for _, v := range cols {
-            if v.IsPrimaryKey() {
-                pks = append(pks, v.Name)
+        for i, col := range cols {
+
+            if col.IsPrimaryKey() {
+                pks = append(pks, col.Name)
+            }
+
+            for _, idx := range idxs {
+
+                for _, idxcol := range idx.Cols {
+
+                    if col.Name == idxcol {
+
+                        if len(idx.Cols) > 1 {
+
+                            cols[i].IndexType = base.IndexTypeMultiple
+
+                        } else {
+
+                            cols[i].IndexType = idx.Type
+                        }
+                    }
+                }
             }
         }
-        tables[name] = &base.Table{
+
+        tables = append(tables, &base.Table{
             Name:        name,
             Engine:      engine,
-            AutoIncr:    autoIncr,
-            TableRows:   tableRows,
+            Charset:     charset,
             PrimaryKeys: pks,
             Columns:     cols,
-        }
+            Indexes:     idxs,
+            Comment:     comment,
+            //AutoIncr:    autoIncr,
+            //TableRows:   tableRows,
+
+        })
     }
 
     return tables, nil
@@ -161,16 +192,17 @@ func (dc *mysqlDialect) SchemaColumns(dbName, tableName string) ([]*base.Column,
 
     cols := []*base.Column{}
 
-    q := "SELECT `COLUMN_NAME`, `IS_NULLABLE`, `COLUMN_DEFAULT`, `COLUMN_TYPE`," +
-        " `COLUMN_KEY`, `EXTRA` FROM `INFORMATION_SCHEMA`.`COLUMNS` " +
-        " WHERE `TABLE_SCHEMA` = ? AND `TABLE_NAME` = ?"
+    q := "SELECT `COLUMN_NAME`, `IS_NULLABLE`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, "
+    q += "`COLUMN_KEY`, `EXTRA` "
+    q += "FROM `INFORMATION_SCHEMA`.`COLUMNS` "
+    q += "WHERE `TABLE_SCHEMA` = ? AND `TABLE_NAME` = ?"
 
-    res, err := dc.Base().QueryRaw(q, dbName, tableName)
+    rs, err := dc.Base().QueryRaw(q, dbName, tableName)
     if err != nil {
         return cols, err
     }
 
-    for _, record := range res {
+    for _, record := range rs {
 
         col := &base.Column{}
 
@@ -190,8 +222,10 @@ func (dc *mysqlDialect) SchemaColumns(dbName, tableName string) ([]*base.Column,
                 //     col.DefaultIsEmpty = true
                 // }
             case "COLUMN_TYPE":
+
                 cts := strings.Split(content, "(")
                 var len1, len2 int
+
                 if len(cts) == 2 {
                     idx := strings.Index(cts[1], ")")
                     lens := strings.Split(cts[1][0:idx], ",")
@@ -218,21 +252,17 @@ func (dc *mysqlDialect) SchemaColumns(dbName, tableName string) ([]*base.Column,
                 //  return nil, nil, errors.New(fmt.Sprintf("unkonw colType %v", colType))
                 // }
             case "COLUMN_KEY":
-                key := content
-                if key == "PRI" {
-                    //col.IsPrimaryKey = true
-                    if col.IndexType != base.IndexTypePrimaryKeyIncr {
-                        col.IndexType = base.IndexTypePrimaryKey
-                    }
-                }
-                if key == "UNI" {
+                switch content {
+                case "PRI":
+                    col.IndexType = base.IndexTypePrimaryKey
+                case "UNI":
                     col.IndexType = base.IndexTypeUnique
+                case "MUL":
+                    col.IndexType = base.IndexTypeMultiple
                 }
             case "EXTRA":
-                extra := content
-                if extra == "auto_increment" {
-                    //col.IsAutoIncrement = true
-                    col.IndexType = base.IndexTypePrimaryKeyIncr
+                if content == "auto_increment" {
+                    col.IsAutoIncrement = true
                 }
             }
 
@@ -253,55 +283,59 @@ func (dc *mysqlDialect) SchemaColumns(dbName, tableName string) ([]*base.Column,
     return cols, nil
 }
 
-func (dc *mysqlDialect) SchemaIndexes(dbName, tableName string) (map[string]*base.Index, error) {
+func (dc *mysqlDialect) SchemaIndexes(dbName, tableName string) ([]*base.Index, error) {
 
-    s := "SELECT `INDEX_NAME`, `NON_UNIQUE`, `COLUMN_NAME` FROM `INFORMATION_SCHEMA`.`STATISTICS` WHERE `TABLE_SCHEMA` = ? AND `TABLE_NAME` = ?"
+    indexes := []*base.Index{}
+
+    s := "SELECT `INDEX_NAME`, `NON_UNIQUE`, `COLUMN_NAME` "
+    s += "FROM `INFORMATION_SCHEMA`.`STATISTICS` "
+    s += "WHERE `TABLE_SCHEMA` = ? AND `TABLE_NAME` = ?"
 
     rows, err := dc.Base().Conn.Query(s, dbName, tableName)
     if err != nil {
-        return nil, err
+        return indexes, err
     }
     defer rows.Close()
-
-    indexes := map[string]*base.Index{}
 
     for rows.Next() {
 
         var indexType int
         var indexName, colName, nonUnique string
-        err = rows.Scan(&indexName, &nonUnique, &colName)
-        if err != nil {
+
+        if err = rows.Scan(&indexName, &nonUnique, &colName); err != nil {
             return indexes, err
         }
 
         if indexName == "PRIMARY" {
-            continue
-        }
-
-        if "YES" == nonUnique || nonUnique == "1" {
+            indexType = base.IndexTypePrimaryKey
+        } else if "YES" == nonUnique || nonUnique == "1" {
             indexType = base.IndexTypeIndex
         } else {
             indexType = base.IndexTypeUnique
         }
 
-        //fmt.Println("AA", indexType, indexName, colName, nonUnique)
-        colName = strings.Trim(colName, "` ")
-        if strings.HasPrefix(indexName, "IDX_"+tableName) ||
-            strings.HasPrefix(indexName, "UQE_"+tableName) {
-            indexName = indexName[5+len(tableName) : len(indexName)]
-        }
+        // colName = strings.Trim(colName, "` ")
+        // if strings.HasPrefix(indexName, "IDX_"+tableName) ||
+        //     strings.HasPrefix(indexName, "UQE_"+tableName) {
+        //     indexName = indexName[5+len(tableName) : len(indexName)]
+        // }
 
-        var index *base.Index
-        var ok bool
-        if index, ok = indexes[indexName]; !ok {
-            index = &base.Index{
-                Name: indexName,
-                Type: indexType,
+        exist := false
+        for i, v := range indexes {
+
+            if v.Name == indexName {
+                indexes[i].AddColumn(colName)
+                exist = true
             }
-            indexes[indexName] = index
         }
 
-        index.AddColumn(colName)
+        if !exist {
+            //idx := base.NewIndex(indexName, indexType)
+            //idx.AddColumn(colName)
+            indexes = append(indexes, base.NewIndex(indexName, indexType).AddColumn(colName))
+        }
+
+        // indexes[indexName].AddColumn(colName)
     }
 
     return indexes, nil
