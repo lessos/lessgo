@@ -4,7 +4,7 @@ type Table struct {
     Name        string    `json:"name"`
     Engine      string    `json:"engine"`
     Charset     string    `json:"charset"`
-    PrimaryKeys []string  `json:"primary_keys"`
+    PrimaryKeys []string  `json:"primaryKeys"`
     Columns     []*Column `json:"columns"`
     Indexes     []*Index  `json:"indexes"`
     Comment     string    `json:"comment"`

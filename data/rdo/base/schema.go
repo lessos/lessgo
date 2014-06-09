@@ -10,7 +10,7 @@ type DataSet struct {
     DbName  string  `json:"dbname"`
     Engine  string  `json:"engine"`
     Charset string  `json:"charset"`
-    Tables  []Table `json:"tables"`
+    Tables  []*Table `json:"tables"`
 }
 
 func LoadDataSetConfig(file string) (DataSet, error) {

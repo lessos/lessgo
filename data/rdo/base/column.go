@@ -27,27 +27,27 @@ var columnTypes = map[string]string{
 
 // database column
 type Column struct {
-    Name            string `json:"name"`
-    Type            string `json:"type"`
-    Length          int    `json:"length"`
-    Length2         int    `json:"length2"`
-    Nullable        string `json:"nullable"`
-    Default         string `json:"default"`
-    IndexType       int    `json:"indexType"`
-    IsAutoIncrement bool   `json:"isAutoIncrement"`
-    Comment         string `json:"comment"`
+    Name      string `json:"name"`
+    Type      string `json:"type"`
+    Length    int    `json:"length"`
+    Length2   int    `json:"length2"`
+    NullAble  string `json:"nullAble"`
+    Default   string `json:"default"`
+    IndexType int    `json:"indexType"`
+    IncrAble  bool   `json:"incrAble"`
+    Comment   string `json:"comment"`
 }
 
 func NewColumn(colName, colType string, len1, len2 int, null, def string) *Column {
     return &Column{
-        Name:            colName,
-        Type:            colType,
-        Length:          len1,
-        Length2:         len2,
-        Nullable:        null,
-        Default:         def,
-        IndexType:       IndexTypeEmpty,
-        IsAutoIncrement: false,
+        Name:      colName,
+        Type:      colType,
+        Length:    len1,
+        Length2:   len2,
+        NullAble:  null,
+        Default:   def,
+        IndexType: IndexTypeEmpty,
+        IncrAble:  false,
     }
 }
 
@@ -64,12 +64,12 @@ func (col *Column) String(d DialectInterface) string {
 
     /* if col.IsPrimaryKey {
            sql += "PRIMARY KEY "
-           if col.IsAutoIncrement {
+           if col.IncrAble {
                sql += "AUTO_INCREMENT "
            }
        }
 
-       if col.Nullable {
+       if col.NullAble {
            sql += "NULL "
        } else {
            sql += "NOT NULL "
@@ -89,7 +89,7 @@ func (col *Column) StringNoPk(d DialectInterface) string {
     sql += d.SchemaColumnTypeSql(col) + " "
 
     /*
-       if col.Nullable {
+       if col.NullAble {
            sql += "NULL "
        } else {
            sql += "NOT NULL "

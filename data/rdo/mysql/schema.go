@@ -8,6 +8,10 @@ import (
     "strings"
 )
 
+// "SET NAMES 'utf8'"
+// "SET CHARACTER_SET_CLIENT=utf8"
+// "SET CHARACTER_SET_RESULTS=utf8"
+
 func (dc *mysqlDialect) SchemaColumnTypeSql(col *base.Column) string {
 
     sql, ok := columnTypes[col.Type]
@@ -23,13 +27,13 @@ func (dc *mysqlDialect) SchemaColumnTypeSql(col *base.Column) string {
         sql = fmt.Sprintf(sql, col.Length, col.Length2)
     }
 
-    if col.Nullable == "null" {
+    if col.NullAble == "null" {
         sql += " NULL"
-    } else if col.Nullable == "not-null" {
+    } else if col.NullAble == "not-null" {
         sql += " NOT NULL"
     }
 
-    if col.IsAutoIncrement && col.IndexType == base.IndexTypePrimaryKey {
+    if col.IncrAble && col.IndexType == base.IndexTypePrimaryKey {
         sql += " AUTO_INCREMENT"
     }
 
@@ -114,6 +118,26 @@ func (dc *mysqlDialect) SchemaTableExist(dbName, tableName string) bool {
     }
 
     return len(rows) > 0
+}
+
+func (dc *mysqlDialect) SchemaDataSet(dbName string) (base.DataSet, error) {
+
+    ds := base.DataSet{
+        DbName: dbName,
+    }
+
+    q := "SELECT `DEFAULT_CHARACTER_SET_NAME` "
+    q += "FROM `INFORMATION_SCHEMA`.`SCHEMATA` "
+    q += "WHERE `SCHEMA_NAME` = ?"
+
+    err := dc.Base().Conn.QueryRow(q, dbName).Scan(&ds.Charset)
+    if err != nil {
+        return ds, err
+    }
+
+    ds.Tables, err = dc.SchemaTables(dbName)
+
+    return ds, err
 }
 
 func (dc *mysqlDialect) SchemaTables(dbName string) ([]*base.Table, error) {
@@ -213,7 +237,7 @@ func (dc *mysqlDialect) SchemaColumns(dbName, tableName string) ([]*base.Column,
                 col.Name = strings.Trim(content, "` ")
             case "IS_NULLABLE":
                 if "YES" == content {
-                    col.Nullable = "null"
+                    col.NullAble = "null"
                 }
             case "COLUMN_DEFAULT":
                 // add ''
@@ -262,7 +286,7 @@ func (dc *mysqlDialect) SchemaColumns(dbName, tableName string) ([]*base.Column,
                 }
             case "EXTRA":
                 if content == "auto_increment" {
-                    col.IsAutoIncrement = true
+                    col.IncrAble = true
                 }
             }
 

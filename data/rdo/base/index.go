@@ -10,9 +10,9 @@ const (
 
 // database index
 type Index struct {
-    Name string
-    Type int
-    Cols []string
+    Name string   `json:"name"`
+    Type int      `json:"type"`
+    Cols []string `json:"cols"`
 }
 
 // add columns which will be composite index
