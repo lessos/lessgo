@@ -4,6 +4,7 @@ import (
     "../base"
     "errors"
     "fmt"
+    "sort"
     "strconv"
     "strings"
 )
@@ -11,6 +12,41 @@ import (
 // "SET NAMES 'utf8'"
 // "SET CHARACTER_SET_CLIENT=utf8"
 // "SET CHARACTER_SET_RESULTS=utf8"
+
+func (dc *mysqlDialect) SchemaIndexAdd(dbName, tableName string, index *base.Index) error {
+
+    sql := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD INDEX (%s)", 
+        dbName, tableName, dc.QuoteStr(strings.Join(index.Cols, dc.QuoteStr(","))))
+    
+    if _, err := dc.Base().ExecRaw(sql); err != nil {
+        return err
+    }
+
+    return nil
+}
+
+func (dc *mysqlDialect) SchemaIndexDel(dbName, tableName, indexName string) error {
+
+    if indexName == "PRIMARY" {
+        fmt.Println("DROP PRIMARY KEY")
+        return nil // TODO
+    }
+
+    sql := fmt.Sprintf("ALTER TABLE `%s`.`%s` DROP ", dbName, tableName)
+    if indexName == "PRIMARY" {
+        sql += "PRIMARY KEY"
+    } else {
+        sql += "INDEX "+ indexName
+    }
+
+    fmt.Println("SchemaIndexDel", sql)
+
+    if _, err := dc.Base().ExecRaw(sql); err != nil {
+        return err
+    }
+
+    return nil
+}
 
 func (dc *mysqlDialect) SchemaColumnTypeSql(col *base.Column) string {
 
@@ -27,9 +63,9 @@ func (dc *mysqlDialect) SchemaColumnTypeSql(col *base.Column) string {
         sql = fmt.Sprintf(sql, col.Length, col.Length2)
     }
 
-    if col.NullAble == "null" {
+    if col.NullAble {
         sql += " NULL"
-    } else if col.NullAble == "not-null" {
+    } else {
         sql += " NOT NULL"
     }
 
@@ -46,6 +82,21 @@ func (dc *mysqlDialect) SchemaColumnTypeSql(col *base.Column) string {
     }
 
     return dc.QuoteStr(col.Name) + " " + sql
+}
+
+func (dc *mysqlDialect) SchemaColumnAddSql(dbName, tableName string, col *base.Column) (string, error) {
+
+    sql := fmt.Sprintf("ALTER TABLE `%v`.`%v` ADD %v", dbName, tableName, dc.SchemaColumnTypeSql(col))
+
+    return sql, nil
+}
+
+func (dc *mysqlDialect) SchemaColumnSetSql(dbName, tableName string, col *base.Column) (string, error) {
+
+    sql := fmt.Sprintf("ALTER TABLE `%v`.`%v` CHANGE `%v` %v",
+        dbName, tableName, col.Name, dc.SchemaColumnTypeSql(col))
+
+    return sql, nil
 }
 
 func (dc *mysqlDialect) SchemaTableCreateSql(table *base.Table) (string, error) {
@@ -120,6 +171,137 @@ func (dc *mysqlDialect) SchemaTableExist(dbName, tableName string) bool {
     return len(rows) > 0
 }
 
+func (dc *mysqlDialect) SchemaSync(dbName string, newds base.DataSet) error {
+
+    curds, err := dc.SchemaDataSet(dbName)
+    if err != nil {
+        return err
+    }
+
+    for _, newTable := range newds.Tables {
+
+        exist := false
+        //updated := false
+        var curTable *base.Table
+
+        for _, curTable = range curds.Tables {
+
+            if newTable.Name == curTable.Name {
+                exist = true
+                break
+            }
+        }
+
+        if !exist {
+
+            sql, err := dc.SchemaTableCreateSql(newTable)
+
+            _, err = dc.Base().ExecRaw(sql)
+            if err != nil {
+                return err
+            }
+
+            continue
+        }
+
+        // Column
+        for _, newcol := range newTable.Columns {
+
+            colExist := false
+            colChange := false
+
+            for _, curcol := range curTable.Columns {
+
+                if newcol.Name != curcol.Name {
+                    continue
+                }
+
+                colExist = true
+
+                if newcol.Type != curcol.Type ||
+                    newcol.Length != curcol.Length ||
+                    newcol.Length2 != curcol.Length2 ||
+                    newcol.NullAble != curcol.NullAble ||
+                    newcol.IncrAble != curcol.IncrAble ||
+                    newcol.Default != curcol.Default {
+                    colChange = true
+                    break
+                }
+            }
+
+            if !colExist {
+                sql, err := dc.SchemaColumnAddSql(dbName, newTable.Name, newcol)
+                _, err = dc.Base().ExecRaw(sql)
+                if err != nil {
+                    return err
+                }
+            }
+
+            if colChange {
+
+                sql, err := dc.SchemaColumnSetSql(dbName, newTable.Name, newcol)
+                //fmt.Println("colChange", sql)
+                _, err = dc.Base().ExecRaw(sql)
+                if err != nil {
+                    return err
+                }
+            }
+        }
+
+        // Index Del
+        for _, curidx := range curTable.Indexes {
+
+            curDel := true
+
+            for _, newidx := range newTable.Indexes {
+
+                if newidx.Name != curidx.Name {
+                    continue
+                }
+
+                sort.Strings(newidx.Cols)
+                sort.Strings(curidx.Cols)
+
+                if newidx.Type == curidx.Type &&
+                    strings.Join(newidx.Cols, ",") == strings.Join(curidx.Cols, ",") {
+
+                    curDel = false
+                }
+
+                break
+            }
+
+            if curDel {
+                if err := dc.SchemaIndexDel(dbName, curTable.Name, curidx.Name); err != nil {
+                    return err
+                }
+            }
+        }
+
+        // Index New
+        for _, newidx := range newTable.Indexes {
+
+            exist := false
+
+            for _, curidx := range curTable.Indexes {
+
+                if newidx.Name == curidx.Name {
+                    exist = true
+                    break
+                }
+            }
+
+            if !exist {
+                if err := dc.SchemaIndexAdd(dbName, curTable.Name, newidx); err != nil {
+                    return err
+                }
+            }
+        }
+    }
+
+    return nil
+}
+
 func (dc *mysqlDialect) SchemaDataSet(dbName string) (base.DataSet, error) {
 
     ds := base.DataSet{
@@ -172,7 +354,7 @@ func (dc *mysqlDialect) SchemaTables(dbName string) ([]*base.Table, error) {
         cols, _ := dc.SchemaColumns(dbName, name)
         for i, col := range cols {
 
-            if col.IsPrimaryKey() {
+            if col.IndexType == base.IndexTypePrimaryKey {
                 pks = append(pks, col.Name)
             }
 
@@ -237,7 +419,7 @@ func (dc *mysqlDialect) SchemaColumns(dbName, tableName string) ([]*base.Column,
                 col.Name = strings.Trim(content, "` ")
             case "IS_NULLABLE":
                 if "YES" == content {
-                    col.NullAble = "null"
+                    col.NullAble = true
                 }
             case "COLUMN_DEFAULT":
                 // add ''
@@ -270,6 +452,30 @@ func (dc *mysqlDialect) SchemaColumns(dbName, tableName string) ([]*base.Column,
                 col.Type = strings.ToLower(cts[0])
                 col.Length = len1
                 col.Length2 = len2
+
+                typepre := ""
+                if strings.Contains(content, "unsigned") {
+                    typepre = "u"
+                }
+                switch col.Type {
+                case "bigint":
+                    col.Type = typepre + "int64"
+                    col.Length = 0
+                case "int":
+                    col.Type = typepre + "int32"
+                    col.Length = 0
+                case "smallint":
+                    col.Type = typepre + "int16"
+                    col.Length = 0
+                case "tinyint":
+                    col.Type = typepre + "int8"
+                    col.Length = 0
+                case "varchar":
+                    col.Type = "string"
+                case "longtext":
+                    col.Type = "string-text"
+                }
+
                 // if _, ok := sqlTypes[colType]; ok {
                 //  col.SQLType = SQLType{colType, len1, len2}
                 // } else {

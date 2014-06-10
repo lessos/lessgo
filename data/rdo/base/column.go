@@ -1,11 +1,6 @@
 package base
 
-import (
-//"fmt"
-//"reflect"
-//"strings"
-//"errors"
-)
+import ()
 
 var columnTypes = map[string]string{
     "bool":            "bool",
@@ -31,74 +26,23 @@ type Column struct {
     Type      string `json:"type"`
     Length    int    `json:"length"`
     Length2   int    `json:"length2"`
-    NullAble  string `json:"nullAble"`
+    NullAble  bool   `json:"nullAble"`
+    IncrAble  bool   `json:"incrAble"`
     Default   string `json:"default"`
     IndexType int    `json:"indexType"`
-    IncrAble  bool   `json:"incrAble"`
     Comment   string `json:"comment"`
 }
 
-func NewColumn(colName, colType string, len1, len2 int, null, def string) *Column {
+func NewColumn(colName, colType string, len1, len2 int, null bool, def string) *Column {
     return &Column{
         Name:      colName,
         Type:      colType,
         Length:    len1,
         Length2:   len2,
         NullAble:  null,
+        IncrAble:  false,
         Default:   def,
         IndexType: IndexTypeEmpty,
-        IncrAble:  false,
+        Comment:   "",
     }
-}
-
-func (col *Column) IsPrimaryKey() bool {
-    return col.IndexType == IndexTypePrimaryKey
-}
-
-// generate column description string according dialect
-func (col *Column) String(d DialectInterface) string {
-
-    sql := d.QuoteStr(col.Name) + " "
-
-    sql += d.SchemaColumnTypeSql(col) + " "
-
-    /* if col.IsPrimaryKey {
-           sql += "PRIMARY KEY "
-           if col.IncrAble {
-               sql += "AUTO_INCREMENT "
-           }
-       }
-
-       if col.NullAble {
-           sql += "NULL "
-       } else {
-           sql += "NOT NULL "
-       }
-
-       if col.Default != "" {
-           sql += "DEFAULT " + col.Default + " "
-       } */
-
-    return sql
-}
-
-func (col *Column) StringNoPk(d DialectInterface) string {
-
-    sql := d.QuoteStr(col.Name) + " "
-
-    sql += d.SchemaColumnTypeSql(col) + " "
-
-    /*
-       if col.NullAble {
-           sql += "NULL "
-       } else {
-           sql += "NOT NULL "
-       }
-
-       if col.Default != "" {
-           sql += "DEFAULT " + col.Default + " "
-       }
-    */
-
-    return sql
 }

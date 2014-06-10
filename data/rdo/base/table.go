@@ -39,7 +39,7 @@ func (table *Table) AddColumn(col *Column) {
         table.Columns = append(table.Columns, col)
     }
 
-    if col.IsPrimaryKey() {
+    if col.IndexType == IndexTypePrimaryKey {
         table.PrimaryKeys = append(table.PrimaryKeys, col.Name)
     }
 }

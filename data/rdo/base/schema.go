@@ -7,9 +7,9 @@ import (
 )
 
 type DataSet struct {
-    DbName  string  `json:"dbname"`
-    Engine  string  `json:"engine"`
-    Charset string  `json:"charset"`
+    DbName  string   `json:"dbname"`
+    Engine  string   `json:"engine"`
+    Charset string   `json:"charset"`
     Tables  []*Table `json:"tables"`
 }
 
