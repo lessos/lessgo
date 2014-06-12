@@ -5,7 +5,6 @@ const (
     IndexTypeIndex      int = 1
     IndexTypeUnique     int = 2
     IndexTypePrimaryKey int = 3
-    IndexTypeMultiple   int = 4
 )
 
 // database index

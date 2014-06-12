@@ -22,27 +22,25 @@ var columnTypes = map[string]string{
 
 // database column
 type Column struct {
-    Name      string `json:"name"`
-    Type      string `json:"type"`
-    Length    int    `json:"length"`
-    Length2   int    `json:"length2"`
-    NullAble  bool   `json:"nullAble"`
-    IncrAble  bool   `json:"incrAble"`
-    Default   string `json:"default"`
-    IndexType int    `json:"indexType"`
-    Comment   string `json:"comment"`
+    Name     string `json:"name"`
+    Type     string `json:"type"`
+    Length   int    `json:"length"`
+    Length2  int    `json:"length2"`
+    NullAble bool   `json:"nullAble"`
+    IncrAble bool   `json:"incrAble"`
+    Default  string `json:"default"`
+    Comment  string `json:"comment"`
 }
 
 func NewColumn(colName, colType string, len1, len2 int, null bool, def string) *Column {
     return &Column{
-        Name:      colName,
-        Type:      colType,
-        Length:    len1,
-        Length2:   len2,
-        NullAble:  null,
-        IncrAble:  false,
-        Default:   def,
-        IndexType: IndexTypeEmpty,
-        Comment:   "",
+        Name:     colName,
+        Type:     colType,
+        Length:   len1,
+        Length2:  len2,
+        NullAble: null,
+        IncrAble: false,
+        Default:  def,
+        Comment:  "",
     }
 }

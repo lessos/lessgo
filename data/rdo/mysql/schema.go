@@ -15,9 +15,9 @@ import (
 
 func (dc *mysqlDialect) SchemaIndexAdd(dbName, tableName string, index *base.Index) error {
 
-    sql := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD INDEX (%s)", 
+    sql := fmt.Sprintf("ALTER TABLE `%s`.`%s` ADD INDEX (%s)",
         dbName, tableName, dc.QuoteStr(strings.Join(index.Cols, dc.QuoteStr(","))))
-    
+
     if _, err := dc.Base().ExecRaw(sql); err != nil {
         return err
     }
@@ -28,18 +28,16 @@ func (dc *mysqlDialect) SchemaIndexAdd(dbName, tableName string, index *base.Ind
 func (dc *mysqlDialect) SchemaIndexDel(dbName, tableName, indexName string) error {
 
     if indexName == "PRIMARY" {
-        fmt.Println("DROP PRIMARY KEY")
         return nil // TODO
     }
 
     sql := fmt.Sprintf("ALTER TABLE `%s`.`%s` DROP ", dbName, tableName)
+
     if indexName == "PRIMARY" {
         sql += "PRIMARY KEY"
     } else {
-        sql += "INDEX "+ indexName
+        sql += "INDEX " + indexName
     }
-
-    fmt.Println("SchemaIndexDel", sql)
 
     if _, err := dc.Base().ExecRaw(sql); err != nil {
         return err
@@ -69,7 +67,7 @@ func (dc *mysqlDialect) SchemaColumnTypeSql(col *base.Column) string {
         sql += " NOT NULL"
     }
 
-    if col.IncrAble && col.IndexType == base.IndexTypePrimaryKey {
+    if col.IncrAble {
         sql += " AUTO_INCREMENT"
     }
 
@@ -86,7 +84,8 @@ func (dc *mysqlDialect) SchemaColumnTypeSql(col *base.Column) string {
 
 func (dc *mysqlDialect) SchemaColumnAddSql(dbName, tableName string, col *base.Column) (string, error) {
 
-    sql := fmt.Sprintf("ALTER TABLE `%v`.`%v` ADD %v", dbName, tableName, dc.SchemaColumnTypeSql(col))
+    sql := fmt.Sprintf("ALTER TABLE `%v`.`%v` ADD %v",
+        dbName, tableName, dc.SchemaColumnTypeSql(col))
 
     return sql, nil
 }
@@ -101,12 +100,8 @@ func (dc *mysqlDialect) SchemaColumnSetSql(dbName, tableName string, col *base.C
 
 func (dc *mysqlDialect) SchemaTableCreateSql(table *base.Table) (string, error) {
 
-    if len(table.PrimaryKeys) == 0 {
-        return "", errors.New("No PRIMARY KEY")
-    }
-
     if len(table.Columns) == 0 {
-        return "", errors.New("No Columns")
+        return "", errors.New("No Columns Found")
     }
 
     sql := "CREATE TABLE IF NOT EXISTS " + dc.QuoteStr(table.Name) + " (\n"
@@ -115,24 +110,35 @@ func (dc *mysqlDialect) SchemaTableCreateSql(table *base.Table) (string, error) 
         sql += " " + dc.SchemaColumnTypeSql(col) + ",\n"
     }
 
+    pks := []string{}
     for _, idx := range table.Indexes {
+
         if len(idx.Cols) == 0 {
             continue
         }
+
         switch idx.Type {
+        case base.IndexTypePrimaryKey:
+            pks = idx.Cols
+            continue
         case base.IndexTypeIndex:
-            sql += " KEY " + dc.QuoteStr(idx.Name) + " ("
-            sql += dc.QuoteStr(strings.Join(idx.Cols, dc.QuoteStr(",")))
-            sql += "),\n"
+            sql += " KEY "
         case base.IndexTypeUnique:
-            sql += " UNIQUE KEY " + dc.QuoteStr(idx.Name) + " ("
-            sql += dc.QuoteStr(strings.Join(idx.Cols, dc.QuoteStr(",")))
-            sql += "),\n"
+            sql += " UNIQUE KEY "
+        default:
+            continue
         }
+
+        sql += dc.QuoteStr(idx.Name) + " ("
+        sql += dc.QuoteStr(strings.Join(idx.Cols, dc.QuoteStr(",")))
+        sql += "),\n"
     }
 
+    if len(pks) == 0 {
+        return "", errors.New("No PRIMARY KEY Found")
+    }
     sql += " PRIMARY KEY ("
-    sql += dc.QuoteStr(strings.Join(table.PrimaryKeys, dc.QuoteStr(",")))
+    sql += dc.QuoteStr(strings.Join(pks, dc.QuoteStr(",")))
     sql += ")\n"
 
     sql += ")"
@@ -181,7 +187,6 @@ func (dc *mysqlDialect) SchemaSync(dbName string, newds base.DataSet) error {
     for _, newTable := range newds.Tables {
 
         exist := false
-        //updated := false
         var curTable *base.Table
 
         for _, curTable = range curds.Tables {
@@ -195,6 +200,9 @@ func (dc *mysqlDialect) SchemaSync(dbName string, newds base.DataSet) error {
         if !exist {
 
             sql, err := dc.SchemaTableCreateSql(newTable)
+            if err != nil {
+                return err
+            }
 
             _, err = dc.Base().ExecRaw(sql)
             if err != nil {
@@ -230,7 +238,12 @@ func (dc *mysqlDialect) SchemaSync(dbName string, newds base.DataSet) error {
             }
 
             if !colExist {
+
                 sql, err := dc.SchemaColumnAddSql(dbName, newTable.Name, newcol)
+                if err != nil {
+                    return err
+                }
+
                 _, err = dc.Base().ExecRaw(sql)
                 if err != nil {
                     return err
@@ -240,6 +253,10 @@ func (dc *mysqlDialect) SchemaSync(dbName string, newds base.DataSet) error {
             if colChange {
 
                 sql, err := dc.SchemaColumnSetSql(dbName, newTable.Name, newcol)
+                if err != nil {
+                    return err
+                }
+
                 //fmt.Println("colChange", sql)
                 _, err = dc.Base().ExecRaw(sql)
                 if err != nil {
@@ -326,8 +343,7 @@ func (dc *mysqlDialect) SchemaTables(dbName string) ([]*base.Table, error) {
 
     tables := []*base.Table{}
 
-    q := "SELECT `TABLE_NAME`, `ENGINE`, `TABLE_ROWS`, `AUTO_INCREMENT`, "
-    q += "`TABLE_COLLATION`, `TABLE_COMMENT` "
+    q := "SELECT `TABLE_NAME`, `ENGINE`, `TABLE_COLLATION`, `TABLE_COMMENT` "
     q += "FROM `INFORMATION_SCHEMA`.`TABLES` "
     q += "WHERE `TABLE_SCHEMA` = ?"
 
@@ -339,55 +355,26 @@ func (dc *mysqlDialect) SchemaTables(dbName string) ([]*base.Table, error) {
 
     for rows.Next() {
 
-        var name, engine, tableRows, autoIncr, charset, comment string
-        if err = rows.Scan(&name, &engine, &tableRows, &autoIncr, &charset, &comment); err != nil {
+        var name, engine, charset, comment string
+        if err = rows.Scan(&name, &engine, &charset, &comment); err != nil {
             return nil, err
         }
 
-        if charset == "utf8_general_ci" {
-            charset = "utf8"
+        if i := strings.Index(charset, "_"); i > 0 {
+            charset = charset[0:i]
         }
 
         idxs, _ := dc.SchemaIndexes(dbName, name)
 
-        pks := []string{}
         cols, _ := dc.SchemaColumns(dbName, name)
-        for i, col := range cols {
-
-            if col.IndexType == base.IndexTypePrimaryKey {
-                pks = append(pks, col.Name)
-            }
-
-            for _, idx := range idxs {
-
-                for _, idxcol := range idx.Cols {
-
-                    if col.Name == idxcol {
-
-                        if len(idx.Cols) > 1 {
-
-                            cols[i].IndexType = base.IndexTypeMultiple
-
-                        } else {
-
-                            cols[i].IndexType = idx.Type
-                        }
-                    }
-                }
-            }
-        }
 
         tables = append(tables, &base.Table{
-            Name:        name,
-            Engine:      engine,
-            Charset:     charset,
-            PrimaryKeys: pks,
-            Columns:     cols,
-            Indexes:     idxs,
-            Comment:     comment,
-            //AutoIncr:    autoIncr,
-            //TableRows:   tableRows,
-
+            Name:    name,
+            Engine:  engine,
+            Charset: charset,
+            Columns: cols,
+            Indexes: idxs,
+            Comment: comment,
         })
     }
 
@@ -398,8 +385,7 @@ func (dc *mysqlDialect) SchemaColumns(dbName, tableName string) ([]*base.Column,
 
     cols := []*base.Column{}
 
-    q := "SELECT `COLUMN_NAME`, `IS_NULLABLE`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, "
-    q += "`COLUMN_KEY`, `EXTRA` "
+    q := "SELECT `COLUMN_NAME`, `IS_NULLABLE`, `COLUMN_DEFAULT`, `COLUMN_TYPE`, `EXTRA` "
     q += "FROM `INFORMATION_SCHEMA`.`COLUMNS` "
     q += "WHERE `TABLE_SCHEMA` = ? AND `TABLE_NAME` = ?"
 
@@ -481,15 +467,6 @@ func (dc *mysqlDialect) SchemaColumns(dbName, tableName string) ([]*base.Column,
                 // } else {
                 //  return nil, nil, errors.New(fmt.Sprintf("unkonw colType %v", colType))
                 // }
-            case "COLUMN_KEY":
-                switch content {
-                case "PRI":
-                    col.IndexType = base.IndexTypePrimaryKey
-                case "UNI":
-                    col.IndexType = base.IndexTypeUnique
-                case "MUL":
-                    col.IndexType = base.IndexTypeMultiple
-                }
             case "EXTRA":
                 if content == "auto_increment" {
                     col.IncrAble = true

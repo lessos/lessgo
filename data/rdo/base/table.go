@@ -1,31 +1,26 @@
 package base
 
 type Table struct {
-    Name        string    `json:"name"`
-    Engine      string    `json:"engine"`
-    Charset     string    `json:"charset"`
-    PrimaryKeys []string  `json:"primaryKeys"`
-    Columns     []*Column `json:"columns"`
-    Indexes     []*Index  `json:"indexes"`
-    Comment     string    `json:"comment"`
-    //AutoIncr    string
-    //TableRows   string
+    Name    string    `json:"name"`
+    Engine  string    `json:"engine"`
+    Charset string    `json:"charset"`
+    Columns []*Column `json:"columns"`
+    Indexes []*Index  `json:"indexes"`
+    Comment string    `json:"comment"`
 }
 
 func NewTable(name, engine, charset string) *Table {
     return &Table{
-        Name:        name,
-        Engine:      engine,
-        Charset:     charset,
-        PrimaryKeys: []string{},
-        Columns:     []*Column{},
-        Indexes:     []*Index{},
+        Name:    name,
+        Engine:  engine,
+        Charset: charset,
+        Columns: []*Column{},
+        Indexes: []*Index{},
     }
 }
 
 func (table *Table) AddColumn(col *Column) {
 
-    //table.Columns[col.Name] = col
     exist := false
 
     for k, v := range table.Columns {
@@ -38,13 +33,10 @@ func (table *Table) AddColumn(col *Column) {
     if !exist {
         table.Columns = append(table.Columns, col)
     }
-
-    if col.IndexType == IndexTypePrimaryKey {
-        table.PrimaryKeys = append(table.PrimaryKeys, col.Name)
-    }
 }
 
 func (table *Table) AddIndex(index *Index) {
+
     for _, v := range table.Indexes {
         if v.Name == index.Name {
             return
