@@ -10,6 +10,7 @@ type DataSet struct {
     DbName  string   `json:"dbname"`
     Engine  string   `json:"engine"`
     Charset string   `json:"charset"`
+    Version int      `json:"version"`
     Tables  []*Table `json:"tables"`
 }
 

@@ -1,7 +1,6 @@
 package base
 
 const (
-    IndexTypeEmpty      int = 0
     IndexTypeIndex      int = 1
     IndexTypeUnique     int = 2
     IndexTypePrimaryKey int = 3
