@@ -14,8 +14,8 @@ type DataSet struct {
     Tables  []*Table `json:"tables"`
 }
 
-func LoadDataSetConfig(file string) (DataSet, error) {
-
+func LoadDataSetFromFile(file string) (DataSet, error) {
+    
     var ds DataSet
     var err error
 
@@ -34,9 +34,14 @@ func LoadDataSetConfig(file string) (DataSet, error) {
         return ds, err
     }
 
-    if err = utils.JsonDecode(cfg, &ds); err != nil {
-        return ds, err
-    }
+    return LoadDataSetFromString(string(cfg))
+}
+
+func LoadDataSetFromString(json string) (DataSet, error) {
+
+    var ds DataSet
+
+    err := utils.JsonDecode(json, &ds)
 
     return ds, err
 }
