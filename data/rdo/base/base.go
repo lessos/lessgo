@@ -6,7 +6,7 @@ import (
     "fmt"
     "reflect"
     "strings"
-    "time"
+    //"time"
 )
 
 type Conn *sql.DB
@@ -29,6 +29,120 @@ func BaseInit(conf Config, conn *sql.DB) (*Base, error) {
         Config:   conf,
         BaseStmt: baseStmt,
     }, nil
+}
+
+
+func (dc *Base) Insert(tableName string, item map[string]interface{}) (Result, error) {
+
+    var res Result
+
+    cols, vars, vals := []string{}, []string{}, []interface{}{}
+    for key, val := range item {
+        cols = append(cols, key)
+        vars = append(vars, "?")
+        vals = append(vals, val)
+    }
+
+    sql := fmt.Sprintf("INSERT INTO `%s` (`%s`) VALUES (%s)",
+        tableName,
+        strings.Join(cols, "`,`"),
+        strings.Join(vars, ","))
+
+    stmt, err := dc.Conn.Prepare(sql)
+    if err != nil {
+        return res, err
+    }
+    defer stmt.Close()
+
+    res, err = stmt.Exec(vals...)
+    if err != nil {
+        return res, err
+    }
+
+    return res, nil
+}
+
+func (dc *Base) Delete(tableName string, fr Filter) (Result, error) {
+
+    var res Result
+
+    frsql, params := fr.Parse()
+    if len(params) == 0 {
+        return res, errors.New("Error in query syntax")
+    }
+
+    sql := fmt.Sprintf("DELETE FROM `%s` WHERE %s", tableName, frsql)
+
+    stmt, err := dc.Conn.Prepare(sql)
+    if err != nil {
+        return res, err
+    }
+    defer stmt.Close()
+
+    _, err = stmt.Exec(params...)
+    if err != nil {
+        return res, err
+    }
+
+    return res, nil
+}
+
+func (dc *Base) Update(tableName string, item map[string]interface{}, fr Filter) (Result, error) {
+
+    var res Result
+
+    frsql, params := fr.Parse()
+    if len(params) == 0 {
+        return res, errors.New("Error in query syntax")
+    }
+
+    cols, vals := []string{}, []interface{}{}
+    for key, val := range item {
+        cols = append(cols, "`"+key+"` = ?")
+        vals = append(vals, val)
+    }
+
+    vals = append(vals, params...)
+
+    sql := fmt.Sprintf("UPDATE `%s` SET %s WHERE %s",
+        tableName,
+        strings.Join(cols, ","),
+        frsql)
+
+    stmt, err := dc.Conn.Prepare(sql)
+    if err != nil {
+        return res, err
+    }
+    defer stmt.Close()
+
+    _, err = stmt.Exec(vals...)
+    if err != nil {
+        return res, err
+    }
+
+    return res, nil
+}
+
+func (dc *Base) Count(tableName string, fr Filter) (num int64, err error) {
+
+    frsql, params := fr.Parse()
+    hasWhere := "WHERE"
+    if len(params) == 0 {
+        hasWhere = ""
+    }
+
+    sql := fmt.Sprintf("SELECT COUNT(*) FROM `%s` %s %s", tableName, hasWhere, frsql)
+
+    stmt, err := dc.Conn.Prepare(sql)
+    if err != nil {
+        return
+    }
+    defer stmt.Close()
+
+    row := stmt.QueryRow(params...)
+    err = row.Scan(&num)
+
+    return
 }
 
 func (dc *Base) InsertIgnore(tableName string, item map[string]interface{}) (Result, error) {
@@ -83,6 +197,8 @@ func (dc *Base) QueryRaw(sql string, params ...interface{}) (rs []map[string]int
         return
     }
 
+    //fmt.Println(fields)
+
     for rows.Next() {
 
         ret := map[string]interface{}{}
@@ -105,11 +221,12 @@ func (dc *Base) QueryRaw(sql string, params ...interface{}) (rs []map[string]int
                 continue
             }
 
-            aa := reflect.TypeOf(rawValue.Interface())
+            rawValueType := reflect.TypeOf(rawValue.Interface())
             vv := reflect.ValueOf(rawValue.Interface())
 
+            //fmt.Println(key, rawValueType.Kind(), vv.Interface())
             var vi interface{}
-            switch aa.Kind() {
+            switch rawValueType.Kind() {
             case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
                 vi = vv.Int()
             case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
@@ -117,15 +234,15 @@ func (dc *Base) QueryRaw(sql string, params ...interface{}) (rs []map[string]int
             case reflect.Float32, reflect.Float64:
                 vi = vv.Float()
             case reflect.Slice:
-                if aa.Elem().Kind() == reflect.Uint8 {
-                    vi = string(rawValue.Interface().([]byte))
+                if rawValueType.Elem().Kind() == reflect.Uint8 {
+                    vi = string(vv.Interface().([]byte))
                 }
             case reflect.String:
                 vi = vv.String()
             case reflect.Struct:
-                if aa.String() == "time.Time" {
-                    vi = rawValue.Interface().(time.Time).In(TimeZone)
-                }
+                //if rawValueType.String() == "time.Time" {
+                //    vi = vv.Interface().(time.Time).In(TimeZone)
+                //}
             }
 
             ret[key] = vi

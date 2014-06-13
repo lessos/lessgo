@@ -1,7 +1,6 @@
 package rdc
 
 import (
-    "database/sql"
     "errors"
     "fmt"
     _ "github.com/mattn/go-sqlite3"
@@ -9,50 +8,6 @@ import (
     "strings"
     "time"
 )
-
-type Config struct {
-    Driver string
-    DbPath string
-}
-
-var configDrivers = map[string]bool{
-    "sqlite3": true,
-}
-
-type Result sql.Result
-
-type Conn struct {
-    db  *sql.DB
-    cfg Config
-}
-
-func NewConfig() Config {
-    return Config{}
-}
-
-func (c Config) Instance() (*Conn, error) {
-
-    var err error
-
-    if !configDrivers[c.Driver] {
-        return nil, errors.New("Driver can not found")
-    }
-
-    var cn Conn
-
-    cn.db, err = sql.Open(c.Driver, c.DbPath)
-    if err != nil {
-        return nil, err
-    }
-
-    cn.cfg = c
-
-    return &cn, nil
-}
-
-func (cn *Conn) Close() {
-    cn.db.Close()
-}
 
 func (cn *Conn) Insert(tblname string, item map[string]interface{}) (Result, error) {
 

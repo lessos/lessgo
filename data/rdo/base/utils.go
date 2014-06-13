@@ -2,6 +2,7 @@ package base
 
 import (
     "time"
+    "fmt"
 )
 
 const (
@@ -13,6 +14,8 @@ const (
 var (
     TimeZone = time.UTC
 )
+
+type Time time.Time
 
 func TimeFormat(format string) string {
 
@@ -47,3 +50,25 @@ func TimeZoneFormat(t time.Time, tz, format string) string {
     }
     return t.In(loc).Format(TimeFormat(format))
 }
+
+func TimeParse(timeString, format string) time.Time {
+
+    tp, err := time.ParseInLocation(TimeFormat(format), timeString, TimeZone)
+    if err != nil {
+        fmt.Println("TimeParseError", err)
+        return time.Now().In(TimeZone)
+    }
+
+    return tp
+}
+/*
+func (t *Time)Format(format, tz string) string {
+
+    loc, err := time.LoadLocation(tz)
+    if err != nil {
+        return t.Format(TimeFormat(format))
+    }
+    
+    return t.In(loc).Format(TimeFormat(format))
+}
+*/

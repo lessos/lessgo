@@ -1,7 +1,9 @@
 package rdc
 
 import (
+    "./mysql"
     "./setup"
+    "./sqlite3"
     "fmt"
     "reflect"
     "strconv"
@@ -11,8 +13,11 @@ import (
 
 func (cn *Conn) FieldType(t string) string {
 
-    if cn.cfg.Driver == "sqlite3" {
-        return sqliteFieldTypes[t]
+    switch cn.driver {
+    case "mysql":
+        return mysql.FieldTypes[t]
+    case "sqlite3":
+        return sqlite3.FieldTypes[t]
     }
 
     return ""
@@ -21,12 +26,16 @@ func (cn *Conn) FieldType(t string) string {
 //
 func (cn *Conn) Setup(dsname string, ds setup.DataSet) error {
 
-    sql := `CREATE TABLE IF NOT EXISTS less_dataset_version (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        version INTEGER,
-        action VARCHAR(20),
-        created DATETIME )`
-    if _, err := cn.QueryRaw(sql); err != nil {
+    sql := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS less_dataset_version (
+        id %s,
+        version %s,
+        action %s,
+        created %s);`,
+        cn.FieldType("auto"),
+        cn.FieldType("int32"),
+        fmt.Sprintf(cn.FieldType("string"), 30),
+        cn.FieldType("datetime"))
+    if _, err := cn.ExecRaw(sql); err != nil {
         return err
     }
 

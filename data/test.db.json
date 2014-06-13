@@ -1,0 +1,42 @@
+{
+    "engine": "InnoDB",
+    "charset": "utf8",
+    "tables": [
+        {
+            "name": "less_dataset_version",
+            "columns": [
+                {
+                    "name": "id",
+                    "incrAble": true,
+                    "type": "uint64"                    
+                },
+                {
+                    "name": "version",
+                    "type": "uint32"
+                },
+                {
+                    "name": "action",
+                    "type": "string",
+                    "nullAble": true,
+                    "length": 30
+                },
+                {
+                    "name": "created",
+                    "type": "datetime"
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "PRIMARY",
+                    "type": 3,
+                    "cols": ["id"]
+                },
+                {
+                    "name": "version",
+                    "type": 1,
+                    "cols": ["version"]
+                }
+            ]
+        }
+    ]
+}
