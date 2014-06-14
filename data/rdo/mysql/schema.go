@@ -200,12 +200,12 @@ func (dc *mysqlDialect) SchemaColumnQuery(dbName, tableName string) ([]*base.Col
         return cols, err
     }
 
-    for _, record := range rs {
+    for _, entry := range rs {
 
         col := &base.Column{}
 
-        for name, v := range record {
-            content := v.(string)
+        for name, v := range entry.Fields {
+            content := v.String()
             switch name {
             case "COLUMN_NAME":
                 col.Name = strings.Trim(content, "` ")

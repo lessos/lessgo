@@ -15,7 +15,7 @@ type DataSet struct {
 }
 
 func LoadDataSetFromFile(file string) (DataSet, error) {
-    
+
     var ds DataSet
     var err error
 

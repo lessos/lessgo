@@ -1,8 +1,8 @@
 package base
 
 import (
-    "time"
     "fmt"
+    "time"
 )
 
 const (
@@ -14,8 +14,6 @@ const (
 var (
     TimeZone = time.UTC
 )
-
-type Time time.Time
 
 func TimeFormat(format string) string {
 
@@ -61,14 +59,3 @@ func TimeParse(timeString, format string) time.Time {
 
     return tp
 }
-/*
-func (t *Time)Format(format, tz string) string {
-
-    loc, err := time.LoadLocation(tz)
-    if err != nil {
-        return t.Format(TimeFormat(format))
-    }
-    
-    return t.In(loc).Format(TimeFormat(format))
-}
-*/

@@ -57,6 +57,12 @@ func main() {
     err = dc.Dialect.SchemaSync(cfg.Dbname, ds)
     fmt.Println("\nSchemaSync\n", err)
 
+    rs, _ := dc.Base.QueryRaw("select * from ids_login")
+    fmt.Println("rs len", len(rs))
+    for _, v := range rs {
+        fmt.Println("v", v.Field("name").String())
+    }
+
     // indexes, err := dc.Dialect.SchemaIndexes(cfg.Dbname, "less_dataset_version")
     // ji, _ := utils.JsonEncode(indexes)
     // fmt.Println("\nSchemaIndexes", ji)

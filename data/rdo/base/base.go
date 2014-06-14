@@ -6,7 +6,6 @@ import (
     "fmt"
     "reflect"
     "strings"
-    //"time"
 )
 
 type Conn *sql.DB
@@ -30,7 +29,6 @@ func BaseInit(conf Config, conn *sql.DB) (*Base, error) {
         BaseStmt: baseStmt,
     }, nil
 }
-
 
 func (dc *Base) Insert(tableName string, item map[string]interface{}) (Result, error) {
 
@@ -177,34 +175,31 @@ func (dc *Base) InsertIgnore(tableName string, item map[string]interface{}) (Res
     return res, nil
 }
 
-func (dc *Base) QueryRaw(sql string, params ...interface{}) (rs []map[string]interface{}, err error) {
+func (dc *Base) QueryRaw(sql string, params ...interface{}) (rs []Entry, err error) {
 
-    //fmt.Println("sql", sql, params)
     stmt, err := dc.Conn.Prepare(sql)
     if err != nil {
         return
     }
     defer stmt.Close()
 
-    rows, err2 := stmt.Query(params...)
-    if err2 != nil {
+    rows, err := stmt.Query(params...)
+    if err != nil {
         return
     }
     defer rows.Close()
 
-    fields, err3 := rows.Columns()
-    if err3 != nil {
+    cols, err := rows.Columns()
+    if err != nil {
         return
     }
 
-    //fmt.Println(fields)
-
     for rows.Next() {
 
-        ret := map[string]interface{}{}
+        entry := Entry{Fields: map[string]*Field{}}
 
         var retvals []interface{}
-        for i := 0; i < len(fields); i++ {
+        for i := 0; i < len(cols); i++ {
             var val interface{}
             retvals = append(retvals, &val)
         }
@@ -213,48 +208,26 @@ func (dc *Base) QueryRaw(sql string, params ...interface{}) (rs []map[string]int
             continue
         }
 
-        for ii, key := range fields {
+        for ii, key := range cols {
 
             rawValue := reflect.Indirect(reflect.ValueOf(retvals[ii]))
-
             if rawValue.Interface() == nil {
                 continue
             }
 
-            rawValueType := reflect.TypeOf(rawValue.Interface())
-            vv := reflect.ValueOf(rawValue.Interface())
-
-            //fmt.Println(key, rawValueType.Kind(), vv.Interface())
-            var vi interface{}
-            switch rawValueType.Kind() {
-            case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-                vi = vv.Int()
-            case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-                vi = vv.Uint()
-            case reflect.Float32, reflect.Float64:
-                vi = vv.Float()
-            case reflect.Slice:
-                if rawValueType.Elem().Kind() == reflect.Uint8 {
-                    vi = string(vv.Interface().([]byte))
-                }
-            case reflect.String:
-                vi = vv.String()
-            case reflect.Struct:
-                //if rawValueType.String() == "time.Time" {
-                //    vi = vv.Interface().(time.Time).In(TimeZone)
-                //}
+            entry.Fields[key] = &Field{
+                valueType: reflect.TypeOf(rawValue.Interface()),
+                value:     rawValue,
             }
-
-            ret[key] = vi
         }
 
-        rs = append(rs, ret)
+        rs = append(rs, entry)
     }
 
     return
 }
 
-func (dc *Base) Query(q *QuerySet) (rs []map[string]interface{}, err error) {
+func (dc *Base) Query(q *QuerySet) (rs []Entry, err error) {
 
     sql, params := q.Parse()
     if len(params) == 0 {
