@@ -2,9 +2,11 @@ package pass
 
 import (
     "../deps/go.crypto/scrypt"
+    "crypto/md5"
     "crypto/rand"
     "encoding/base64"
     "errors"
+    "fmt"
     "io"
     "strconv"
 )
@@ -12,11 +14,13 @@ import (
 const (
     // Define the radix 64 encoding/decoding scheme,
     alphabet = "jbzB3WM6uYrPd20plhngE1U45QZLTOcsCy8mVwHkq9RFI/SKGeAXJifNaxt7oD+v"
+    // Define the default hashing algorithm
+    AlgoDefault = "L001"
+    // Define md5 hashing algorithm, Compatible with some old system
+    AlgoMd5 = "M501"
 )
 
 var (
-    // Define the default hashing algorithm
-    AlgoDefault = "L001"
     // New base64 encoder
     b64Encoding = base64.NewEncoding(alphabet)
 )
@@ -54,7 +58,7 @@ func HashDefault(passwd string) (string, error) {
 // Check reports whether the given password and hashed key match
 func Check(passwd, hash string) bool {
 
-    if len(hash) < 40 {
+    if len(hash) < 36 {
         return false
     }
 
@@ -67,6 +71,13 @@ func Check(passwd, hash string) bool {
         key, _ := scrypt.Key([]byte(passwd), salt, 1<<N, int(r), int(p), 36)
 
         return hash[27:] == b64Encoding.EncodeToString(key)
+
+    } else if hash[:4] == AlgoMd5 {
+
+        h := md5.New()
+        io.WriteString(h, passwd)
+
+        return hash[4:] == fmt.Sprintf("%x", h.Sum(nil))
     }
 
     return false
