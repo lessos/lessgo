@@ -10,7 +10,7 @@ const (
 
 var columnTypes = map[string]string{
     "bool":            "bool",
-    "string":          "varchar(%d)",
+    "string":          "varchar(%v)",
     "string-text":     "longtext",
     "date":            "date",
     "datetime":        "datetime",
@@ -23,7 +23,7 @@ var columnTypes = map[string]string{
     "uint32":          "integer unsigned",
     "uint64":          "bigint unsigned",
     "float64":         "double precision",
-    "float64-decimal": "numeric(%d, %d)",
+    "float64-decimal": "numeric(%v, %v)",
 }
 
 var mysqlStmt = map[string]string{

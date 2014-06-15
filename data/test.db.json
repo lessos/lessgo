@@ -18,7 +18,12 @@
                     "name": "action",
                     "type": "string",
                     "nullAble": true,
-                    "length": 30
+                    "length": "30"
+                },
+                {
+                    "name": "floatcol",
+                    "type": "float64-decimal",
+                    "length": "8,4"
                 },
                 {
                     "name": "created",

@@ -134,7 +134,14 @@ func (dc *mysqlDialect) SchemaColumnTypeSql(col *base.Column) string {
     case "string":
         sql = fmt.Sprintf(sql, col.Length)
     case "float64-decimal":
-        sql = fmt.Sprintf(sql, col.Length, col.Length2)
+        lens := strings.Split(col.Length, ",")
+        if lens[0] == "" {
+            lens[0] = "10"
+        }
+        if len(lens) < 2 {
+            lens = append(lens, "2")
+        }
+        sql = fmt.Sprintf(sql, lens[0], lens[1])
     }
 
     if col.NullAble {
@@ -238,8 +245,12 @@ func (dc *mysqlDialect) SchemaColumnQuery(dbName, tableName string) ([]*base.Col
                 }
 
                 col.Type = strings.ToLower(cts[0])
-                col.Length = len1
-                col.Length2 = len2
+                if len1 > 0 {
+                    col.Length = fmt.Sprintf("%v", len1)
+                    if len2 > 0 {
+                        col.Length += fmt.Sprintf(",%v", len2)
+                    }
+                }
 
                 typepre := ""
                 if strings.Contains(content, "unsigned") {
@@ -248,16 +259,12 @@ func (dc *mysqlDialect) SchemaColumnQuery(dbName, tableName string) ([]*base.Col
                 switch col.Type {
                 case "bigint":
                     col.Type = typepre + "int64"
-                    col.Length = 0
                 case "int":
                     col.Type = typepre + "int32"
-                    col.Length = 0
                 case "smallint":
                     col.Type = typepre + "int16"
-                    col.Length = 0
                 case "tinyint":
                     col.Type = typepre + "int8"
-                    col.Length = 0
                 case "varchar":
                     col.Type = "string"
                 case "longtext":
@@ -403,7 +410,6 @@ func (dc *mysqlDialect) SchemaSync(dbName string, newds base.DataSet) error {
 
                 if newcol.Type != curcol.Type ||
                     newcol.Length != curcol.Length ||
-                    newcol.Length2 != curcol.Length2 ||
                     newcol.NullAble != curcol.NullAble ||
                     newcol.IncrAble != curcol.IncrAble ||
                     newcol.Default != curcol.Default {

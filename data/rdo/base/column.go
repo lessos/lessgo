@@ -1,10 +1,8 @@
 package base
 
-import ()
-
 var columnTypes = map[string]string{
     "bool":            "bool",
-    "string":          "varchar(%d)",
+    "string":          "varchar(%v)",
     "string-text":     "longtext",
     "date":            "date",
     "datetime":        "datetime",
@@ -17,27 +15,25 @@ var columnTypes = map[string]string{
     "uint32":          "integer unsigned",
     "uint64":          "bigint unsigned",
     "float64":         "double precision",
-    "float64-decimal": "numeric(%d, %d)",
+    "float64-decimal": "numeric(%v, %v)",
 }
 
 // database column
 type Column struct {
     Name     string `json:"name"`
     Type     string `json:"type"`
-    Length   int    `json:"length"`
-    Length2  int    `json:"length2"`
+    Length   string `json:"length"`
     NullAble bool   `json:"nullAble"`
     IncrAble bool   `json:"incrAble"`
     Default  string `json:"default"`
     Comment  string `json:"comment"`
 }
 
-func NewColumn(colName, colType string, len1, len2 int, null bool, def string) *Column {
+func NewColumn(colName, colType, len string, null bool, def string) *Column {
     return &Column{
         Name:     colName,
         Type:     colType,
-        Length:   len1,
-        Length2:  len2,
+        Length:   len,
         NullAble: null,
         IncrAble: false,
         Default:  def,

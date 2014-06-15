@@ -15,7 +15,7 @@ func main() {
         Port:    "3306",
         User:    "root",
         Pass:    "123456",
-        Dbname:  "lessids",
+        Dbname:  "test",
         Engine:  "InnoDB",
         Charset: "utf8",
     }

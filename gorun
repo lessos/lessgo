@@ -9,10 +9,9 @@ find . -name "*.go" |xargs cat|grep -v ^$|wc -l
 echo "DETAILs"
 find . -type f -name "*.go" | xargs wc -l | sort -n
 
-dirs=`find . -type d | grep -v .git |xargs`
-for dir in $dirs; do
-    echo ${dir}
-    gofmt -tabwidth=4 -tabs=false -w=true ${dir}/*.go
+files=`find . -type f -name "*.go" |xargs`
+for file in $files; do
+    gofmt -tabwidth=4 -tabs=false -w=true ${file}
 done
 
 
