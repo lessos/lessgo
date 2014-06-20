@@ -75,7 +75,7 @@ func (c *Controller) Render(args ...interface{}) {
 
     templatePath := c.Name + "/" + c.MethodName + ".tpl"
     if len(args) == 1 && reflect.TypeOf(args[0]).Kind() == reflect.String {
-        templatePath = args[1].(string)
+        templatePath = args[0].(string)
     }
 
     //println(c.ModuleName, templatePath)
