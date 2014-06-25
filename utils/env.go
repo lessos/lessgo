@@ -7,8 +7,14 @@ import (
     "strings"
 )
 
-const DistGen = "gen"
-const ArchAll = "noarch"
+const (
+    DistGen = "gen"
+    ArchAll = "noarch"
+)
+
+type EnvOs struct {
+    Kernel string
+}
 
 func EnvDistArch() (string, string, error) {
 
@@ -54,4 +60,21 @@ func EnvDistArch() (string, string, error) {
     }
 
     return dist, arch, nil
+}
+
+func EnvOsInfo() EnvOs {
+
+    var info EnvOs
+
+    cmd, err := exec.LookPath("uname")
+    if err != nil {
+        return info
+    }
+
+    rs, err := exec.Command(cmd, "-r").Output()
+    if err == nil {
+        info.Kernel = strings.TrimSpace(string(rs))
+    }
+
+    return info
 }
