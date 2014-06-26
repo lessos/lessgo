@@ -3,6 +3,7 @@ package utils
 import (
     "errors"
     "os/exec"
+    "regexp"
     "runtime"
     "strings"
 )
@@ -12,8 +13,16 @@ const (
     ArchAll = "noarch"
 )
 
+var (
+    dockerVersionReg = regexp.MustCompile("Server version:(.*)\n")
+)
+
 type EnvOs struct {
     Kernel string
+}
+
+type EnvDocker struct {
+    ServerVersion string
 }
 
 func EnvDistArch() (string, string, error) {
@@ -74,6 +83,26 @@ func EnvOsInfo() EnvOs {
     rs, err := exec.Command(cmd, "-r").Output()
     if err == nil {
         info.Kernel = strings.TrimSpace(string(rs))
+    }
+
+    return info
+}
+
+func EnvDockerInfo() EnvDocker {
+
+    var info EnvDocker
+
+    cmd, err := exec.LookPath("docker")
+    if err != nil {
+        return info
+    }
+
+    rs, err := exec.Command(cmd, "version").Output()
+    if err == nil {
+        vs := dockerVersionReg.FindStringSubmatch(string(rs))
+        if len(vs) == 2 {
+            info.ServerVersion = strings.TrimSpace(vs[1])
+        }
     }
 
     return info
