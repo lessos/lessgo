@@ -158,7 +158,7 @@ func (dc *mysqlDialect) SchemaColumnTypeSql(col *base.Column) string {
         if col.Default == "null" {
             sql += " DEFAULT NULL"
         } else {
-            sql += " DEFAULT " + dc.QuoteStr(col.Default)
+            sql += " DEFAULT '" + col.Default + "'"
         }
     }
 
