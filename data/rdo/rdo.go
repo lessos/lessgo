@@ -3,6 +3,7 @@ package rdo
 import (
     "./base"
     "./mysql"
+    "./sqlite3"
     "errors"
 )
 
@@ -28,6 +29,8 @@ func NewClient(name string, c base.Config) (dc *base.Client, err error) {
     switch c.Driver {
     case "mysql":
         dc, err = mysql.NewClient(c)
+    case "sqlite3":
+        dc, err = sqlite3.NewClient(c)
     default:
         err = errors.New("No Driver Found")
     }

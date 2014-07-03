@@ -20,13 +20,14 @@ var columnTypes = map[string]string{
 
 // database column
 type Column struct {
-    Name     string `json:"name"`
-    Type     string `json:"type"`
-    Length   string `json:"length"`
-    NullAble bool   `json:"nullAble"`
-    IncrAble bool   `json:"incrAble"`
-    Default  string `json:"default"`
-    Comment  string `json:"comment"`
+    Name     string   `json:"name"`
+    Type     string   `json:"type"`
+    Length   string   `json:"length"`
+    NullAble bool     `json:"nullAble"`
+    IncrAble bool     `json:"incrAble"`
+    Default  string   `json:"default"`
+    Comment  string   `json:"comment"`
+    Extra    []string `json:"extra"`
 }
 
 func NewColumn(colName, colType, len string, null bool, def string) *Column {
@@ -38,5 +39,6 @@ func NewColumn(colName, colType, len string, null bool, def string) *Column {
         IncrAble: false,
         Default:  def,
         Comment:  "",
+        Extra:    []string{},
     }
 }

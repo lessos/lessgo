@@ -160,7 +160,6 @@ func (dc *Base) InsertIgnore(tableName string, item map[string]interface{}) (Res
     }
 
     sql := fmt.Sprintf(sqlstmt, tableName, strings.Join(cols, "`,`"), strings.Join(vars, ","))
-
     stmt, err := dc.Conn.Prepare(sql)
     if err != nil {
         return res, err
