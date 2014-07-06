@@ -529,7 +529,7 @@ func (dc *sqlite3Dialect) SchemaSync(dbName string, newds base.DataSet) error {
                 if newidx.Type != curidx.Type ||
                     !base.ArrayEqual(newidx.Cols, curidx.Cols) {
 
-                    fmt.Println("\tSchemaIndexSet", newTable.Name, newidx.Name)
+                    //fmt.Println("\tSchemaIndexSet", newTable.Name, newidx.Name)
                     if err := dc.SchemaIndexSet(dbName, newTable.Name, newidx); err != nil {
                         return err
                     }

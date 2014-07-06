@@ -1,0 +1,3 @@
+[submodule "app/radix"]
+	path = app/radix
+	url = git@github.com:fzzy/radix.git
