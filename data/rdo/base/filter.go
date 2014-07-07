@@ -1,134 +1,134 @@
 package base
 
 import (
-    "fmt"
-    "strings"
+	"fmt"
+	"strings"
 )
 
 const (
-    filterExprSep = "."
+	filterExprSep = "."
 )
 
 var filterOperators = map[string]string{
-    "eq":   "= ?",
-    "ne":   "<> ?",
-    "gt":   "> ?",
-    "ge":   ">= ?",
-    "lt":   "< ?",
-    "le":   "<= ?",
-    "like": "LIKE ?",
-    "in":   "IN (?)",
+	"eq":   "= ?",
+	"ne":   "<> ?",
+	"gt":   "> ?",
+	"ge":   ">= ?",
+	"lt":   "< ?",
+	"le":   "<= ?",
+	"like": "LIKE ?",
+	"in":   "IN (?)",
 }
 
 type filterItem struct {
-    exprs    []string
-    args     []interface{}
-    filter   *Filter
-    isOr     bool
-    isNot    bool
-    isFilter bool
+	exprs    []string
+	args     []interface{}
+	filter   *Filter
+	isOr     bool
+	isNot    bool
+	isFilter bool
 }
 
 type Filter struct {
-    params []filterItem
+	params []filterItem
 }
 
 func NewFilter() Filter {
-    return Filter{}
+	return Filter{}
 }
 
 func (fr *Filter) And(expr string, args ...interface{}) *Filter {
 
-    if expr == "" || len(args) == 0 {
-        return nil
-    }
+	if expr == "" || len(args) == 0 {
+		return nil
+	}
 
-    fr.params = append(fr.params, filterItem{
-        exprs: strings.Split(expr, filterExprSep),
-        args:  args,
-    })
+	fr.params = append(fr.params, filterItem{
+		exprs: strings.Split(expr, filterExprSep),
+		args:  args,
+	})
 
-    return fr
+	return fr
 }
 
 func (fr *Filter) Or(expr string, args ...interface{}) *Filter {
 
-    if expr == "" || len(args) == 0 {
-        return nil
-    }
+	if expr == "" || len(args) == 0 {
+		return nil
+	}
 
-    fr.params = append(fr.params, filterItem{
-        exprs: strings.Split(expr, filterExprSep),
-        args:  args,
-        isOr:  true,
-    })
+	fr.params = append(fr.params, filterItem{
+		exprs: strings.Split(expr, filterExprSep),
+		args:  args,
+		isOr:  true,
+	})
 
-    return fr
+	return fr
 }
 
 func (fr *Filter) Parse() (where string, params []interface{}) {
 
-    if fr == nil || len(fr.params) == 0 {
-        return
-    }
+	if fr == nil || len(fr.params) == 0 {
+		return
+	}
 
-    for i, p := range fr.params {
+	for i, p := range fr.params {
 
-        if i > 0 {
-            if p.isOr {
-                where += "OR "
-            } else {
-                where += "AND "
-            }
-        }
+		if i > 0 {
+			if p.isOr {
+				where += "OR "
+			} else {
+				where += "AND "
+			}
+		}
 
-        if p.isNot {
-            where += "NOT "
-        }
+		if p.isNot {
+			where += "NOT "
+		}
 
-        if p.isFilter {
+		if p.isFilter {
 
-            w, ps := p.filter.Parse()
-            if w != "" {
-                w = fmt.Sprintf("( %s) ", w)
-            }
-            where += w
+			w, ps := p.filter.Parse()
+			if w != "" {
+				w = fmt.Sprintf("( %s) ", w)
+			}
+			where += w
 
-            params = append(params, ps...)
+			params = append(params, ps...)
 
-        } else {
+		} else {
 
-            operator := ""
+			operator := ""
 
-            if len(p.exprs) == 1 {
-                p.exprs = append(p.exprs, "eq")
-            }
+			if len(p.exprs) == 1 {
+				p.exprs = append(p.exprs, "eq")
+			}
 
-            if v, ok := filterOperators[p.exprs[1]]; ok {
-                operator = v
-            }
+			if v, ok := filterOperators[p.exprs[1]]; ok {
+				operator = v
+			}
 
-            if operator == "" {
-                operator = "= ?"
-            }
+			if operator == "" {
+				operator = "= ?"
+			}
 
-            if len(p.exprs) > 1 && p.exprs[1] == "in" && len(p.args) > 1 {
+			if len(p.exprs) > 1 && p.exprs[1] == "in" && len(p.args) > 1 {
 
-                res := []string{}
-                for i := 0; i < len(p.args); i++ {
-                    res = append(res, "?")
-                }
+				res := []string{}
+				for i := 0; i < len(p.args); i++ {
+					res = append(res, "?")
+				}
 
-                where += fmt.Sprintf("`%s` IN (%s) ", p.exprs[0], strings.Join(res, ","))
-                params = append(params, p.args...)
+				where += fmt.Sprintf("`%s` IN (%s) ", p.exprs[0], strings.Join(res, ","))
+				params = append(params, p.args...)
 
-            } else {
+			} else {
 
-                where += fmt.Sprintf("`%s` %s ", p.exprs[0], operator)
-                params = append(params, p.args[0])
-            }
-        }
-    }
+				where += fmt.Sprintf("`%s` %s ", p.exprs[0], operator)
+				params = append(params, p.args[0])
+			}
+		}
+	}
 
-    return
+	return
 }

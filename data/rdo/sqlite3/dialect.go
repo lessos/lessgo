@@ -1,18 +1,18 @@
 package sqlite3
 
 import (
-    "../base"
+	"../base"
 )
 
 type sqlite3Dialect struct {
-    base *base.Base
+	base *base.Base
 }
 
 func (dc *sqlite3Dialect) Init(base *base.Base) error {
-    dc.base = base
-    return nil
+	dc.base = base
+	return nil
 }
 
 func (dc *sqlite3Dialect) Base() *base.Base {
-    return dc.base
+	return dc.base
 }

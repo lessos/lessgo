@@ -1,18 +1,18 @@
 package mysql
 
 import (
-    "../base"
+	"../base"
 )
 
 type mysqlDialect struct {
-    base *base.Base
+	base *base.Base
 }
 
 func (dc *mysqlDialect) Init(base *base.Base) error {
-    dc.base = base
-    return nil
+	dc.base = base
+	return nil
 }
 
 func (dc *mysqlDialect) Base() *base.Base {
-    return dc.base
+	return dc.base
 }

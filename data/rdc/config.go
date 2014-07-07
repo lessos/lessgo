@@ -1,74 +1,74 @@
 package rdc
 
 import (
-    "database/sql"
-    "errors"
-    _ "github.com/go-sql-driver/mysql"
-    _ "github.com/mattn/go-sqlite3"
-    //"fmt"
-    //"./mysql"
+	"database/sql"
+	"errors"
+	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/mattn/go-sqlite3"
+	//"fmt"
+	//"./mysql"
 )
 
 type Result sql.Result
 
 type Config struct {
-    Driver string
-    DbPath string
+	Driver string
+	DbPath string
 }
 
 type ConfigSource struct {
-    // Database driver
-    Driver string `json:"driver"`
+	// Database driver
+	Driver string `json:"driver"`
 
-    // Database server hostname or IP. Leave blank if using unix sockets.
-    Host string `json:"host"`
+	// Database server hostname or IP. Leave blank if using unix sockets.
+	Host string `json:"host"`
 
-    // Database server port. Leave blank if using unix sockets.
-    Port string `json:"port"`
+	// Database server port. Leave blank if using unix sockets.
+	Port string `json:"port"`
 
-    // Username for authentication.
-    User string `json:"user"`
+	// Username for authentication.
+	User string `json:"user"`
 
-    // Password for authentication.
-    Pass string `json:"pass"`
+	// Password for authentication.
+	Pass string `json:"pass"`
 
-    // A path of a UNIX socket file. Leave blank if using host and port.
-    Socket string `json:"socket"`
+	// A path of a UNIX socket file. Leave blank if using host and port.
+	Socket string `json:"socket"`
 
-    // Name of the database.
-    Dbname string `json:"dbname"`
+	// Name of the database.
+	Dbname string `json:"dbname"`
 
-    // Database charset.
-    Charset string `json:"charset"`
+	// Database charset.
+	Charset string `json:"charset"`
 }
 
 var configDrivers = map[string]bool{
-    "sqlite3": true,
-    "mysql":   true,
+	"sqlite3": true,
+	"mysql":   true,
 }
 
 func NewConfig() Config {
-    return Config{}
+	return Config{}
 }
 
 func (c Config) Instance() (*Conn, error) {
 
-    var err error
+	var err error
 
-    if !configDrivers[c.Driver] {
-        return nil, errors.New("Driver can not found")
-    }
+	if !configDrivers[c.Driver] {
+		return nil, errors.New("Driver can not found")
+	}
 
-    var cn Conn
+	var cn Conn
 
-    cn.db, err = sql.Open(c.Driver, c.DbPath)
-    if err != nil {
-        return nil, err
-    }
+	cn.db, err = sql.Open(c.Driver, c.DbPath)
+	if err != nil {
+		return nil, err
+	}
 
-    cn.cfg = c
+	cn.cfg = c
 
-    return &cn, nil
+	return &cn, nil
 }
 
 /*

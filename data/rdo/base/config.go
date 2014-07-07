@@ -1,33 +1,33 @@
 package base
 
 type Config struct {
-    // Database driver
-    Driver string `json:"driver"`
+	// Database driver
+	Driver string `json:"driver"`
 
-    // Database server hostname or IP. Leave blank if using unix sockets.
-    Host string `json:"host"`
+	// Database server hostname or IP. Leave blank if using unix sockets.
+	Host string `json:"host"`
 
-    // Database server port. Leave blank if using unix sockets.
-    Port string `json:"port"`
+	// Database server port. Leave blank if using unix sockets.
+	Port string `json:"port"`
 
-    // Username for authentication.
-    User string `json:"user"`
+	// Username for authentication.
+	User string `json:"user"`
 
-    // Password for authentication.
-    Pass string `json:"pass"`
+	// Password for authentication.
+	Pass string `json:"pass"`
 
-    // A path of a UNIX socket file. Leave blank if using host and port.
-    Socket string `json:"socket"`
+	// A path of a UNIX socket file. Leave blank if using host and port.
+	Socket string `json:"socket"`
 
-    // Name of the database.
-    Dbname string `json:"dbname"`
+	// Name of the database.
+	Dbname string `json:"dbname"`
 
-    // Database engine.
-    Engine string `json:"engine"`
+	// Database engine.
+	Engine string `json:"engine"`
 
-    // Database charset.
-    Charset string `json:"charset"`
+	// Database charset.
+	Charset string `json:"charset"`
 
-    // Data Source Name
-    Dsn string
+	// Data Source Name
+	Dsn string
 }

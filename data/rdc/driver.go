@@ -6,12 +6,12 @@ import (
 
 type DataConn interface {
 
-    //Data  *sql.DB
+	//Data  *sql.DB
 
-    // TryConnect verify can connect to the database
-    TryConnect() error
+	// TryConnect verify can connect to the database
+	TryConnect() error
 
-    Test() bool
+	Test() bool
 }
 
 /*

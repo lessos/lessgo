@@ -1,73 +1,73 @@
 package keeper
 
 import (
-    "../utils"
+	"../utils"
 )
 
 func (this *Keeper) LocalNodeGet(path string) (rpl *Reply) {
-    req := map[string]string{
-        "method": "locget",
-        "path":   path,
-    }
-    return this.req("POST", req)
+	req := map[string]string{
+		"method": "locget",
+		"path":   path,
+	}
+	return this.req("POST", req)
 }
 
 func (this *Keeper) LocalNodeList(path string) (rpl *Reply) {
-    req := map[string]string{
-        "method": "loclist",
-        "path":   path,
-    }
-    return this.req("POST", req)
+	req := map[string]string{
+		"method": "loclist",
+		"path":   path,
+	}
+	return this.req("POST", req)
 }
 
 func (this *Keeper) LocalNodeListAndGet(path string) (rpl *Reply) {
 
-    rpl = this.LocalNodeList(path)
+	rpl = this.LocalNodeList(path)
 
-    str, err := rpl.Str()
-    if err != nil {
-        rpl.Type = ReplyError
-        return
-    }
+	str, err := rpl.Str()
+	if err != nil {
+		rpl.Type = ReplyError
+		return
+	}
 
-    var lsis []Node
-    if err := utils.JsonDecode(str, &lsis); err != nil {
-        rpl.Type = ReplyError
-        return
-    }
+	var lsis []Node
+	if err := utils.JsonDecode(str, &lsis); err != nil {
+		rpl.Type = ReplyError
+		return
+	}
 
-    rpl.Type = ReplyMulti
-    for _, v := range lsis {
+	rpl.Type = ReplyMulti
+	for _, v := range lsis {
 
-        if v.T != NodeTypeFile {
-            continue
-        }
+		if v.T != NodeTypeFile {
+			continue
+		}
 
-        rs := this.LocalNodeGet(path + "/" + v.P)
-        if rs.Type == ReplyError {
-            continue
-        }
-        rs.Name = v.P
+		rs := this.LocalNodeGet(path + "/" + v.P)
+		if rs.Type == ReplyError {
+			continue
+		}
+		rs.Name = v.P
 
-        rpl.Elems = append(rpl.Elems, rs)
-    }
+		rpl.Elems = append(rpl.Elems, rs)
+	}
 
-    return
+	return
 }
 
 func (this *Keeper) LocalNodeSet(path, val string) (rpl *Reply) {
-    req := map[string]string{
-        "method": "locset",
-        "path":   path,
-        "val":    val,
-    }
-    return this.req("POST", req)
+	req := map[string]string{
+		"method": "locset",
+		"path":   path,
+		"val":    val,
+	}
+	return this.req("POST", req)
 }
 
 func (this *Keeper) LocalNodeDel(path string) (rpl *Reply) {
-    req := map[string]string{
-        "method": "locdel",
-        "path":   path,
-    }
-    return this.req("POST", req)
+	req := map[string]string{
+		"method": "locdel",
+		"path":   path,
+	}
+	return this.req("POST", req)
 }

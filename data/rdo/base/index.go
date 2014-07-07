@@ -1,39 +1,39 @@
 package base
 
 const (
-    IndexTypeIndex      int = 1
-    IndexTypeUnique     int = 2
-    IndexTypePrimaryKey int = 3
+	IndexTypeIndex      int = 1
+	IndexTypeUnique     int = 2
+	IndexTypePrimaryKey int = 3
 )
 
 // database index
 type Index struct {
-    Name string   `json:"name"`
-    Type int      `json:"type"`
-    Cols []string `json:"cols"`
+	Name string   `json:"name"`
+	Type int      `json:"type"`
+	Cols []string `json:"cols"`
 }
 
 // add columns which will be composite index
 func (index *Index) AddColumn(cols ...string) *Index {
 
-    for _, col := range cols {
+	for _, col := range cols {
 
-        exist := false
-        for _, v := range index.Cols {
-            if v == col {
-                exist = true
-            }
-        }
+		exist := false
+		for _, v := range index.Cols {
+			if v == col {
+				exist = true
+			}
+		}
 
-        if !exist {
-            index.Cols = append(index.Cols, col)
-        }
-    }
+		if !exist {
+			index.Cols = append(index.Cols, col)
+		}
+	}
 
-    return index
+	return index
 }
 
 // new an index
 func NewIndex(name string, indexType int) *Index {
-    return &Index{name, indexType, []string{}}
+	return &Index{name, indexType, []string{}}
 }

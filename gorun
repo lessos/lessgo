@@ -11,7 +11,7 @@ find . -type f -name "*.go" | xargs wc -l | sort -n
 
 files=`find . -type f -name "*.go" |xargs`
 for file in $files; do
-    gofmt -tabwidth=4 -tabs=false -w=true ${file}
+    gofmt -s -w ${file}
 done
 
 
