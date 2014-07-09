@@ -17,7 +17,7 @@ var (
 	dsize    *int    = flag.Int("d", 2, "Data size of SET/GET value in bytes (default 2)")
 )
 
-func benchmark(c *redis.Client, title, command string, params ...interface{}) {
+func benchmark(c *redis.Connector, title, command string, params ...interface{}) {
 
 	fmt.Printf("====== %s ======\n", title)
 
@@ -74,7 +74,7 @@ func main() {
 		MaxConn: *maxconn,
 	}
 
-	c, e := redis.NewClient(cfg)
+	c, e := redis.NewConnector(cfg)
 	if e != nil {
 		log.Println(e)
 	}

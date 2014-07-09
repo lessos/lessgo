@@ -1,13 +1,12 @@
 package redis
 
 import (
-	radix "github.com/fzzy/radix/redis"
 	"runtime"
 	"sync"
 	"time"
 )
 
-type Client struct {
+type Connector struct {
 	cfg    Config
 	conns  chan *conn
 	locker sync.Mutex     // TODO
@@ -15,12 +14,12 @@ type Client struct {
 }
 
 type conn struct {
-	radix  *radix.Client
+	client *Client
 	locker sync.Mutex     // TODO
 	stats  map[string]int // TODO
 }
 
-func NewClient(cfg Config) (*Client, error) {
+func NewConnector(cfg Config) (*Connector, error) {
 
 	if cfg.MaxConn < 1 {
 
@@ -43,7 +42,7 @@ func NewClient(cfg Config) (*Client, error) {
 		timeout = 1 * time.Second
 	}
 
-	c := Client{
+	c := Connector{
 		cfg:   cfg,
 		conns: make(chan *conn, cfg.MaxConn),
 	}
@@ -55,28 +54,28 @@ func NewClient(cfg Config) (*Client, error) {
 			ctype, clink = "unix", cfg.Socket
 		}
 
-		cn, err := radix.DialTimeout(ctype, clink, timeout)
+		cn, err := DialTimeout(ctype, clink, timeout)
 		if err != nil {
 			return &c, err
 		}
-		c.conns <- &conn{radix: cn}
+		c.conns <- &conn{client: cn}
 	}
 
 	return &c, nil
 }
 
-func (c *Client) Cmd(cmd string, args ...interface{}) *radix.Reply {
+func (c *Connector) Cmd(cmd string, args ...interface{}) *Reply {
 
 	cn, _ := c.pull()
 	defer c.push(cn)
 
-	return cn.radix.Cmd(cmd, args...)
+	return cn.client.Cmd(cmd, args...)
 }
 
-func (c *Client) push(cn *conn) {
+func (c *Connector) push(cn *conn) {
 	c.conns <- cn
 }
 
-func (c *Client) pull() (cn *conn, err error) {
+func (c *Connector) pull() (cn *conn, err error) {
 	return <-c.conns, nil
 }
