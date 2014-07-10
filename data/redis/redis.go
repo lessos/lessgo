@@ -7,10 +7,12 @@ import (
 )
 
 type Connector struct {
-	cfg    Config
-	conns  chan *conn
-	locker sync.Mutex     // TODO
-	stats  map[string]int // TODO
+	ctype    string
+	clink    string
+	ctimeout time.Duration
+	conns    chan *conn
+	locker   sync.Mutex     // TODO
+	stats    map[string]int // TODO
 }
 
 type conn struct {
@@ -37,24 +39,24 @@ func NewConnector(cfg Config) (*Connector, error) {
 		}
 	}
 
-	timeout := time.Duration(cfg.Timeout) * time.Second
-	if timeout < 1*time.Second {
-		timeout = 1 * time.Second
-	}
-
 	c := Connector{
-		cfg:   cfg,
-		conns: make(chan *conn, cfg.MaxConn),
+		ctype:    "tcp",
+		clink:    cfg.Host + ":" + cfg.Port,
+		ctimeout: time.Duration(cfg.Timeout) * time.Second,
+		conns:    make(chan *conn, cfg.MaxConn),
 	}
 
-	ctype, clink := "tcp", cfg.Host+":"+cfg.Port
+	if c.ctimeout < 1*time.Second {
+		c.ctimeout = 1 * time.Second
+	}
+
 	if len(cfg.Socket) > 1 {
-		ctype, clink = "unix", cfg.Socket
+		c.ctype, c.clink = "unix", cfg.Socket
 	}
 
 	for i := 0; i < cfg.MaxConn; i++ {
 
-		cn, err := DialTimeout(ctype, clink, timeout)
+		cn, err := DialTimeout(c.ctype, c.clink, c.ctimeout)
 		if err != nil {
 			return &c, err
 		}
@@ -69,7 +71,18 @@ func (c *Connector) Cmd(cmd string, args ...interface{}) *Reply {
 	cn, _ := c.pull()
 	defer c.push(cn)
 
-	return cn.client.Cmd(cmd, args...)
+	rs := cn.client.Cmd(cmd, args...)
+
+	if rs.Err != nil && rs.Err.Error() == "use of closed network connection" {
+
+		time.Sleep(1e9)
+
+		if cnc, err := DialTimeout(c.ctype, c.clink, c.ctimeout); err == nil {
+			cn.client = cnc
+		}
+	}
+
+	return rs
 }
 
 func (c *Connector) push(cn *conn) {
