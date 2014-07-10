@@ -47,12 +47,12 @@ func NewConnector(cfg Config) (*Connector, error) {
 		conns: make(chan *conn, cfg.MaxConn),
 	}
 
-	for i := 0; i < cfg.MaxConn; i++ {
+	ctype, clink := "tcp", cfg.Host+":"+cfg.Port
+	if len(cfg.Socket) > 1 {
+		ctype, clink = "unix", cfg.Socket
+	}
 
-		ctype, clink := "tcp", cfg.Host+":"+cfg.Port
-		if len(cfg.Socket) > 1 {
-			ctype, clink = "unix", cfg.Socket
-		}
+	for i := 0; i < cfg.MaxConn; i++ {
 
 		cn, err := DialTimeout(ctype, clink, timeout)
 		if err != nil {
