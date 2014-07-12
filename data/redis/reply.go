@@ -233,7 +233,7 @@ func (r *Reply) String() string {
 	case IntegerReply:
 		return strconv.FormatInt(r.int, 10)
 	case NilReply:
-		return "<nil>"
+		return ""
 	case MultiReply:
 		s := "[ "
 		for _, e := range r.Elems {

@@ -13,15 +13,15 @@ import (
 )
 
 var (
+	flocker   sync.Mutex
+	out       io.Writer // destination for output // TODO
+	outEnable = false   // TODO
 	logDir    = flag.String("log_dir", "", "If non-empty, write log files in this directory")
 	pid       = os.Getpid()
 	program   = filepath.Base(os.Args[0])
 	host      = "unknownhost"
 	userName  = "unknownuser"
-	flocker   sync.Mutex
-	status    = 0
-	out       io.Writer // destination for output // TODO
-	outEnable = false   // TODO
+	status    = 0	
 )
 
 func fileInit() {
