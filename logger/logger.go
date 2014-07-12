@@ -10,7 +10,7 @@ import (
 
 var (
 	locker   sync.Mutex
-	levels   = []string{"INFO", "WARN", "ERROR", "FATAL"}
+	levels   = []string{"DEBUG", "INFO", "WARN", "ERROR", "FATAL"}
 	levelMap = map[string]int{}
 	bufs     = make(chan *entry, 100000)
 )

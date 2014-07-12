@@ -91,7 +91,7 @@ func shortHostname(hostname string) string {
 //  func logName(tag string, t time.Time) (name, link string) {
 func logName(t time.Time) (name, link string) {
 
-	name = fmt.Sprintf("%s.%s.%s_%04d%02d%02d.log",
+	name = fmt.Sprintf("%s.%s.%s.%04d%02d%02d.log",
 		program, host, userName,
 		t.Year(), t.Month(), t.Day())
 
