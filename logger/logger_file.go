@@ -21,7 +21,7 @@ var (
 	program   = filepath.Base(os.Args[0])
 	host      = "unknownhost"
 	userName  = "unknownuser"
-	status    = 0	
+	status    = 0
 )
 
 func fileInit() {
