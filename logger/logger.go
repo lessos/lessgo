@@ -67,10 +67,8 @@ func levelInit() {
 
 func (e *entry) line() string {
 
-	logLine := fmt.Sprintf("%04d-%02d-%02d %02d:%02d:%02d %s:%d] %s",
-		e.ltime.Year(), e.ltime.Month(), e.ltime.Day(),
-		e.ltime.Hour(), e.ltime.Minute(), e.ltime.Second(),
-		e.fileName, e.lineNumber, e.level)
+	tfmt := e.ltime.Format("2006-01-02 15:04:05.000000")
+	logLine := fmt.Sprintf("%s %s:%d] %s", tfmt, e.fileName, e.lineNumber, e.level)
 
 	if e.ptype == printDefault {
 		logLine += " " + fmt.Sprint(e.args...)
