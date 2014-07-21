@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"../../utils"
 	"errors"
 	"strconv"
 )
@@ -244,4 +245,17 @@ func (r *Reply) String() string {
 
 	// This should never execute
 	return ""
+}
+
+// Json returns the map that marshals from the reply bytes as json in response .
+func (r *Reply) Json(v interface{}) error {
+	js, err := r.Bytes()
+	if err != nil {
+		return err
+	}
+	err = utils.JsonDecode(js, v)
+	if err != nil {
+		return err
+	}
+	return nil
 }
