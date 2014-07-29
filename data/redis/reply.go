@@ -253,9 +253,5 @@ func (r *Reply) Json(v interface{}) error {
 	if err != nil {
 		return err
 	}
-	err = utils.JsonDecode(js, v)
-	if err != nil {
-		return err
-	}
-	return nil
+	return utils.JsonDecode(js, v)
 }
