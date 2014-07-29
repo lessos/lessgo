@@ -8,7 +8,10 @@ import (
 	"time"
 )
 
-const encodeBase36 = "abcdefghijklmnopqrstuvwxyz0123456789"
+const (
+	encodeBase36 = "abcdefghijklmnopqrstuvwxyz0123456789"
+	encodeBase64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+)
 
 func init() {
 	mrand.Seed(time.Now().UTC().UnixNano())
@@ -27,6 +30,23 @@ func StringNewRand36(length int) string {
 
 	for i := 1; i < length; i++ {
 		buf[i] = encodeBase36[mrand.Intn(35)]
+	}
+
+	return string(buf)
+}
+
+func StringNewRand64(length int) string {
+
+	if length < 1 {
+		length = 1
+	} else if length > 1000 {
+		length = 1000
+	}
+
+	buf := make([]byte, length)
+
+	for i := 0; i < length; i++ {
+		buf[i] = encodeBase64[mrand.Intn(63)]
 	}
 
 	return string(buf)
