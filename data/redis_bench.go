@@ -104,5 +104,10 @@ func main() {
 	}
 	benchmark(c, "MSET (10 keys)", "MSET", args...)
 
+	for i := 0; i < 100000; i++ {
+		c.Cmd("ZADD", "keys:rand:zset", i, i)
+	}
+	benchmark(c, "ZRANGE 10w100", "ZRANGE", "keys:rand:zset", 50000, 50100)
+
 	c.Cmd("flushall")
 }
