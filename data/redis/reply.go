@@ -87,6 +87,16 @@ func (r *Reply) Int64() (int64, error) {
 	return r.int, nil
 }
 
+// Uint64 returns the reply value as a uint64 or an error,
+// if the reply type is not IntegerReply or the reply type
+// BulkReply could not be parsed to an int64.
+func (r *Reply) Uint64() (uint64, error) {
+	
+	it, err := r.Int64()
+
+	return uint64(it), err
+}
+
 // Int is a convenience method for calling Reply.Int64() and converting it to int.
 func (r *Reply) Int() (int, error) {
 	i64, err := r.Int64()
