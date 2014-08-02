@@ -27,16 +27,18 @@ type Node struct {
 }
 
 type Client struct {
-	ApiUrl    string
-	AccessKey string
-	SecretKey string
-	Timeout   int
+	ApiUrl    string `json:"apiurl"`
+	Bucket    string `json:"bucket"`
+	AccessKey string `json:"accessKey"`
+	SecretKey string `json:"secretKey"`
+	Timeout   int    `json:"timeout"`
 }
 
-func NewClient(url, accessKey, secretKey string) (Client, error) {
+func NewClient(url, bucket, accessKey, secretKey string) (Client, error) {
 
 	c := Client{
 		ApiUrl:    url,
+		Bucket:    bucket,
 		AccessKey: accessKey,
 		SecretKey: secretKey,
 		Timeout:   10,
