@@ -35,6 +35,14 @@ var (
 			//t, _ := time.Parse("2006-01-02 15:04:05.000 -0700", fmttime)
 			return t.Format("2006-01-02 15:04")
 		},
+		// upper returns a copy of the string s with all Unicode letters mapped to their upper case
+		"upper": func(s string) string {
+			return strings.ToUpper(s)
+		},
+		// lower returns a copy of the string s with all Unicode letters mapped to their lower case
+		"lower": func(s string) string {
+			return strings.ToLower(s)
+		},
 		// Perform a message look-up for the given locale and message using the given arguments
 		"T": func(lang map[string]interface{}, msg string, args ...interface{}) string {
 			return i18nTranslate(lang["LANG"].(string), msg, args...)
