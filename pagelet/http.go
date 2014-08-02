@@ -46,11 +46,24 @@ func (req *Request) RawAbsUrl() string {
 }
 
 func (req *Request) RawBody() ([]byte, error) {
-	return ioutil.ReadAll(req.Body)
+
+	if req.Body == nil {
+		return []byte{}, nil
+	}
+
+	body, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	req.Body = ioutil.NopCloser(bytes.NewReader(body))
+
+	return body, nil
 }
 
 func (req *Request) RawBodyString() string {
-	if body, err := ioutil.ReadAll(req.Body); err == nil {
+
+	if body, err := req.RawBody(); err == nil {
 		return string(body)
 	}
 	return ""
