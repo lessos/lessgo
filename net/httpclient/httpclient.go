@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -16,12 +17,16 @@ var (
 	defaultTimeout   = 60000 * time.Millisecond
 )
 
+type HttpClientSignHandler func(*http.Request)
+
 type HttpClientRequest struct {
-	req             *http.Request
+	Req             *http.Request
 	url             string
 	timeout         time.Duration
 	tlsClientConfig *tls.Config
 	rsp             *http.Response
+	params          map[string]string
+	SignHandler     HttpClientSignHandler
 }
 
 func NewHttpClientRequest(method, url string) *HttpClientRequest {
@@ -32,9 +37,10 @@ func NewHttpClientRequest(method, url string) *HttpClientRequest {
 	req.Header.Set("User-Agent", defaultUserAgent)
 
 	return &HttpClientRequest{
-		req:     &req,
+		Req:     &req,
 		url:     url,
 		timeout: defaultTimeout,
+		params:  map[string]string{},
 	}
 }
 
@@ -52,13 +58,13 @@ func (c *HttpClientRequest) SetTLSClientConfig(config *tls.Config) *HttpClientRe
 
 // Header add header item string in request.
 func (c *HttpClientRequest) Header(key, value string) *HttpClientRequest {
-	c.req.Header.Set(key, value)
+	c.Req.Header.Set(key, value)
 	return c
 }
 
 // SetCookie add cookie into request.
 func (c *HttpClientRequest) SetCookie(cookie *http.Cookie) *HttpClientRequest {
-	c.req.Header.Add("Cookie", cookie.String())
+	c.Req.Header.Add("Cookie", cookie.String())
 	return c
 }
 
@@ -87,18 +93,25 @@ func Head(url string) *HttpClientRequest {
 	return NewHttpClientRequest("HEAD", url)
 }
 
+// Param adds query param in to request.
+// params build query string as ?key1=value1&key2=value2...
+func (c *HttpClientRequest) Param(key, value string) *HttpClientRequest {
+	c.params[key] = value
+	return c
+}
+
 // Body adds request raw body.
 // it supports string and []byte.
 func (c *HttpClientRequest) Body(data interface{}) *HttpClientRequest {
 	switch t := data.(type) {
 	case string:
 		bf := bytes.NewBufferString(t)
-		c.req.Body = ioutil.NopCloser(bf)
-		c.req.ContentLength = int64(len(t))
+		c.Req.Body = ioutil.NopCloser(bf)
+		c.Req.ContentLength = int64(len(t))
 	case []byte:
 		bf := bytes.NewBuffer(t)
-		c.req.Body = ioutil.NopCloser(bf)
-		c.req.ContentLength = int64(len(t))
+		c.Req.Body = ioutil.NopCloser(bf)
+		c.Req.ContentLength = int64(len(t))
 	}
 	return c
 }
@@ -110,11 +123,39 @@ func (c *HttpClientRequest) Response() (*http.Response, error) {
 		return c.rsp, nil
 	}
 
+	var paramBody string
+	if len(c.params) > 0 {
+		var buf bytes.Buffer
+		for k, v := range c.params {
+			buf.WriteString(url.QueryEscape(k))
+			buf.WriteByte('=')
+			buf.WriteString(url.QueryEscape(v))
+			buf.WriteByte('&')
+		}
+		paramBody = buf.String()
+		paramBody = paramBody[0 : len(paramBody)-1]
+	}
+	if c.Req.Method == "GET" && len(paramBody) > 0 {
+		if strings.Index(c.url, "?") != -1 {
+			c.url += "&" + paramBody
+		} else {
+			c.url = c.url + "?" + paramBody
+		}
+	} else if (c.Req.Method == "POST" || c.Req.Method == "PUT") &&
+		c.Req.Body == nil && len(paramBody) > 0 {
+		c.Header("Content-Type", "application/x-www-form-urlencoded")
+		c.Body(paramBody)
+	}
+
 	url, err := url.Parse(c.url)
 	if err != nil {
 		return nil, err
 	}
-	c.req.URL = url
+	c.Req.URL = url
+
+	if c.SignHandler != nil {
+		c.SignHandler(c.Req)
+	}
 
 	client := &http.Client{
 		Transport: &http.Transport{
@@ -122,7 +163,7 @@ func (c *HttpClientRequest) Response() (*http.Response, error) {
 			Dial:            timeoutDialer(c.timeout, c.timeout),
 		},
 	}
-	c.rsp, err = client.Do(c.req)
+	c.rsp, err = client.Do(c.Req)
 	if err != nil {
 		return nil, err
 	}
