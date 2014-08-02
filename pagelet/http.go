@@ -16,6 +16,7 @@ type Request struct {
 	AcceptLanguage []AcceptLanguage
 	Locale         string
 	RequestPath    string
+	RawBody        []byte
 }
 
 type Response struct {
@@ -29,12 +30,24 @@ func NewResponse(w http.ResponseWriter) *Response {
 }
 
 func NewRequest(r *http.Request) *Request {
-	return &Request{
+
+	req := &Request{
 		Request:        r,
 		ContentType:    resolveContentType(r),
 		AcceptLanguage: resolveAcceptLanguage(r),
 		Locale:         "",
+		RawBody:        []byte{},
 	}
+
+	if req.Body != nil {
+
+		if body, err := ioutil.ReadAll(req.Body); err == nil {
+			req.RawBody = body
+			req.Body = ioutil.NopCloser(bytes.NewReader(req.RawBody))
+		}
+	}
+
+	return req
 }
 
 func (req *Request) RawAbsUrl() string {
@@ -43,30 +56,6 @@ func (req *Request) RawAbsUrl() string {
 		scheme = req.URL.Scheme
 	}
 	return fmt.Sprintf("%s://%s%s", scheme, req.Host, req.RequestURI)
-}
-
-func (req *Request) RawBody() ([]byte, error) {
-
-	if req.Body == nil {
-		return []byte{}, nil
-	}
-
-	body, err := ioutil.ReadAll(req.Body)
-	if err != nil {
-		return []byte{}, err
-	}
-
-	req.Body = ioutil.NopCloser(bytes.NewReader(body))
-
-	return body, nil
-}
-
-func (req *Request) RawBodyString() string {
-
-	if body, err := req.RawBody(); err == nil {
-		return string(body)
-	}
-	return ""
 }
 
 func (resp *Response) WriteHeader(status int, ctype string) {
