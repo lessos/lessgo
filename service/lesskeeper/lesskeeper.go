@@ -2,28 +2,33 @@ package lesskeeper
 
 import (
 	"../../net/httpclient"
+	"../../utils"
 	"bytes"
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/base64"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strconv"
+	"time"
 )
 
 type Reply struct {
-	ErrorCode uint        `json:"errorCode,omitempty"`
-	Message   string      `json:"message,omitempty"`
-	Action    string      `json:"action,omitempty"`
-	Node      interface{} `json:"node,omitempty"`
+	ErrorCode uint   `json:"errorCode,omitempty"`
+	Message   string `json:"message,omitempty"`
+	Action    string `json:"action,omitempty"`
+	Node      Node   `json:"node,omitempty"`
 }
 
 type Node struct {
-	Key     string `json:"key"`
-	Value   string `json:"value"`
-	Version uint64 `json:"version,omitempty"`
-	Ttl     int    `json:"ttl,omitempty"`
+	Key       string `json:"key"`
+	Value     string `json:"value,omitempty"`
+	PrevValue string `json:"prevValue,omitempty"`
+	Version   uint64 `json:"version,omitempty"`
+	Ttl       int    `json:"ttl,omitempty"`
+	Dir       bool   `json:"dir,omitempty"`
+	Nodes     []Node `json:"nodes,omitempty"`
 }
 
 type Client struct {
@@ -77,6 +82,8 @@ func (c Client) nodeCmd(method, url string, params map[string]string) Reply {
 
 	hc := httpclient.NewHttpClientRequest(method, url)
 	hc.SignHandler = c.signHandler
+	hc.SetTimeout(time.Duration(c.Timeout) * time.Second)
+
 	for k, v := range params {
 		hc.Param(k, v)
 	}
@@ -95,8 +102,11 @@ func (c Client) NodeSet(n Node) Reply {
 	params := map[string]string{
 		"value": n.Value,
 	}
+	if n.PrevValue != "" {
+		params["prevValue"] = n.PrevValue
+	}
 	if n.Ttl > 0 {
-		params["ttl"] = fmt.Sprintf("%d", n.Ttl)
+		params["ttl"] = strconv.Itoa(n.Ttl)
 	}
 
 	return c.nodeCmd("PUT", c.ApiUrl+"/data/keys"+n.Key, params)
@@ -108,4 +118,9 @@ func (c Client) NodeGet(key string) Reply {
 
 func (c Client) NodeDel(key string) Reply {
 	return c.nodeCmd("DELETE", c.ApiUrl+"/data/keys"+key, map[string]string{})
+}
+
+// Json returns the map that marshals from the reply value string as json in response .
+func (n *Node) Json(v interface{}) error {
+	return utils.JsonDecode(n.Value, v)
 }
