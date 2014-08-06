@@ -49,7 +49,19 @@ func (f *Field) String() string {
 	return ""
 }
 
-func (f *Field) Int() int64 {
+func (f *Field) Int8() int8 {
+	return int8(f.Int64())
+}
+
+func (f *Field) Int16() int16 {
+	return int16(f.Int64())
+}
+
+func (f *Field) Int32() int32 {
+	return int32(f.Int64())
+}
+
+func (f *Field) Int64() int64 {
 
 	if f.value.Interface() == nil {
 		return 0
@@ -67,7 +79,23 @@ func (f *Field) Int() int64 {
 	return 0
 }
 
-func (f *Field) Uint() uint64 {
+func (f *Field) Int() int64 {
+	return f.Int64()
+}
+
+func (f *Field) Uint8() uint8 {
+	return uint8(f.Uint64())
+}
+
+func (f *Field) Uint16() uint16 {
+	return uint16(f.Uint64())
+}
+
+func (f *Field) Uint32() uint32 {
+	return uint32(f.Uint64())
+}
+
+func (f *Field) Uint64() uint64 {
 
 	if f.value.Interface() == nil {
 		return 0
@@ -83,6 +111,10 @@ func (f *Field) Uint() uint64 {
 	}
 
 	return 0
+}
+
+func (f *Field) Uint() uint64 {
+	return f.Uint64()
 }
 
 func (f *Field) Float() float64 {
