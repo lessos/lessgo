@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"time"
+	"../../../utils"
 )
 
 type Field struct {
@@ -47,6 +48,12 @@ func (f *Field) String() string {
 	}
 
 	return ""
+}
+
+
+// Json returns the map that marshals from the reply bytes as json in response .
+func (f *Field) Json(v interface{}) error {
+	return utils.JsonDecode(f.String(), v)
 }
 
 func (f *Field) Int8() int8 {
