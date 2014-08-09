@@ -58,8 +58,8 @@ func EnvDistArch() (string, string, error) {
 	if len(ver) == 0 {
 		return dist, arch, errors.New("Unknow ENV")
 	}
-	if ver[0] == "6" {
-		dist += "6"
+	if ver[0] == "6" || ver[0] == "7" {
+		dist += ver[0]
 	} else {
 		return dist, arch, errors.New("Unknow ENV")
 	}
