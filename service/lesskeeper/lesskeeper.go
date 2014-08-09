@@ -24,11 +24,11 @@ type Reply struct {
 type Node struct {
 	Key       string `json:"key"`
 	Value     string `json:"value,omitempty"`
-	PrevValue string `json:"prevValue,omitempty"`
 	Version   uint64 `json:"version,omitempty"`
 	Ttl       int    `json:"ttl,omitempty"`
 	Dir       bool   `json:"dir,omitempty"`
 	Nodes     []Node `json:"nodes,omitempty"`
+	PrevValue string `json:"prevValue,omitempty"`
 }
 
 type Client struct {

@@ -20,7 +20,7 @@ func ArrayEqual(a, b []string) bool {
 
 		if !eq {
 			return false
-		}	
+		}
 	}
 
 	return true
