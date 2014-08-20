@@ -1,7 +1,9 @@
 package pagelet
 
 import (
+	"../deps/go.net/websocket"
 	"bytes"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -10,6 +12,48 @@ import (
 	"strings"
 )
 
+type WebSocket struct {
+	conn *websocket.Conn
+}
+
+func (ws WebSocket) Receive(v interface{}) error {
+
+	if ws.conn == nil {
+		return errors.New("No WebSocket Connection")
+	}
+
+	if err := websocket.Message.Receive(ws.conn, v); err != nil {
+		ws.conn.Close()
+		return err
+	}
+
+	return nil
+}
+
+func (ws WebSocket) JsonSend(v interface{}) error {
+
+	if ws.conn == nil {
+		return errors.New("No WebSocket Connection")
+	}
+
+	if err := websocket.JSON.Send(ws.conn, v); err != nil {
+		ws.conn.Close()
+		return err
+	}
+
+	return nil
+}
+
+func (ws WebSocket) Close() {
+
+	if ws.conn == nil {
+		return
+	}
+
+	ws.conn.Close()
+	ws.conn = nil
+}
+
 type Request struct {
 	*http.Request
 	ContentType    string
@@ -17,6 +61,7 @@ type Request struct {
 	Locale         string
 	RequestPath    string
 	RawBody        []byte
+	WebSocket      WebSocket
 }
 
 type Response struct {
