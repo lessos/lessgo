@@ -68,11 +68,18 @@ func ArrayEqual(a, b []string) bool {
 
 	for _, va := range a {
 
+		eq := false
+
 		for _, vb := range b {
 
-			if va != vb {
-				return false
+			if va == vb {
+				eq = true
+				break
 			}
+		}
+
+		if !eq {
+			return false
 		}
 	}
 
