@@ -3,6 +3,11 @@ package utils
 import (
 	"encoding/json"
 	"errors"
+	"reflect"
+)
+
+const (
+	jsonMergeDepth = 32
 )
 
 func JsonDecode(src, rs interface{}) (err error) {
@@ -39,4 +44,56 @@ func JsonEncode(rs interface{}) (str string, err error) {
 	}
 
 	return
+}
+
+// Merge recursively merges the src and dst maps. Key conflicts are resolved by
+// preferring src, or recursively descending, if both src and dst are maps.
+//
+// Refer
+// 	https://github.com/peterbourgon/mergemap
+func JsonMerge(dst, src map[string]interface{}) map[string]interface{} {
+	return jsMerge(dst, src, 0)
+}
+
+func jsMerge(dst, src map[string]interface{}, depth int) map[string]interface{} {
+
+	if depth > jsonMergeDepth {
+		return dst
+		// panic("too deep!")
+	}
+
+	for key, srcVal := range src {
+
+		if dstVal, ok := dst[key]; ok {
+
+			srcMap, srcMapOk := jsMapify(srcVal)
+			dstMap, dstMapOk := jsMapify(dstVal)
+
+			if srcMapOk && dstMapOk {
+				srcVal = jsMerge(dstMap, srcMap, depth+1)
+			}
+		}
+
+		dst[key] = srcVal
+	}
+
+	return dst
+}
+
+func jsMapify(i interface{}) (map[string]interface{}, bool) {
+
+	value := reflect.ValueOf(i)
+
+	if value.Kind() == reflect.Map {
+
+		m := map[string]interface{}{}
+
+		for _, k := range value.MapKeys() {
+			m[k.String()] = value.MapIndex(k).Interface()
+		}
+
+		return m, true
+	}
+
+	return map[string]interface{}{}, false
 }
