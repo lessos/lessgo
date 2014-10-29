@@ -1,14 +1,5 @@
 #!/bin/bash
 
-echo "DIRs"
-find . -type d  | wc -l
-echo "FILEs"
-find . -type f  | wc -l
-echo "LINEs"
-find . -name "*.go" |xargs cat|grep -v ^$|wc -l
-echo "DETAILs"
-find . -type f -name "*.go" | xargs wc -l | sort -n
-
 files=`find . -type f -name "*.go" |xargs`
 for file in $files; do
     gofmt -s -w ${file}

@@ -26,6 +26,26 @@ func (e *Entry) Field(fieldName string) *Field {
 	return &Field{}
 }
 
+func (f *Field) Bytes() []byte {
+
+	if f.value.Interface() == nil {
+		return []byte{}
+	}
+
+	vv := reflect.ValueOf(f.value.Interface())
+
+	switch f.valueType.Kind() {
+	case reflect.Slice:
+		if f.valueType.Elem().Kind() == reflect.Uint8 {
+			return f.value.Interface().([]byte)
+		}
+	case reflect.String:
+		return []byte(vv.String())
+	}
+
+	return []byte{}
+}
+
 func (f *Field) String() string {
 
 	if f.value.Interface() == nil {

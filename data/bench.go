@@ -1,13 +1,13 @@
 package main
 
 import (
+	"../utils"
 	"./redis"
 	"flag"
 	"fmt"
 	"log"
 	"runtime"
 	"time"
-	"../utils"
 )
 
 var (
@@ -85,18 +85,18 @@ func main() {
 
 	// val := utils.StringNewRand(1000)
 	for i := 0; i < 1000000; i++ {
-	    
-	    key := utils.StringNewRand(2) +"."+ utils.StringNewRand(2) + "."+ utils.StringNewRand(10)
+
+		key := utils.StringNewRand(2) + "." + utils.StringNewRand(2) + "." + utils.StringNewRand(10)
 		val := utils.StringNewRand(500)
 		val += val
 		c.Cmd("SET", key, val)
-		
+
 		// c.Cmd("SET", i, val)
 		// c.Cmd("SET", utils.StringNewRand(20), utils.StringNewRand(1000))
 		// c.Cmd("DEL", i)
 		fmt.Println(i)
 	}
-	
+
 	return
 
 	fmt.Printf("### Parallel connections %d ###\n", *maxconn)
