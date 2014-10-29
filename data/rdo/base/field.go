@@ -85,8 +85,8 @@ func (f *Field) Int64() int64 {
 	return 0
 }
 
-func (f *Field) Int() int64 {
-	return f.Int64()
+func (f *Field) Int() int {
+	return int(f.Int64())
 }
 
 func (f *Field) Uint8() uint8 {
@@ -119,8 +119,8 @@ func (f *Field) Uint64() uint64 {
 	return 0
 }
 
-func (f *Field) Uint() uint64 {
-	return f.Uint64()
+func (f *Field) Uint() uint {
+	return uint(f.Uint64())
 }
 
 func (f *Field) Float() float64 {
