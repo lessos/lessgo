@@ -1,13 +1,13 @@
 package main
 
 import (
-	"./ssdb"
+	"./hissdb"
 	"fmt"
 )
 
 func main() {
 
-	conn, err := ssdb.NewConnector(ssdb.Config{
+	conn, err := hissdb.NewConnector(hissdb.Config{
 		Host:    "127.0.0.1",
 		Port:    6380,
 		Timeout: 3,  // timeout in second, default to 10

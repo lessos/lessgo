@@ -1,4 +1,4 @@
-package ssdb
+package hissdb
 
 type Config struct {
 
