@@ -3,7 +3,7 @@
 hissdb is a minimalistic SSDB (http://ssdb.io) client for Go.
 
 ## APIs
-* Connect. hissdb support pool and timeout in connection.
+* Connect. hissdb use hissdb.NewConnector(hissdb.Config{...}) to create connection with SSDB server. You can use hissdb.Config to set host, port, pool size, timeout, etc.
 
 * Request. all SSDB operations go with ```hissdb.Connector.Cmd()```, it accepts variable arguments. The first argument of Cmd() is the SSDB command, for example "get", "set", etc. The rest arguments(maybe none) are the arguments of that command.
 
