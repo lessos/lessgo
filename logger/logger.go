@@ -73,7 +73,7 @@ func (e *entry) line() string {
 	if e.ptype == printDefault {
 		logLine += " " + fmt.Sprint(e.args...)
 	} else if e.ptype == printFormat {
-		logLine += " " + fmt.Sprintf(e.format, e.args)
+		logLine += " " + fmt.Sprintf(e.format, e.args...)
 	}
 
 	return logLine
