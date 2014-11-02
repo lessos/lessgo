@@ -19,7 +19,7 @@ hissdb is a minimalistic SSDB (http://ssdb.io) client for Go.
 		* hissdb.Reply.List() []string
 		* hissdb.Reply.Hash() []Entry{Key, Value string}
 
-* Refer to the [PHP documentation](http://www.ideawu.com/ssdb/docs/php/) to checkout a complete list of all avilable commands and corresponding responses.
+* Refer to [Official API documentation](http://ssdb.io/docs/) to checkout a complete list of all avilable commands.
 
 ## Example
 <pre>package main
