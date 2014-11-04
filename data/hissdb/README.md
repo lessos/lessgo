@@ -1,6 +1,6 @@
 # hissdb
 
-hissdb is a minimalistic SSDB (http://ssdb.io) client for Go.
+hissdb is a minimalistic and connection pool support SSDB (http://ssdb.io) client for Go.
 
 ## APIs
 * Connect. hissdb use hissdb.NewConnector(hissdb.Config{...}) to create connection with SSDB server. You can use hissdb.Config to set host, port, pool size, timeout, etc.

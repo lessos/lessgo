@@ -1,8 +1,8 @@
 package main
 
 import (
-	"./hissdb"
 	"fmt"
+	"github.com/eryx/lessgo/data/hissdb"
 )
 
 func main() {
