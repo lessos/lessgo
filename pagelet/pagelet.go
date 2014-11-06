@@ -2,7 +2,7 @@ package pagelet
 
 import (
 	"../deps/go.net/websocket"
-	"fmt"
+	"../logger"
 	"net/http"
 	"strconv"
 	"time"
@@ -30,17 +30,8 @@ var (
 	Server             *http.Server
 )
 
-func println(args ...interface{}) {
-	fmt.Println(args...)
-}
-func printf(str string, args ...interface{}) {
-	fmt.Printf(str+"\n", args...)
-}
-
 func Run() {
 
-	//println(Config)
-	//
 	MainTemplateLoader = NewTemplateLoader()
 
 	go func() {
@@ -58,7 +49,7 @@ func Run() {
 
 	go func() {
 		time.Sleep(100 * time.Millisecond)
-		printf("lessgo/pagelet: Listening on port %d ...", Config.HttpPort)
+		logger.Printf("info", "lessgo/pagelet: Listening on port %d ...", Config.HttpPort)
 	}()
 }
 
@@ -80,7 +71,7 @@ func handleInternal(w http.ResponseWriter, r *http.Request, ws *websocket.Conn) 
 	defer func() {
 
 		if err := recover(); err != nil {
-			println("handle", err)
+			logger.Printf("error", "handleInternal Panic on %s", err)
 		}
 
 		r.Body.Close()
