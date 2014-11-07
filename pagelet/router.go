@@ -45,6 +45,11 @@ func RouterFilter(c *Controller) {
 		rt := strings.Split(urlpath, "/")
 		rtlen := len(rt)
 
+		if rtlen == 1 {
+			rt = append(rt, "Index")
+			rtlen++
+		}
+
 		//println("Router MAT", mod)
 
 		for _, route := range mod.Routes {
