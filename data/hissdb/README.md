@@ -22,7 +22,8 @@ hissdb is a minimalistic, connection pooling Go Client for SSDB (http://ssdb.io)
 * Refer to [Official API documentation](http://ssdb.io/docs/) to checkout a complete list of all avilable commands.
 
 ## Example
-<pre>package main
+```go
+package main
 
 import (
 	"github.com/eryx/lessgo/data/hissdb"
@@ -107,5 +108,6 @@ func main() {
 			fmt.Println("\t", k, v)
 		}
 	}
-}</pre>
+}
+```
 
