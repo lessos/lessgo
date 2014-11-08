@@ -27,8 +27,8 @@ hissdb is a minimalistic, connection pooling Go Client for SSDB (http://ssdb.io)
 package main
 
 import (
-	"github.com/eryx/lessgo/data/hissdb"
 	"fmt"
+	"github.com/eryx/lessgo/data/hissdb"
 )
 
 func main() {
@@ -46,23 +46,26 @@ func main() {
 	defer conn.Close()
 
 	// API::Bool() bool
-	if conn.Cmd("set", "aa", "val-aaaaaaaaaaaaaaaaaa").Bool() {
-		fmt.Println("set OK")
+	conn.Cmd("set", "true", "True")
+	if conn.Cmd("get", "true").Bool() {
+		fmt.Println("set bool OK")
 	}
+
+	conn.Cmd("set", "aa", "val-aaaaaaaaaaaaaaaaaa")
+	conn.Cmd("set", "bb", "val-bbbbbbbbbbbbbbbbbb")
+	conn.Cmd("set", "cc", "val-cccccccccccccccccc")
 	// API::String() string
 	if rs := conn.Cmd("get", "aa"); rs.State == "ok" {
 		fmt.Println("get OK\n\t", rs.String())
 	}
 	// API::Hash() []Entry
-	conn.Cmd("set", "bb", "val-bbbbbbbbbbbbbbbbbb")
-	conn.Cmd("set", "cc", "val-cccccccccccccccccc")
 	if rs := conn.Cmd("multi_get", "aa", "bb"); rs.State == "ok" {
 		fmt.Println("multi_get OK")
 		for _, v := range rs.Hash() {
 			fmt.Println("\t", v.Key, v.Value)
 		}
 	}
-	if rs := conn.Cmd("scan", "", "", 10); rs.State == "ok" {
+	if rs := conn.Cmd("scan", "aa", "cc", 10); rs.State == "ok" {
 		fmt.Println("scan OK")
 		for _, v := range rs.Hash() {
 			fmt.Println("\t", v.Key, v.Value)
@@ -98,6 +101,12 @@ func main() {
 		for _, v := range rs.Hash() {
 			fmt.Println("\t", v.Key, v.Value)
 		}
+	}
+
+	// API::Float64() float64
+	conn.Cmd("set", "float", 123.456)
+	if rs := conn.Cmd("get", "float").Float64(); rs > 0 {
+		fmt.Println("float OK\n\t", rs)
 	}
 
 	// API::List() []string
