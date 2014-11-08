@@ -48,8 +48,32 @@ func (r *Reply) Int64() int64 {
 	return 0
 }
 
+func (r *Reply) Float64() float64 {
+
+	if len(r.Data) < 1 {
+		return 0
+	}
+
+	f64, err := strconv.ParseFloat(r.Data[0], 64)
+	if err == nil {
+		return f64
+	}
+
+	return 0
+}
+
 func (r *Reply) Bool() bool {
-	return r.Int64() == 1
+
+	if len(r.Data) < 1 {
+		return false
+	}
+
+	b, err := strconv.ParseBool(r.Data[0])
+	if err == nil {
+		return b
+	}
+
+	return false
 }
 
 func (r *Reply) List() []string {
