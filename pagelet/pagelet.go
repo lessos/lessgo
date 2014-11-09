@@ -3,8 +3,11 @@ package pagelet
 import (
 	"../deps/go.net/websocket"
 	"../logger"
+	"net"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -22,7 +25,7 @@ import (
 
 var (
 	Config = ConfigBase{
-		HttpPort:        1024,
+		HttpPort:        0,
 		LocaleCookieKey: "lang",
 	}
 	MainRouter         = &Router{Routes: []Route{}, Modules: map[string][]Route{}}
@@ -32,25 +35,53 @@ var (
 
 func Run() {
 
+	network, localAddress := "tcp", Config.HttpAddr
+
+	// If the port is zero, treat the address as a fully qualified local address.
+	// This address must be prefixed with the network type followed by a colon,
+	// e.g. unix:/tmp/app.socket or tcp6:::1 (equivalent to tcp6:0:0:0:0:0:0:0:1)
+	if Config.HttpPort == 0 {
+		parts := strings.SplitN(Config.HttpAddr, ":", 2)
+		network = parts[0]
+		localAddress = parts[1]
+	} else {
+		localAddress += ":" + strconv.Itoa(Config.HttpPort)
+	}
+
+	if network != "unix" && network != "tcp" {
+		logger.Printf("fatal", "lessgo/pagelet: Unknown Network %s", network)
+		return
+	}
+
 	MainTemplateLoader = NewTemplateLoader()
-
-	go func() {
-
-		Server = &http.Server{
-			Addr:           ":" + strconv.Itoa(Config.HttpPort),
-			Handler:        http.HandlerFunc(handle),
-			ReadTimeout:    30 * time.Second,
-			WriteTimeout:   30 * time.Second,
-			MaxHeaderBytes: 1 << 20,
-		}
-
-		Server.ListenAndServe()
-	}()
 
 	go func() {
 		time.Sleep(100 * time.Millisecond)
 		logger.Printf("info", "lessgo/pagelet: Listening on port %d ...", Config.HttpPort)
 	}()
+
+	Server = &http.Server{
+		Addr:           localAddress,
+		Handler:        http.HandlerFunc(handle),
+		ReadTimeout:    30 * time.Second,
+		WriteTimeout:   30 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+
+	if network == "unix" {
+		// TODO already in use
+		os.Remove(localAddress)
+	}
+
+	listener, err := net.Listen(network, localAddress)
+	if err != nil {
+		logger.Printf("fatal", "lessgo/pagelet: net.Listen error %v", err)
+		return
+	}
+
+	if err := Server.Serve(listener); err != nil {
+		logger.Printf("fatal", "lessgo/pagelet: Server.Serve error %v", err)
+	}
 }
 
 func handle(w http.ResponseWriter, r *http.Request) {

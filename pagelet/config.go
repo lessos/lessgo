@@ -5,8 +5,9 @@ import (
 )
 
 type ConfigBase struct {
+	HttpPort          int    // e.g. 8080
+	HttpAddr          string // e.g. "", "127.0.0.1", "unix:/tmp/app.socket (if the port is zero)"
 	UrlBasePath       string
-	HttpPort          int
 	Module            []ConfigModule
 	LocaleCookieKey   string
 	InstanceId        string
