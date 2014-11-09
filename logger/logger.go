@@ -30,6 +30,10 @@ type entry struct {
 	args       []interface{}
 }
 
+func init() {
+	levelInit()
+}
+
 func LevelConfig(ls []string) {
 
 	if len(ls) < 1 {
@@ -42,11 +46,6 @@ func LevelConfig(ls []string) {
 	}
 
 	levelInit()
-}
-
-func init() {
-	levelInit()
-	fileInit()
 }
 
 func levelInit() {
