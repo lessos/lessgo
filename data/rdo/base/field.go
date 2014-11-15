@@ -179,3 +179,7 @@ func (f *Field) TimeParse(format string) time.Time {
 
 	return TimeParse(timeString, format)
 }
+
+func (f *Field) TimeFormat(format, formatTo string) string {
+	return	f.TimeParse(format).Format(TimeFormat(formatTo))
+}
