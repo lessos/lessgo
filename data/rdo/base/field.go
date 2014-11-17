@@ -23,12 +23,12 @@ func (e *Entry) Field(fieldName string) *Field {
 		return field
 	}
 
-	return &Field{}
+	return nil
 }
 
 func (f *Field) Bytes() []byte {
 
-	if f.value.Interface() == nil {
+	if f == nil || f.value.Interface() == nil {
 		return []byte{}
 	}
 
@@ -48,7 +48,7 @@ func (f *Field) Bytes() []byte {
 
 func (f *Field) String() string {
 
-	if f.value.Interface() == nil {
+	if f == nil || f.value.Interface() == nil {
 		return ""
 	}
 
@@ -89,7 +89,7 @@ func (f *Field) Int32() int32 {
 
 func (f *Field) Int64() int64 {
 
-	if f.value.Interface() == nil {
+	if f == nil || f.value.Interface() == nil {
 		return 0
 	}
 
@@ -123,7 +123,7 @@ func (f *Field) Uint32() uint32 {
 
 func (f *Field) Uint64() uint64 {
 
-	if f.value.Interface() == nil {
+	if f == nil || f.value.Interface() == nil {
 		return 0
 	}
 
@@ -145,7 +145,7 @@ func (f *Field) Uint() uint {
 
 func (f *Field) Float() float64 {
 
-	if f.value.Interface() == nil {
+	if f == nil || f.value.Interface() == nil {
 		return 0
 	}
 
@@ -161,7 +161,7 @@ func (f *Field) Float() float64 {
 
 func (f *Field) TimeParse(format string) time.Time {
 
-	if f.value.Interface() == nil {
+	if f == nil || f.value.Interface() == nil {
 		return time.Now().In(TimeZone)
 	}
 
@@ -181,5 +181,5 @@ func (f *Field) TimeParse(format string) time.Time {
 }
 
 func (f *Field) TimeFormat(format, formatTo string) string {
-	return	f.TimeParse(format).Format(TimeFormat(formatTo))
+	return f.TimeParse(format).Format(TimeFormat(formatTo))
 }
