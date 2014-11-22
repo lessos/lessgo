@@ -16,6 +16,7 @@ var (
 	onceFileInit sync.Once
 	out          *os.File // destination for output // TODO
 	logDir       = flag.String("log_dir", "", "If non-empty, write log files in this directory")
+	logToStderr  = flag.Bool("logtostderr", false, "log to standard error instead of files")
 
 	// file name format args
 	pid      = os.Getpid()
@@ -49,13 +50,17 @@ func fileInit() {
 
 		for logEntry := range bufs {
 
-			if out == nil && len(*logDir) > 0 {
-				fileOpenInit()
-			}
+			if *logToStderr {
+				os.Stderr.Write([]byte(logEntry.line() + "\n"))
+			} else {
+				if out == nil && len(*logDir) > 0 {
+					fileOpenInit()
+				}
 
-			if out != nil {
-				if _, err := out.Write([]byte(logEntry.line() + "\n")); err != nil {
-					out = nil
+				if out != nil {
+					if _, err := out.Write([]byte(logEntry.line() + "\n")); err != nil {
+						out = nil
+					}
 				}
 			}
 		}
