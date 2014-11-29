@@ -1,8 +1,8 @@
 package base
 
 import (
-	"../../../utils"
 	"fmt"
+	"github.com/lessos/lessgo/utils"
 	"reflect"
 	"time"
 )

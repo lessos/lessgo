@@ -1,12 +1,12 @@
 package pass
 
 import (
-	"../deps/go.crypto/scrypt"
 	"crypto/md5"
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/lessos/lessgo/deps/go.crypto/scrypt"
 	"io"
 	"strconv"
 )

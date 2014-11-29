@@ -1,10 +1,10 @@
 package main
 
 import (
-	"../utils"
-	"./redis"
 	"flag"
 	"fmt"
+	"github.com/lessos/lessgo/data/redis"
+	"github.com/lessos/lessgo/utils"
 	"log"
 	"runtime"
 	"time"

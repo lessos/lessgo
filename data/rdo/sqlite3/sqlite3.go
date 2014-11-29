@@ -1,9 +1,9 @@
 package sqlite3
 
 import (
-	"../base"
 	"database/sql"
 	"errors"
+	"github.com/lessos/lessgo/data/rdo/base"
 	//"fmt"
 	//_ "code.google.com/p/gosqlite/sqlite3"
 	_ "github.com/mattn/go-sqlite3"

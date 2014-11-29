@@ -1,10 +1,9 @@
 package main
 
 import (
-	//"../utils"
-	"./rdo"
-	"./rdo/base"
 	"fmt"
+	"github.com/lessos/lessgo/data/rdo"
+	"github.com/lessos/lessgo/data/rdo/base"
 )
 
 func main() {

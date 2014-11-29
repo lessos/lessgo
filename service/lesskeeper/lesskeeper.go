@@ -1,12 +1,12 @@
 package lesskeeper
 
 import (
-	"../../net/httpclient"
-	"../../utils"
 	"bytes"
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/base64"
+	"github.com/lessos/lessgo/net/httpclient"
+	"github.com/lessos/lessgo/utils"
 	"io"
 	"io/ioutil"
 	"net/http"

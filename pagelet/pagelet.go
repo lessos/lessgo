@@ -1,8 +1,8 @@
 package pagelet
 
 import (
-	"../deps/go.net/websocket"
-	"../logger"
+	"github.com/lessos/lessgo/deps/go.net/websocket"
+	"github.com/lessos/lessgo/logger"
 	"net"
 	"net/http"
 	"os"

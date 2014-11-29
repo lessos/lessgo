@@ -1,7 +1,7 @@
 package pagelet
 
 import (
-	"../service/lessids"
+	"github.com/lessos/lessgo/service/lessids"
 )
 
 type Session struct {

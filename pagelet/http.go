@@ -1,10 +1,10 @@
 package pagelet
 
 import (
-	"../deps/go.net/websocket"
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/lessos/lessgo/deps/go.net/websocket"
 	"io/ioutil"
 	"net/http"
 	"sort"

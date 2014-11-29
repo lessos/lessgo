@@ -1,10 +1,10 @@
 package rdo
 
 import (
-	"./base"
-	"./mysql"
-	"./sqlite3"
 	"errors"
+	"github.com/lessos/lessgo/data/rdo/base"
+	"github.com/lessos/lessgo/data/rdo/mysql"
+	"github.com/lessos/lessgo/data/rdo/sqlite3"
 )
 
 var (

@@ -1,9 +1,9 @@
 package lessids
 
 import (
-	"../../net/httpclient"
-	"../../utils"
 	"errors"
+	"github.com/lessos/lessgo/net/httpclient"
+	"github.com/lessos/lessgo/utils"
 	"sync"
 	"time"
 )

@@ -1,7 +1,7 @@
 package mysql
 
 import (
-	"../base"
+	"github.com/lessos/lessgo/data/rdo/base"
 )
 
 type mysqlDialect struct {

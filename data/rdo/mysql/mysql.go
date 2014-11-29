@@ -1,11 +1,11 @@
 package mysql
 
 import (
-	"../base"
 	"database/sql"
 	"errors"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/lessos/lessgo/data/rdo/base"
 )
 
 func NewClient(c base.Config) (*base.Client, error) {

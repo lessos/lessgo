@@ -1,7 +1,7 @@
 package base
 
 import (
-	"../../../utils"
+	"github.com/lessos/lessgo/utils"
 	"io/ioutil"
 	"os"
 )

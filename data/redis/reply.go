@@ -1,8 +1,8 @@
 package redis
 
 import (
-	"../../utils"
 	"errors"
+	"github.com/lessos/lessgo/utils"
 	"strconv"
 )
 

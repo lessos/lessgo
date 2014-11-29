@@ -1,9 +1,9 @@
 package httpclient
 
 import (
-	"../../utils"
 	"bytes"
 	"crypto/tls"
+	"github.com/lessos/lessgo/utils"
 	"io/ioutil"
 	"net"
 	"net/http"

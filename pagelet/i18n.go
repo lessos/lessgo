@@ -1,9 +1,9 @@
 package pagelet
 
 import (
-	"../utils"
 	"errors"
 	"fmt"
+	"github.com/lessos/lessgo/utils"
 	"io/ioutil"
 	"os"
 	"regexp"

@@ -1,9 +1,9 @@
 package mysql
 
 import (
-	"../base"
 	"errors"
 	"fmt"
+	"github.com/lessos/lessgo/data/rdo/base"
 	"sort"
 	"strconv"
 	"strings"

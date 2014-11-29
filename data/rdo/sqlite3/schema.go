@@ -1,9 +1,9 @@
 package sqlite3
 
 import (
-	"../base"
 	"errors"
 	"fmt"
+	"github.com/lessos/lessgo/data/rdo/base"
 	"regexp"
 	"strconv"
 	"strings"

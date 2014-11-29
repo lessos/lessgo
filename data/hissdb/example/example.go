@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/eryx/lessgo/data/hissdb"
+	"github.com/lessos/lessgo/data/hissdb"
 )
 
 func main() {

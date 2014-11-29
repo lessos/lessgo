@@ -1,9 +1,9 @@
 package main
 
 import (
-	"./redis"
 	"flag"
 	"fmt"
+	"github.com/lessos/lessgo/data/redis"
 	"log"
 	"runtime"
 	"time"

@@ -1,7 +1,7 @@
 package sqlite3
 
 import (
-	"../base"
+	"github.com/lessos/lessgo/data/rdo/base"
 )
 
 type sqlite3Dialect struct {
