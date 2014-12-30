@@ -8,9 +8,9 @@
 package scrypt
 
 import (
-	"../pbkdf2"
 	"crypto/sha256"
 	"errors"
+	"github.com/lessos/lessgo/deps/go.crypto/pbkdf2"
 )
 
 const maxInt = int(^uint(0) >> 1)

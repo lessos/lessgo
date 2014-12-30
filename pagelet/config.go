@@ -10,6 +10,7 @@ type ConfigBase struct {
 	UrlBasePath       string
 	Module            []ConfigModule
 	LocaleCookieKey   string
+	SessionCookieKey  string
 	InstanceId        string
 	LessIdsServiceUrl string
 }

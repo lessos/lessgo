@@ -25,8 +25,9 @@ import (
 
 var (
 	Config = ConfigBase{
-		HttpPort:        0,
-		LocaleCookieKey: "lang",
+		HttpPort:         0,
+		LocaleCookieKey:  "lang",
+		SessionCookieKey: "access_token",
 	}
 	MainRouter         = &Router{Routes: []Route{}, Modules: map[string][]Route{}}
 	MainTemplateLoader *TemplateLoader

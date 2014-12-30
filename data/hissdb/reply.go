@@ -1,6 +1,7 @@
 package hissdb
 
 import (
+	"github.com/lessos/lessgo/utils"
 	"strconv"
 )
 
@@ -98,4 +99,9 @@ func (r *Reply) Hash() []Entry {
 	}
 
 	return hs
+}
+
+// Json returns the map that marshals from the reply bytes as json in response .
+func (r *Reply) Json(v interface{}) error {
+	return utils.JsonDecode(r.String(), v)
 }

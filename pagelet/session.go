@@ -19,7 +19,7 @@ func SessionFilter(c *Controller) {
 	/* if token := c.Params.Get("setcookie"); token != "" {
 
 	    ck := &http.Cookie{
-	        Name:     "access_token",
+	        Name:     Config.SessionCookieKey,
 	        Value:    token,
 	        Path:     "/",
 	        HttpOnly: true,
@@ -28,9 +28,9 @@ func SessionFilter(c *Controller) {
 	    http.SetCookie(r.Response.Out, ck)
 	} */
 
-	if c.Session.AccessToken = c.Params.Get("access_token"); c.Session.AccessToken == "" {
+	if c.Session.AccessToken = c.Params.Get(Config.SessionCookieKey); c.Session.AccessToken == "" {
 
-		if token_cookie, err := c.Request.Cookie("access_token"); err == nil {
+		if token_cookie, err := c.Request.Cookie(Config.SessionCookieKey); err == nil {
 			c.Session.AccessToken = token_cookie.Value
 		}
 	}
