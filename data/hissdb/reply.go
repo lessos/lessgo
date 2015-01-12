@@ -105,3 +105,7 @@ func (r *Reply) Hash() []Entry {
 func (r *Reply) Json(v interface{}) error {
 	return utils.JsonDecode(r.String(), v)
 }
+
+func (r *Entry) Json(v interface{}) error {
+	return utils.JsonDecode(r.Value, v)
+}
