@@ -122,6 +122,15 @@ func (c *ConfigBase) ViewPath(module, path string) {
 	}
 }
 
+func (c *ConfigBase) ViewFuncRegistry(name string, fn interface{}) {
+
+	if _, ok := templateFuncs[name]; ok {
+		return
+	}
+
+	templateFuncs[name] = fn
+}
+
 func (c *ConfigBase) I18n(file string) {
 	i18nLoadMessages(file)
 }

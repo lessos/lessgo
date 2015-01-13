@@ -17,7 +17,7 @@ type View interface {
 }
 
 var (
-	TemplateFuncs = map[string]interface{}{
+	templateFuncs = map[string]interface{}{
 		"eq": Equal,
 		// Skips sanitation on the parameter.  Do not use with dynamic data.
 		"raw": func(text string) template.HTML {
@@ -146,7 +146,7 @@ func (loader *TemplateLoader) Init(cfgMod ConfigModule) {
 							}
 						}()
 
-						loaderTemplateSet = template.New(templateName).Funcs(TemplateFuncs)
+						loaderTemplateSet = template.New(templateName).Funcs(templateFuncs)
 						// If alternate delimiters set for the project, change them for this set
 						if splitDelims != nil && baseDir == ViewsPath {
 							loaderTemplateSet.Delims(splitDelims[0], splitDelims[1])
