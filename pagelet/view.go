@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -17,6 +18,7 @@ type View interface {
 }
 
 var (
+	tplLocker     sync.Mutex
 	templateFuncs = map[string]interface{}{
 		"eq": Equal,
 		// Skips sanitation on the parameter.  Do not use with dynamic data.
@@ -47,6 +49,9 @@ var (
 		"T": func(lang map[string]interface{}, msg string, args ...interface{}) string {
 			return i18nTranslate(lang["LANG"].(string), msg, args...)
 		},
+		// "set": func(renderArgs map[string]interface{}, key string, value interface{}) {
+		// 	renderArgs[key] = value
+		// },
 	}
 )
 
@@ -67,39 +72,25 @@ type Template interface {
 	Render(wr io.Writer, arg interface{}) error
 }
 
-func NewTemplateLoader() *TemplateLoader {
+func (loader *TemplateLoader) initModule(module string) {
 
-	loader := &TemplateLoader{
-		//paths: []string{},
-		//paths2:        map[string][]string{},
-		templatePaths: map[string]string{},
-		//templateSet:   nil,
-		templateSets: map[string]*template.Template{},
-	}
-	//fmt.Println("NewTemplateLoader", loader)
+	tplLocker.Lock()
+	defer tplLocker.Unlock()
 
+	var cfgMod *ConfigModule
 	for _, v := range Config.Module {
-		loader.Init(v)
+
+		if v.Name == module {
+			cfgMod = &v
+			break
+		}
+	}
+	if cfgMod == nil {
+		return
 	}
 
-	return loader
-}
-
-func (loader *TemplateLoader) Init(cfgMod ConfigModule) {
-
-	//var ok bool
-	//var set *template.Template = nil
+	//
 	loaderTemplateSet, _ := loader.templateSets[cfgMod.Name]
-
-	var splitDelims []string
-
-	ViewsPath := ""
-
-	//set, ok := loader.templateSets[module]
-	//if !ok {
-	//set = &TemplateModule{}
-	//}
-	//var templateSet *template.Template = nil
 
 	for _, baseDir := range cfgMod.ViewPaths {
 
@@ -147,15 +138,7 @@ func (loader *TemplateLoader) Init(cfgMod ConfigModule) {
 						}()
 
 						loaderTemplateSet = template.New(templateName).Funcs(templateFuncs)
-						// If alternate delimiters set for the project, change them for this set
-						if splitDelims != nil && baseDir == ViewsPath {
-							loaderTemplateSet.Delims(splitDelims[0], splitDelims[1])
-						} else {
-							// Reset to default otherwise
-							loaderTemplateSet.Delims("", "")
-						}
 
-						//fmt.Println("fileStr", templateName)
 						_, err = loaderTemplateSet.Parse(fileStr)
 
 						loader.templateSets[cfgMod.Name] = loaderTemplateSet
@@ -167,13 +150,7 @@ func (loader *TemplateLoader) Init(cfgMod ConfigModule) {
 
 				} else {
 
-					if splitDelims != nil && baseDir == ViewsPath {
-						loaderTemplateSet.Delims(splitDelims[0], splitDelims[1])
-					} else {
-						loaderTemplateSet.Delims("", "")
-					}
 					_, err = loaderTemplateSet.New(templateName).Parse(fileStr)
-
 				}
 
 				return err
@@ -184,28 +161,26 @@ func (loader *TemplateLoader) Init(cfgMod ConfigModule) {
 			// Lower case the file name for case-insensitive matching
 			lowerCaseTemplateName := strings.ToLower(templateName)
 
-			//fmt.Println("templateName", path, baseDir, templateName)
-
 			_ = addTemplate(templateName)
-
 			_ = addTemplate(lowerCaseTemplateName)
 
 			return nil
 		})
-
-		//fmt.Println(funcErr)
 	}
-
-	//fmt.Println("loader.templateSet", loader.templateSet)
-
 }
 
 func (loader *TemplateLoader) Template(module, name string) (Template, error) {
 
 	set, ok := loader.templateSets[module]
 	if !ok {
+		loader.initModule(module)
+	}
+
+	set, ok = loader.templateSets[module]
+	if !ok {
 		return nil, fmt.Errorf("Template %s:%s not found.", module, name)
 	}
+
 	//Println("loader.templateSet", module, name)
 	// This is necessary.
 	// If a nil loader.compileError is returned directly, a caller testing against
@@ -216,7 +191,6 @@ func (loader *TemplateLoader) Template(module, name string) (Template, error) {
 	//}
 
 	tmpl := set.Lookup(name)
-	//fmt.Println("loader.templateSet.Lookup", tmpl)
 	if tmpl == nil && err == nil {
 		return nil, fmt.Errorf("Template %s not found.", name)
 	}

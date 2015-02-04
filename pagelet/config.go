@@ -1,6 +1,7 @@
 package pagelet
 
 import (
+	"path/filepath"
 	"strings"
 )
 
@@ -95,6 +96,8 @@ func (c *ConfigBase) RouteAppend(module, path string, args ...map[string]string)
 }
 
 func (c *ConfigBase) ViewPath(module, path string) {
+
+	path = filepath.Clean(path)
 
 	c.moduleInit(module)
 

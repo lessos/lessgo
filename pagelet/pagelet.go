@@ -3,6 +3,7 @@ package pagelet
 import (
 	"github.com/lessos/lessgo/deps/go.net/websocket"
 	"github.com/lessos/lessgo/logger"
+	"html/template"
 	"net"
 	"net/http"
 	"os"
@@ -29,9 +30,15 @@ var (
 		LocaleCookieKey:  "lang",
 		SessionCookieKey: "access_token",
 	}
-	MainRouter         = &Router{Routes: []Route{}, Modules: map[string][]Route{}}
-	MainTemplateLoader *TemplateLoader
-	Server             *http.Server
+	MainRouter = &Router{
+		Routes:  []Route{},
+		Modules: map[string][]Route{},
+	}
+	MainTemplateLoader = &TemplateLoader{
+		templatePaths: map[string]string{},
+		templateSets:  map[string]*template.Template{},
+	}
+	Server *http.Server
 )
 
 func Run() {
@@ -53,8 +60,6 @@ func Run() {
 		logger.Printf("fatal", "lessgo/pagelet: Unknown Network %s", network)
 		return
 	}
-
-	MainTemplateLoader = NewTemplateLoader()
 
 	go func() {
 		time.Sleep(100 * time.Millisecond)

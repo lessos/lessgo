@@ -50,7 +50,6 @@ func ActionInvoker(c *Controller) {
 	if c.AppController == nil {
 		return
 	}
-	//println("AAA")
 
 	execController := reflect.ValueOf(c.AppController).MethodByName(c.MethodName + "Action")
 
@@ -65,20 +64,24 @@ func ActionInvoker(c *Controller) {
 		c.AutoRender = false
 		c.Render()
 	}
-
-	//println("ActionInvoker DONE")
 }
 
 func (c *Controller) Render(args ...interface{}) {
 
 	c.AutoRender = false
 
-	templatePath := c.Name + "/" + c.MethodName + ".tpl"
-	if len(args) == 1 && reflect.TypeOf(args[0]).Kind() == reflect.String {
+	module, templatePath := c.ModuleName, c.Name+"/"+c.MethodName+".tpl"
+	if len(args) == 2 &&
+		reflect.TypeOf(args[0]).Kind() == reflect.String &&
+		reflect.TypeOf(args[1]).Kind() == reflect.String {
+
+		module, templatePath = args[0].(string), args[1].(string)
+	} else if len(args) == 1 &&
+		reflect.TypeOf(args[0]).Kind() == reflect.String {
+
 		templatePath = args[0].(string)
 	}
 
-	//println(c.ModuleName, templatePath)
 	// Handle panics when rendering templates.
 	defer func() {
 		if err := recover(); err != nil {
@@ -86,17 +89,15 @@ func (c *Controller) Render(args ...interface{}) {
 		}
 	}()
 
-	template, err := MainTemplateLoader.Template(c.ModuleName, templatePath)
+	template, err := MainTemplateLoader.Template(module, templatePath)
 	if err != nil {
 		return //c.RenderError(err)
 	}
 
-	//c.ViewData["test"] = "TEST"
 	// If it's a HEAD request, throw away the bytes.
 	out := io.Writer(c.Response.Out)
 
 	c.Response.WriteHeader(http.StatusOK, "text/html; charset=utf-8")
-	//println(c.ViewData)
 
 	if err = template.Render(out, c.ViewData); err != nil {
 		println(err)

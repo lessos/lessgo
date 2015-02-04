@@ -118,11 +118,12 @@ func RouterFilter(c *Controller) {
 					c.MethodName = strings.Replace(strings.Title(val), "-", "", -1)
 				}
 
-				for k, v := range params {
+				// TODO sec
+				for k, v := range route.Params {
 					c.Params.Values[k] = append(c.Params.Values[k], v)
 				}
 
-				for k, v := range route.Params {
+				for k, v := range params {
 					c.Params.Values[k] = append(c.Params.Values[k], v)
 				}
 
@@ -134,7 +135,13 @@ func RouterFilter(c *Controller) {
 
 		ctrl, ok := controllers[c.ModuleName+c.Name]
 		if !ok {
-			return // TODO
+			c.Name = "Index"
+			if ctrl, ok = controllers[c.ModuleName+c.Name]; !ok {
+				c.ModuleName = "default"
+				if ctrl, ok = controllers[c.ModuleName+c.Name]; !ok {
+					return
+				}
+			}
 		}
 
 		var (
