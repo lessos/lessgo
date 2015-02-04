@@ -8,9 +8,9 @@ import (
 
 type DataSet struct {
 	DbName  string   `json:"dbname"`
-	Engine  string   `json:"engine"`
-	Charset string   `json:"charset"`
-	Version int      `json:"version"`
+	Engine  string   `json:"engine,omitempty"`
+	Charset string   `json:"charset,omitempty"`
+	Version int      `json:"version,omitempty"`
 	Tables  []*Table `json:"tables"`
 }
 

@@ -2,11 +2,11 @@ package base
 
 type Table struct {
 	Name    string    `json:"name"`
-	Engine  string    `json:"engine"`
-	Charset string    `json:"charset"`
+	Engine  string    `json:"engine,omitempty"`
+	Charset string    `json:"charset,omitempty"`
 	Columns []*Column `json:"columns"`
 	Indexes []*Index  `json:"indexes"`
-	Comment string    `json:"comment"`
+	Comment string    `json:"comment,omitempty"`
 }
 
 func NewTable(name, engine, charset string) *Table {
@@ -21,26 +21,29 @@ func NewTable(name, engine, charset string) *Table {
 
 func (table *Table) AddColumn(col *Column) {
 
-	exist := false
-
 	for k, v := range table.Columns {
-		if v.Name == col.Name {
-			table.Columns[k] = col
-			exist = true
+
+		if v.Name != col.Name {
+			continue
 		}
+
+		table.Columns[k] = col
+		return
 	}
 
-	if !exist {
-		table.Columns = append(table.Columns, col)
-	}
+	table.Columns = append(table.Columns, col)
 }
 
 func (table *Table) AddIndex(index *Index) {
 
-	for _, v := range table.Indexes {
-		if v.Name == index.Name {
-			return
+	for k, v := range table.Indexes {
+
+		if v.Name != index.Name {
+			continue
 		}
+
+		table.Indexes[k] = index
+		return
 	}
 
 	table.Indexes = append(table.Indexes, index)

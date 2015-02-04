@@ -22,12 +22,12 @@ var columnTypes = map[string]string{
 type Column struct {
 	Name     string   `json:"name"`
 	Type     string   `json:"type"`
-	Length   string   `json:"length"`
-	NullAble bool     `json:"nullAble"`
-	IncrAble bool     `json:"incrAble"`
-	Default  string   `json:"default"`
-	Comment  string   `json:"comment"`
-	Extra    []string `json:"extra"`
+	Length   string   `json:"length,omitempty"`
+	NullAble bool     `json:"nullAble,omitempty"`
+	IncrAble bool     `json:"incrAble,omitempty"`
+	Default  string   `json:"default,omitempty"`
+	Comment  string   `json:"comment,omitempty"`
+	Extra    []string `json:"extra,omitempty"`
 }
 
 func NewColumn(colName, colType, len string, null bool, def string) *Column {
