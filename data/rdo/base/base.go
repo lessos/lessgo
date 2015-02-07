@@ -236,6 +236,29 @@ func (dc *Base) Query(q *QuerySet) (rs []Entry, err error) {
 	return dc.QueryRaw(sql, params...)
 }
 
+func (dc *Base) Fetch(q *QuerySet) (Entry, error) {
+
+	q.Limit(1)
+
+	entry := Entry{Fields: map[string]*Field{}}
+
+	sql, params := q.Parse()
+	if len(params) == 0 {
+		return entry, errors.New("Error in query syntax")
+	}
+
+	rs, err := dc.QueryRaw(sql, params...)
+	if err != nil {
+		return entry, err
+	}
+
+	if len(rs) > 0 {
+		return rs[0], nil
+	}
+
+	return entry, errors.New("Entry Not Found")
+}
+
 func (dc *Base) ExecRaw(query string, args ...interface{}) (Result, error) {
 	return dc.Conn.Exec(query, args...)
 }
