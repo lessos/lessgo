@@ -339,6 +339,8 @@ func (dc *mysqlDialect) SchemaTableAdd(table *base.Table) error {
 		sql += " DEFAULT CHARSET=" + table.Charset
 	} else if dc.Base().Config.Charset != "" {
 		sql += " DEFAULT CHARSET=" + dc.Base().Config.Charset
+	} else {
+		sql += " DEFAULT CHARSET=utf8"
 	}
 
 	if table.Comment != "" {
