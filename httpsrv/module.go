@@ -22,13 +22,8 @@ import (
 
 var (
 	DefaultModule = Module{
-		name: "default",
-		routes: []Route{
-			{
-				Type: RouteTypeBasic,
-				Path: ":controller/:action",
-			},
-		},
+		name:        "default",
+		routes:      []Route{},
 		controllers: make(map[string]*controllerType),
 		viewpaths:   []string{},
 	}
@@ -45,8 +40,13 @@ type Module struct {
 func NewModule(name string) Module {
 
 	return Module{
-		name:        name,
-		routes:      []Route{},
+		name: name,
+		routes: []Route{
+			{
+				Type: RouteTypeBasic,
+				Path: ":controller/:action",
+			},
+		},
 		controllers: make(map[string]*controllerType),
 		viewpaths:   []string{},
 	}
@@ -58,11 +58,11 @@ func (m *Module) RouteSet(r Route) {
 		return
 	}
 
-	r.Path = strings.Trim(r.Path, "/")
-
-	if r.Type == RouteTypeStatic && len(r.Tree) < 1 {
+	if r.Type == RouteTypeStatic && r.StaticPath == "" {
 		return
 	}
+
+	r.Path = strings.Trim(r.Path, "/")
 
 	for i, route := range m.routes {
 

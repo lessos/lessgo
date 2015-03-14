@@ -15,13 +15,13 @@
 package httpsrv
 
 type Config struct {
-	InstanceID        string
-	HttpPort          uint16 // e.g. 8080
-	HttpAddr          string // e.g. "", "127.0.0.1", "unix:/tmp/app.socket (if the port is zero)"
-	UrlBasePath       string
-	CookieKeyLocale   string
-	CookieKeySession  string
-	LessIdsServiceUrl string
+	InstanceID        string `json:"instance_id,omitempty"`
+	HttpAddr          string `json:"http_addr,omitempty"` // e.g. "127.0.0.1", "unix:/tmp/app.sock"
+	HttpPort          uint16 `json:"http_port,omitempty"` // e.g. 8080
+	UrlBasePath       string `json:"url_base_path,omitempty"`
+	CookieKeyLocale   string `json:"cookie_key_locale,omitempty"`
+	CookieKeySession  string `json:"cookie_key_session,omitempty"`
+	LessIdsServiceUrl string `json:"lessids_service_url,omitempty"`
 }
 
 func (c *Config) TemplateFuncRegister(name string, fn interface{}) {

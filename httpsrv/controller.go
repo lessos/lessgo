@@ -123,18 +123,22 @@ func (c *Controller) Render(args ...interface{}) {
 }
 
 func (c *Controller) RenderError(status int, msg string) {
+
 	c.AutoRender = false
+
 	c.Response.WriteHeader(status, "text/html; charset=utf-8")
 	io.WriteString(c.Response.Out, msg)
 }
 
-func (c *Controller) UrlRedirect(url string) {
+func (c *Controller) Redirect(url string) {
+
 	c.AutoRender = false
+
 	c.Response.Out.Header().Set("Location", url)
 	c.Response.Out.WriteHeader(http.StatusFound)
 }
 
-func (c *Controller) RenderJSON(obj interface{}) {
+func (c *Controller) RenderJson(obj interface{}) {
 
 	c.AutoRender = false
 

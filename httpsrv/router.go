@@ -27,12 +27,20 @@ const (
 	RouteTypeStatic = "static"
 )
 
+var (
+	defaultRoute = Route{
+		Type: RouteTypeBasic,
+		Path: ":controller/:action",
+	}
+)
+
 type Route struct {
-	Type    string
-	Path    string
-	Tree    []string
-	treelen int
-	Params  map[string]string // e.g. {id: 123}
+	Type       string
+	Path       string
+	StaticPath string
+	Params     map[string]string // e.g. {id: 123}
+	tree       []string
+	treelen    int
 }
 
 func RouterFilter(c *Controller) {
@@ -69,7 +77,7 @@ func RouterFilter(c *Controller) {
 
 			if route.Type == RouteTypeStatic && strings.HasPrefix(urlpath, route.Path) {
 
-				file := route.Tree[0] + "/" + urlpath[len(route.Path):]
+				file := route.StaticPath + "/" + urlpath[len(route.Path):]
 				finfo, err := os.Stat(file)
 
 				if err != nil {
@@ -97,7 +105,7 @@ func RouterFilter(c *Controller) {
 
 			matlen, ctrlName, actionName, params := 0, "", "", map[string]string{}
 
-			for i, node := range route.Tree {
+			for i, node := range route.tree {
 
 				if node[0:1] == ":" {
 

@@ -19,6 +19,7 @@ import (
 	"html/template"
 	"net"
 	"net/http"
+	"net/rpc"
 	"os"
 	"strings"
 	"sync"
@@ -35,12 +36,18 @@ type Service struct {
 	err            error
 	modules        []Module
 	server         *http.Server
+	rpcRegs        map[string]*rpc.Server
 	templateLoader *templateLoader
 }
 
 var (
-	lock           sync.Mutex
-	DefaultService = Service{
+	lock          sync.Mutex
+	GlobalService = NewService()
+)
+
+func NewService() Service {
+
+	return Service{
 
 		Config: Config{
 			HttpPort:         0,
@@ -52,15 +59,13 @@ var (
 
 		modules: []Module{},
 
+		rpcRegs: map[string]*rpc.Server{},
+
 		templateLoader: &templateLoader{
 			templatePaths: map[string]string{},
 			templateSets:  map[string]*template.Template{},
 		},
 	}
-)
-
-func NewService() Service {
-	return DefaultService
 }
 
 func (s *Service) ModuleRegister(baseuri string, mod Module) {
@@ -75,17 +80,19 @@ func (s *Service) ModuleRegister(baseuri string, mod Module) {
 		controllers: mod.controllers,
 	}
 
+	mod.routes = append(mod.routes, defaultRoute)
+
 	for _, r := range mod.routes {
 
-		if r.Type == RouteTypeStatic && len(r.Tree) > 0 {
+		if r.Type == RouteTypeStatic && r.StaticPath != "" {
 
 			set.routes = append(set.routes, r)
 
 		} else if r.Type == RouteTypeBasic {
 
 			r.Path = strings.Trim(r.Path, "/")
-			r.Tree = strings.Split(r.Path, "/")
-			r.treelen = len(r.Tree)
+			r.tree = strings.Split(r.Path, "/")
+			r.treelen = len(r.tree)
 
 			if r.treelen < 1 {
 				continue
@@ -100,7 +107,7 @@ func (s *Service) ModuleRegister(baseuri string, mod Module) {
 	s.modules = append(s.modules, set)
 }
 
-func (s *Service) Err() error {
+func (s *Service) Error() error {
 	return s.err
 }
 
@@ -124,32 +131,45 @@ func (s *Service) Start() error {
 		return nil
 	}
 
-	go func() {
-		time.Sleep(100 * time.Millisecond)
-		logger.Printf("info", "lessgo/httpsrv: Listening on %s ...", localAddress)
-	}()
-
-	s.server = &http.Server{
-		Addr:           localAddress,
-		Handler:        http.HandlerFunc(s.handle),
-		ReadTimeout:    30 * time.Second,
-		WriteTimeout:   30 * time.Second,
-		MaxHeaderBytes: 1 << 20,
-	}
-
+	//
 	if network == "unix" {
 		// TODO already in use
 		os.Remove(localAddress)
 	}
 
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		logger.Printf("info", "lessgo/httpsrv: Listening on %s ...", localAddress)
+	}()
+
+	//
+	srvmux := http.NewServeMux()
+	for rpcpath, rpcsrv := range s.rpcRegs {
+		srvmux.Handle(rpcpath, rpcsrv)
+	}
+	srvmux.HandleFunc("/", s.handle)
+
+	//
+	s.server = &http.Server{
+		Addr:           localAddress,
+		Handler:        srvmux,
+		ReadTimeout:    30 * time.Second,
+		WriteTimeout:   30 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+
+	//
 	listener, err := net.Listen(network, localAddress)
 	if err != nil {
 		logger.Printf("fatal", "lessgo/httpsrv: net.Listen error %v", err)
+		s.err = err
 		return nil
 	}
 
+	//
 	if err := s.server.Serve(listener); err != nil {
 		logger.Printf("fatal", "lessgo/httpsrv: server.Serve error %v", err)
+		s.err = err
 	}
 
 	return nil
