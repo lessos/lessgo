@@ -3,13 +3,14 @@ package httpclient
 import (
 	"bytes"
 	"crypto/tls"
-	"github.com/lessos/lessgo/utils"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/lessos/lessgo/utils"
 )
 
 var (

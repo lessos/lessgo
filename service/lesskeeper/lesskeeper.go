@@ -5,13 +5,14 @@ import (
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/base64"
-	"github.com/lessos/lessgo/net/httpclient"
-	"github.com/lessos/lessgo/utils"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/lessos/lessgo/net/httpclient"
+	"github.com/lessos/lessgo/utils"
 )
 
 type Reply struct {

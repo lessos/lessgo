@@ -102,6 +102,9 @@ func (c *Client) send(args []interface{}) error {
 	}
 	buf.WriteByte('\n')
 	_, err := c.sock.Write(buf.Bytes())
+	if err != nil {
+		// TODO
+	}
 	return err
 }
 

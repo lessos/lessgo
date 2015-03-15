@@ -50,7 +50,9 @@ func NewService() Service {
 	return Service{
 
 		Config: Config{
-			HttpPort:         0,
+			HttpAddr:         "0.0.0.0",
+			HttpPort:         8080,
+			HttpTimeout:      30, // 30 seconds
 			CookieKeyLocale:  "lang",
 			CookieKeySession: "access_token",
 		},
@@ -137,6 +139,11 @@ func (s *Service) Start() error {
 		os.Remove(localAddress)
 	}
 
+	//
+	if s.Config.HttpTimeout < 3 {
+		s.Config.HttpTimeout = 10
+	}
+
 	go func() {
 		time.Sleep(100 * time.Millisecond)
 		logger.Printf("info", "lessgo/httpsrv: Listening on %s ...", localAddress)
@@ -153,8 +160,8 @@ func (s *Service) Start() error {
 	s.server = &http.Server{
 		Addr:           localAddress,
 		Handler:        srvmux,
-		ReadTimeout:    30 * time.Second,
-		WriteTimeout:   30 * time.Second,
+		ReadTimeout:    time.Duration(s.Config.HttpTimeout) * time.Second,
+		WriteTimeout:   time.Duration(s.Config.HttpTimeout) * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
 
