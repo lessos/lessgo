@@ -6,7 +6,7 @@ type Config struct {
 	Host string `json:"host"`
 
 	// Database server port. Leave blank if using unix sockets
-	Port int `json:"port"`
+	Port uint16 `json:"port"`
 
 	// TODO Password for authentication
 	// Pass string `json:"pass"`

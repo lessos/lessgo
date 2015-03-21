@@ -3,7 +3,7 @@ package hissdb
 import (
 	"net"
 	"runtime"
-	"strconv"
+	"fmt"
 	"time"
 )
 
@@ -35,7 +35,7 @@ func NewConnector(cfg Config) (*Connector, error) {
 
 	cr := &Connector{
 		ctype:    "tcp",
-		clink:    cfg.Host + ":" + strconv.Itoa(cfg.Port),
+		clink:    fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
 		ctimeout: time.Duration(cfg.Timeout) * time.Second,
 		conns:    make(chan *Client, cfg.MaxConn),
 		config:   cfg,
