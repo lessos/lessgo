@@ -1,9 +1,9 @@
 package hissdb
 
 import (
+	"fmt"
 	"net"
 	"runtime"
-	"fmt"
 	"time"
 )
 

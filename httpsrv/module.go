@@ -40,19 +40,18 @@ type Module struct {
 func NewModule(name string) Module {
 
 	return Module{
-		name: name,
-		routes: []Route{
-			{
-				Type: RouteTypeBasic,
-				Path: ":controller/:action",
-			},
-		},
+		name:        name,
+		routes:      []Route{},
 		controllers: make(map[string]*controllerType),
 		viewpaths:   []string{},
 	}
 }
 
 func (m *Module) RouteSet(r Route) {
+
+	if r.Type == "" {
+		r.Type = RouteTypeBasic
+	}
 
 	if r.Type != RouteTypeBasic && r.Type != RouteTypeStatic {
 		return
@@ -67,11 +66,9 @@ func (m *Module) RouteSet(r Route) {
 	for i, route := range m.routes {
 
 		if route.Path == r.Path {
-			continue
+			m.routes[i] = r
+			return
 		}
-
-		m.routes[i] = r
-		break
 	}
 
 	m.routes = append(m.routes, r)
