@@ -8,8 +8,8 @@ type Config struct {
 	// Database server port. Leave blank if using unix sockets
 	Port uint16 `json:"port"`
 
-	// TODO Password for authentication
-	// Pass string `json:"pass"`
+	// Password for authentication
+	Auth string `json:"auth"`
 
 	// TODO A path of a UNIX socket file. Leave blank if using host and port
 	// Socket string `json:"socket"`
