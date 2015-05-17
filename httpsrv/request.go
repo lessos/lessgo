@@ -22,6 +22,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/lessos/lessgo/utils"
 )
 
 type Request struct {
@@ -64,6 +66,15 @@ func (req *Request) RawAbsUrl() string {
 	}
 
 	return fmt.Sprintf("%s://%s%s", scheme, req.Host, req.RequestURI)
+}
+
+func (req *Request) JsonDecode(obj interface{}) error {
+
+	if len(req.RawBody) < 2 {
+		return fmt.Errorf("No Data Found")
+	}
+
+	return utils.JsonDecode(req.RawBody, obj)
 }
 
 // Get the content type.
