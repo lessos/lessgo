@@ -14,41 +14,43 @@
 
 package types
 
-func (ls *KeyValueListMeta) Insert(key, value string) {
+func (ls LabelListMeta) Insert(key, value string) LabelListMeta {
 
-	for i, prev := range ls.Items {
+	for i, prev := range ls {
 
 		if prev.Key == key {
 
-			if prev.Value != value {
-				ls.Items[i].Value = value
+			if prev.Val != value {
+				ls[i].Val = value
 			}
 
-			return
+			return ls
 		}
 	}
 
-	ls.Items = append(ls.Items, KeyValueMeta{Key: key, Value: value})
+	ls = append(ls, LabelMeta{Key: key, Val: value})
+
+	return ls
 }
 
-func (ls *KeyValueListMeta) Fetch(key string) (string, bool) {
+func (ls LabelListMeta) Fetch(key string) (string, bool) {
 
-	for _, prev := range ls.Items {
+	for _, prev := range ls {
 
 		if prev.Key == key {
-			return prev.Value, true
+			return prev.Val, true
 		}
 	}
 
 	return "", false
 }
 
-func (ls *KeyValueListMeta) Remove(key string) {
+func (ls LabelListMeta) Remove(key string) {
 
-	for i, prev := range ls.Items {
+	for i, prev := range ls {
 
 		if prev.Key == key {
-			ls.Items = append(ls.Items[:i], ls.Items[i:]...)
+			ls = append(ls[:i], ls[i:]...)
 			break
 		}
 	}
