@@ -80,12 +80,17 @@ func (m *Module) TemplatePathSet(paths ...string) {
 
 		path = filepath.Clean(path)
 
+		added := false
+
 		for _, prev := range m.viewpaths {
 
 			if path == prev {
-				continue
+				added = true
+				break
 			}
+		}
 
+		if !added {
 			m.viewpaths = append(m.viewpaths, path)
 		}
 	}
