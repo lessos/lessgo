@@ -29,7 +29,8 @@ func SessionFilter(c *Controller) {
 		InstanceID: c.service.Config.InstanceID,
 	}
 
-	if lessids.ServiceUrl != c.service.Config.LessIdsServiceUrl {
+	if lessids.ServiceUrl != c.service.Config.LessIdsServiceUrl &&
+		c.service.Config.LessIdsServiceUrl != "" {
 		lessids.ServiceUrl = c.service.Config.LessIdsServiceUrl
 	}
 
@@ -53,18 +54,12 @@ func SessionFilter(c *Controller) {
 	}
 }
 
-func (s *Session) SessionFetch() (session lessids.SessionEntry, err error) {
+func (s *Session) SessionFetch() (session lessids.UserSession, err error) {
 	return lessids.SessionFetch(s.AccessToken)
 }
 
 func (s *Session) IsLogin() bool {
-
-	session, err := s.SessionFetch()
-	if err != nil || session.Uid == 0 {
-		return false
-	}
-
-	return true
+	return lessids.IsLogin(s.AccessToken)
 }
 
 func (s *Session) AccessAllowed(privilege string) bool {
