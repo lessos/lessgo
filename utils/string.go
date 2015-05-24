@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"crypto/md5"
 	"crypto/rand"
 	"fmt"
 	"io"
@@ -87,4 +88,18 @@ func StringNewUUID() string {
 	u[8] = variant | (u[8] & 15)
 
 	return fmt.Sprintf("%x-%x-%x-%x-%x", u[0:4], u[4:6], u[6:8], u[8:10], u[10:])
+}
+
+func StringEncode16(str string, slen uint) string {
+
+	if slen < 1 {
+		slen = 1
+	} else if slen > 32 {
+		slen = 32
+	}
+
+	h := md5.New()
+	io.WriteString(h, str)
+
+	return fmt.Sprintf("%x", h.Sum(nil))[:slen]
 }
