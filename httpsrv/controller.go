@@ -138,6 +138,13 @@ func (c *Controller) Redirect(url string) {
 	c.Response.Out.WriteHeader(http.StatusFound)
 }
 
+func (c *Controller) RenderString(body string) {
+
+	c.AutoRender = false
+
+	io.WriteString(c.Response.Out, body)
+}
+
 func (c *Controller) RenderJson(obj interface{}) {
 
 	c.AutoRender = false
