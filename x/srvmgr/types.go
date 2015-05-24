@@ -20,7 +20,7 @@ import (
 
 type Status struct {
 	types.TypeMeta `json:",inline"`
-	Meta           types.ObjectMeta       `json:"meta"`
-	Status         string                 `json:"status,omitempty"`
-	Params         types.KeyValueListMeta `json:"params,omitempty"`
+	Meta           types.ObjectMeta    `json:"meta"`
+	Status         string              `json:"status,omitempty"`
+	Params         types.LabelListMeta `json:"params,omitempty"`
 }

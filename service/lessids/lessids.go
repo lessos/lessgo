@@ -1,39 +1,59 @@
+// Copyright 2015 lessOS.com, All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package lessids
 
 import (
 	"errors"
-	"github.com/lessos/lessgo/net/httpclient"
-	"github.com/lessos/lessgo/utils"
 	"sync"
 	"time"
+
+	"github.com/lessos/lessgo/net/httpclient"
+	"github.com/lessos/lessgo/types"
+	"github.com/lessos/lessgo/utils"
+	"github.com/lessos/lessgo/utilx"
 )
-
-type ResponseJson struct {
-	Status     int    `json:"status"`
-	Message    string `json:"message"`
-	ApiVersion string `json:"apiVersion"`
-}
-
-type SessionEntry struct {
-	AccessToken  string    `json:"access_token"`
-	RefreshToken string    `json:"refresh_token"`
-	Uid          uint64    `json:"uid"`
-	Uuid         string    `json:"uuid"`
-	Uname        string    `json:"uname"`
-	Name         string    `json:"name"`
-	Data         string    `json:"data"`
-	Roles        string    `json:"roles"`
-	Expired      time.Time `json:"expired"`
-	InnerExpired time.Time
-}
 
 var (
 	locker            sync.Mutex
-	ServiceUrl        = ""
-	sessions          = map[string]SessionEntry{}
+	ServiceUrl        = "http://127.0.0.1:50101/ids"
+	sessions          = map[string]UserSession{}
 	nextClean         = time.Now()
 	innerExpiredRange = time.Second * 1800
 )
+
+type UserSession struct {
+	types.TypeMeta `json:",inline"`
+	AccessToken    string    `json:"access_token"`
+	RefreshToken   string    `json:"refresh_token"`
+	UserID         string    `json:"userid"`
+	UserName       string    `json:"username"`
+	ClientAddr     string    `json:"client_addr,omitempty"`
+	Name           string    `json:"name"`
+	Data           string    `json:"data"`
+	Roles          string    `json:"roles"`
+	Expired        string    `json:"expired"`
+	InnerExpired   time.Time `json:"inner_expired,omitempty"`
+	Timezone       string    `json:"timezone"`
+}
+
+type UserAccessEntry struct {
+	types.TypeMeta `json:",inline"`
+	AccessToken    string `json:"access_token"`
+	InstanceID     string `json:"instanceid"`
+	Privilege      string `json:"privilege"`
+}
 
 func innerExpiredClean() {
 
@@ -69,7 +89,7 @@ func IsLogin(token string) bool {
 	return true
 }
 
-func SessionFetch(token string) (session SessionEntry, err error) {
+func SessionFetch(token string) (session UserSession, err error) {
 
 	if ServiceUrl == "" || token == "" {
 		return session, errors.New("Unauthorized")
@@ -79,59 +99,48 @@ func SessionFetch(token string) (session SessionEntry, err error) {
 		return session, nil
 	}
 
-	hc := httpclient.Get(ServiceUrl + "/service/auth?access_token=" + token)
+	hc := httpclient.Get(ServiceUrl + "/v1/service/auth?access_token=" + token)
 
-	var rsjson struct {
-		ResponseJson
-		Data SessionEntry
-	}
+	var us UserSession
 
-	err = hc.ReplyJson(&rsjson)
-	if err != nil || rsjson.Status != 200 || rsjson.Data.Uid == 0 {
+	err = hc.ReplyJson(&us)
+	if err != nil || us.Error != nil || us.Kind != "UserSession" {
 		return session, errors.New("Unauthorized")
 	}
 
-	rsjson.Data.InnerExpired = time.Now().Add(innerExpiredRange)
+	us.InnerExpired = time.Now().Add(innerExpiredRange)
 
-	if rsjson.Data.InnerExpired.After(rsjson.Data.Expired) {
-		rsjson.Data.InnerExpired = rsjson.Data.Expired
+	exp := utilx.TimeParse(us.Expired, "atom")
+	if us.InnerExpired.After(exp) {
+		us.InnerExpired = exp
 	}
 
 	locker.Lock()
-	sessions[token] = rsjson.Data // TODO Cache API
+	sessions[token] = us // TODO Cache API
 	locker.Unlock()
 
-	return rsjson.Data, nil
+	return us, nil
 }
 
 func AccessAllowed(privilege, instanceid, token string) bool {
-
-	//fmt.Println("lessids.AccessAllowed", ServiceUrl, privilege, instanceid, token)
 
 	if !IsLogin(token) {
 		return false
 	}
 
-	var req struct {
-		AccessToken string `json:"access_token"`
-		Data        struct {
-			InstanceId string `json:"instanceid"`
-			Privilege  string `json:"privilege"`
-		} `json:"data"`
+	req := UserAccessEntry{
+		AccessToken: token,
+		InstanceID:  instanceid,
+		Privilege:   privilege,
 	}
-	req.AccessToken = token
-	req.Data.InstanceId = instanceid
-	req.Data.Privilege = privilege
 
-	reqjson, _ := utils.JsonEncode(req)
-
-	hc := httpclient.Post(ServiceUrl + "/service/access-allowed")
+	js, _ := utils.JsonEncode(req)
+	hc := httpclient.Post(ServiceUrl + "/v1/service/access-allowed")
 	hc.Header("contentType", "application/json; charset=utf-8")
-	hc.Body(reqjson)
+	hc.Body(js)
 
-	var rsjson ResponseJson
-	err := hc.ReplyJson(&rsjson)
-	if err != nil || rsjson.Status != 200 {
+	var us UserAccessEntry
+	if err := hc.ReplyJson(&us); err != nil || us.Kind != "UserAccessEntry" {
 		return false
 	}
 
