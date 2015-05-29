@@ -40,7 +40,6 @@ func (c *Client) Cmd(args ...interface{}) *Reply {
 
 	resp, err := c.recv()
 	if err != nil || len(resp) < 1 {
-		fmt.Println("recv error")
 		return r
 	}
 
