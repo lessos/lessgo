@@ -51,6 +51,10 @@ func NewConnector(cfg Config) (*Connector, error) {
 		if err != nil {
 			return cr, err
 		}
+		if cr.config.Auth != "" {
+			cn.Cmd("auth", cr.config.Auth)
+		}
+
 		cr.conns <- cn
 	}
 
@@ -74,12 +78,36 @@ func dialTimeout(network, addr string) (*Client, error) {
 func (cr *Connector) Cmd(args ...interface{}) *Reply {
 
 	cn, _ := cr.pull()
-	defer cr.push(cn)
 
 	cn.sock.SetReadDeadline(time.Now().Add(cr.ctimeout))
 	cn.sock.SetWriteDeadline(time.Now().Add(cr.ctimeout))
 
-	return cn.Cmd(args...)
+	var rpl *Reply
+
+	for try := 1; try <= 3; try++ {
+
+		rpl = cn.Cmd(args...)
+		if rpl.State != ReplyFail {
+			break
+		}
+
+		time.Sleep(time.Duration(try) * time.Second)
+
+		if cn0, err := dialTimeout(cr.ctype, cr.clink); err == nil {
+
+			cn = cn0
+			cn.sock.SetReadDeadline(time.Now().Add(cr.ctimeout))
+			cn.sock.SetWriteDeadline(time.Now().Add(cr.ctimeout))
+
+			if cr.config.Auth != "" {
+				cn.Cmd("auth", cr.config.Auth)
+			}
+		}
+	}
+
+	cr.push(cn)
+
+	return rpl
 }
 
 func (cr *Connector) Close() {

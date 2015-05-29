@@ -34,11 +34,13 @@ func (c *Client) Cmd(args ...interface{}) *Reply {
 	}
 
 	if err := c.send(args); err != nil {
+		r.State = ReplyFail
 		return r
 	}
 
 	resp, err := c.recv()
 	if err != nil || len(resp) < 1 {
+		fmt.Println("recv error")
 		return r
 	}
 
