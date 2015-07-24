@@ -46,6 +46,10 @@ func JsonEncode(rs interface{}) (str string, err error) {
 	return
 }
 
+func JsonEncodeIndent(rs interface{}, indent string) ([]byte, error) {
+	return json.MarshalIndent(rs, "", indent)
+}
+
 // Merge recursively merges the src and dst maps. Key conflicts are resolved by
 // preferring src, or recursively descending, if both src and dst are maps.
 //
