@@ -17,17 +17,17 @@ type Config struct {
 	Pass string `json:"pass"`
 
 	// A path of a UNIX socket file. Leave blank if using host and port.
-	Socket string `json:"socket"`
+	Socket string `json:"socket,omitempty"`
 
 	// Name of the database.
-	Dbname string `json:"dbname"`
+	Dbname string `json:"dbname,omitempty"`
 
 	// Database engine.
-	Engine string `json:"engine"`
+	Engine string `json:"engine,omitempty"`
 
 	// Database charset.
-	Charset string `json:"charset"`
+	Charset string `json:"charset,omitempty"`
 
 	// Data Source Name
-	Dsn string
+	Dsn string `json:"dsn,omitempty"`
 }
