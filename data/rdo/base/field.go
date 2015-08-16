@@ -2,9 +2,11 @@ package base
 
 import (
 	"fmt"
-	"github.com/lessos/lessgo/utils"
 	"reflect"
+	"strconv"
 	"time"
+
+	"github.com/lessos/lessgo/utils"
 )
 
 type Field struct {
@@ -157,6 +159,16 @@ func (f *Field) Float() float64 {
 	}
 
 	return 0
+}
+
+func (f *Field) Bool() bool {
+
+	b, err := strconv.ParseBool(f.String())
+	if err == nil {
+		return b
+	}
+
+	return false
 }
 
 func (f *Field) TimeParse(format string) time.Time {
