@@ -23,15 +23,14 @@ import (
 )
 
 type Controller struct {
-	Name       string // The controller name, e.g. "App"
-	ActionName string // The action name, e.g. "Index"
-	Request    *Request
-	Response   *Response
-	Params     *Params // Parameters from URL and form (including multipart).
-	Session    Session // Session, stored in cookie, signed.
-	AutoRender bool
-	Data       map[string]interface{}
-
+	Name          string // The controller name, e.g. "App"
+	ActionName    string // The action name, e.g. "Index"
+	Request       *Request
+	Response      *Response
+	Params        *Params  // Parameters from URL and form (including multipart).
+	Session       *Session // Session, stored in cookie, signed.
+	AutoRender    bool
+	Data          map[string]interface{}
 	appController interface{} // The controller that was instantiated.
 	module        string
 	service       *Service
@@ -69,6 +68,14 @@ func ActionInvoker(c *Controller) {
 	}
 
 	execController := reflect.ValueOf(c.appController).MethodByName(c.ActionName + "Action")
+	if execController.Kind() == reflect.Invalid && c.ActionName != "Index" {
+
+		execController = reflect.ValueOf(c.appController).MethodByName("IndexAction")
+
+		if execController.Kind() == reflect.Invalid {
+			return
+		}
+	}
 
 	args := []reflect.Value{}
 	if execController.Type().IsVariadic() {
@@ -107,16 +114,17 @@ func (c *Controller) Render(args ...interface{}) {
 		}
 	}()
 
-	template, err := c.service.templateLoader.Template(module, templatePath)
+	template, err := c.service.TemplateLoader.Template(module, templatePath)
 	if err != nil {
 		return //c.RenderError(err)
 	}
 
-	// If it's a HEAD request, throw away the bytes.
+	if c.Response.Status == 0 {
+		c.Response.Status = http.StatusOK
+	}
+	c.Response.WriteHeader(c.Response.Status, "text/html; charset=utf-8")
+
 	out := io.Writer(c.Response.Out)
-
-	c.Response.WriteHeader(http.StatusOK, "text/html; charset=utf-8")
-
 	if err = template.Render(out, c.Data); err != nil {
 		println(err)
 	}
@@ -192,6 +200,7 @@ func findControllers(appControllerType reflect.Type) (indexes [][]int) {
 
 		// Look at all the struct fields.
 		for i := 0; i < elem.NumField(); i++ {
+
 			// If this is not an anonymous field, skip it.
 			structField := elemType.Field(i)
 			if !structField.Anonymous {

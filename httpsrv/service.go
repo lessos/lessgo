@@ -37,7 +37,7 @@ type Service struct {
 	modules        []Module
 	server         *http.Server
 	rpcRegs        map[string]*rpc.Server
-	templateLoader *templateLoader
+	TemplateLoader *TemplateLoader
 }
 
 var (
@@ -50,6 +50,7 @@ func NewService() Service {
 	return Service{
 
 		Config: Config{
+			InstanceID:       "",
 			HttpAddr:         "0.0.0.0",
 			HttpPort:         8080,
 			HttpTimeout:      30, // 30 seconds
@@ -63,7 +64,7 @@ func NewService() Service {
 
 		rpcRegs: map[string]*rpc.Server{},
 
-		templateLoader: &templateLoader{
+		TemplateLoader: &TemplateLoader{
 			templatePaths: map[string]string{},
 			templateSets:  map[string]*template.Template{},
 		},
@@ -104,7 +105,7 @@ func (s *Service) ModuleRegister(baseuri string, mod Module) {
 		}
 	}
 
-	s.templateLoader.init(mod)
+	s.TemplateLoader.Set(mod.name, mod.viewpaths)
 
 	s.modules = append(s.modules, set)
 }
@@ -144,11 +145,6 @@ func (s *Service) Start() error {
 		s.Config.HttpTimeout = 10
 	}
 
-	go func() {
-		time.Sleep(100 * time.Millisecond)
-		logger.Printf("info", "lessgo/httpsrv: Listening on %s ...", localAddress)
-	}()
-
 	//
 	srvmux := http.NewServeMux()
 	for rpcpath, rpcsrv := range s.rpcRegs {
@@ -177,6 +173,9 @@ func (s *Service) Start() error {
 	if err := s.server.Serve(listener); err != nil {
 		logger.Printf("fatal", "lessgo/httpsrv: server.Serve error %v", err)
 		s.err = err
+	} else {
+		time.Sleep(100 * time.Millisecond)
+		logger.Printf("info", "lessgo/httpsrv: Listening on %s ...", localAddress)
 	}
 
 	return nil
@@ -207,9 +206,9 @@ func (s *Service) handleInternal(w http.ResponseWriter, r *http.Request, ws *web
 
 	defer func() {
 
-		if err := recover(); err != nil {
-			logger.Printf("error", "handleInternal Panic on %s", err)
-		}
+		// if err := recover(); err != nil {
+		// 	logger.Printf("error", "handleInternal Panic on %s", err)
+		// }
 
 		r.Body.Close()
 	}()

@@ -14,54 +14,22 @@
 
 package httpsrv
 
-import (
-	"github.com/lessos/lessgo/service/lessids"
-)
-
 type Session struct {
-	InstanceID  string
-	AccessToken string
+	c *Controller
 }
 
 func SessionFilter(c *Controller) {
 
-	c.Session = Session{
-		InstanceID: c.service.Config.InstanceID,
-	}
-
-	if lessids.ServiceUrl != c.service.Config.LessIdsServiceUrl &&
-		c.service.Config.LessIdsServiceUrl != "" {
-		lessids.ServiceUrl = c.service.Config.LessIdsServiceUrl
-	}
-
-	/* if token := c.Params.Get("setcookie"); token != "" {
-
-	    ck := &http.Cookie{
-	        Name:     c.service.Config.CookieKeySession,
-	        Value:    token,
-	        Path:     "/",
-	        HttpOnly: true,
-	        Expires:  session.Expired.UTC(),
-	    }
-	    http.SetCookie(r.Response.Out, ck)
-	} */
-
-	if c.Session.AccessToken = c.Params.Get(c.service.Config.CookieKeySession); c.Session.AccessToken == "" {
-
-		if token_cookie, err := c.Request.Cookie(c.service.Config.CookieKeySession); err == nil {
-			c.Session.AccessToken = token_cookie.Value
-		}
+	c.Session = &Session{
+		c: c,
 	}
 }
 
-func (s *Session) SessionFetch() (session lessids.UserSession, err error) {
-	return lessids.SessionFetch(s.AccessToken)
-}
+func (s *Session) Get(key string) string {
 
-func (s *Session) IsLogin() bool {
-	return lessids.IsLogin(s.AccessToken)
-}
+	if v, err := s.c.Request.Cookie(key); err == nil {
+		return v.Value
+	}
 
-func (s *Session) AccessAllowed(privilege string) bool {
-	return lessids.AccessAllowed(privilege, s.InstanceID, s.AccessToken)
+	return ""
 }

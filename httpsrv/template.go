@@ -30,7 +30,7 @@ var tlock sync.Mutex
 
 // This object handles loading and parsing of templates.
 // Everything below the application's views directory is treated as a template.
-type templateLoader struct {
+type TemplateLoader struct {
 	// Map from template name to the path from whence it was loaded.
 	templatePaths map[string]string
 
@@ -39,22 +39,37 @@ type templateLoader struct {
 }
 
 type iTemplate interface {
-	Name() string
-	Content() []string
 	Render(wr io.Writer, arg interface{}) error
 }
 
-func (loader *templateLoader) init(mod Module) {
+func (loader *TemplateLoader) Clean(modname string) {
 
 	tlock.Lock()
 	defer tlock.Unlock()
 
-	loaderTemplateSet, ok := loader.templateSets[mod.name]
+	if _, ok := loader.templateSets[modname]; ok {
+		delete(loader.templateSets, modname)
+	}
+
+	for k := range loader.templatePaths {
+
+		if strings.HasPrefix(k, modname+".") {
+			delete(loader.templatePaths, k)
+		}
+	}
+}
+
+func (loader *TemplateLoader) Set(modname string, viewpaths []string) {
+
+	tlock.Lock()
+	defer tlock.Unlock()
+
+	loaderTemplateSet, ok := loader.templateSets[modname]
 	if ok {
 		return
 	}
 
-	for _, baseDir := range mod.viewpaths {
+	for _, baseDir := range viewpaths {
 
 		_ = filepath.Walk(baseDir, func(path string, info os.FileInfo, err error) error {
 
@@ -70,11 +85,11 @@ func (loader *templateLoader) init(mod Module) {
 
 			addTemplate := func(templateName string) (err error) {
 
-				if _, ok := loader.templatePaths[mod.name+"."+templateName]; ok {
+				if _, ok := loader.templatePaths[modname+"."+templateName]; ok {
 					return nil
 				}
 
-				loader.templatePaths[mod.name+"."+templateName] = path
+				loader.templatePaths[modname+"."+templateName] = path
 
 				// Load the file if we haven't already
 				if fileStr == "" {
@@ -99,10 +114,10 @@ func (loader *templateLoader) init(mod Module) {
 							}
 						}()
 
-						loaderTemplateSet = template.New(templateName).Funcs(templateFuncs)
+						loaderTemplateSet = template.New(templateName).Funcs(TemplateFuncs)
 
 						if _, err := loaderTemplateSet.Parse(fileStr); err == nil {
-							loader.templateSets[mod.name] = loaderTemplateSet
+							loader.templateSets[modname] = loaderTemplateSet
 						}
 					}()
 
@@ -131,48 +146,35 @@ func (loader *templateLoader) init(mod Module) {
 	}
 }
 
-func (loader *templateLoader) Template(module, name string) (iTemplate, error) {
+func (loader *TemplateLoader) Template(modname, tplname string) (iTemplate, error) {
 
-	// loader.init()
-	set, ok := loader.templateSets[module]
+	set, ok := loader.templateSets[modname]
 	if !ok || set == nil {
-		return nil, fmt.Errorf("Template %s not found.", name)
+		return nil, fmt.Errorf("Template %s not found.", tplname)
 	}
 
-	//Println("templateSet", module, name)
-	// This is necessary.
-	// If a nil loader.compileError is returned directly, a caller testing against
-	// nil will get the wrong result.  Something to do with casting *Error to error.
-	var err error
-	//if loader.compileError != nil {
-	//	err = loader.compileError
-	//}
-
-	tmpl := set.Lookup(name)
-	if tmpl == nil && err == nil {
-		return nil, fmt.Errorf("Template %s:%s not found.", module, name)
+	tmpl := set.Lookup(tplname)
+	if tmpl == nil {
+		return nil, fmt.Errorf("Template %s:%s not found.", modname, tplname)
 	}
 
-	return goTemplate{tmpl, loader}, err
+	return goTemplate{tmpl, loader}, nil
 }
 
 // Adapter for Go Templates.
 type goTemplate struct {
 	*template.Template
-	loader *templateLoader
+	loader *TemplateLoader
 }
 
-// return a 'revel.Template' from Go's template.
+// return a 'httpsrv.goTemplate' from Go's template.
 func (gotmpl goTemplate) Render(wr io.Writer, arg interface{}) error {
+
+	defer func() {
+		if err := recover(); err != nil {
+			//
+		}
+	}()
+
 	return gotmpl.Execute(wr, arg)
-}
-
-func (gotmpl goTemplate) Content() []string {
-
-	bytes, err := ioutil.ReadFile(gotmpl.loader.templatePaths[gotmpl.Name()])
-	if err != nil {
-		return []string{}
-	}
-
-	return strings.Split(string(bytes), "\n")
 }

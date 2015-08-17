@@ -21,7 +21,7 @@ import (
 	"time"
 )
 
-var templateFuncs = map[string]interface{}{
+var TemplateFuncs = map[string]interface{}{
 	"eq": tfEqual,
 	// Skips sanitation on the parameter.  Do not use with dynamic data.
 	"raw": func(text string) template.HTML {

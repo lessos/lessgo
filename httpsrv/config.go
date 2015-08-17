@@ -26,12 +26,7 @@ type Config struct {
 }
 
 func (c *Config) TemplateFuncRegister(name string, fn interface{}) {
-
-	if _, ok := templateFuncs[name]; ok {
-		return
-	}
-
-	templateFuncs[name] = fn
+	TemplateFuncs[name] = fn
 }
 
 func (c *Config) I18n(file string) {
