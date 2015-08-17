@@ -81,7 +81,7 @@ type ListMeta struct {
 	TotalResults uint64 `json:"totalResults,omitempty"`
 
 	// The index of the first query result in the current set of query results
-	StartIndex uint64 `json:"startIndex"`
+	StartIndex uint64 `json:"startIndex,omitempty"`
 
 	// The number of query results returned per list
 	ItemsPerList uint64 `json:"itemsPerList,omitempty"`
@@ -122,8 +122,9 @@ type ObjectMeta struct {
 
 // LabelMeta is a key value . It implements Labels
 type LabelMeta struct {
-	Key string `json:"key"`
-	Val string `json:"val,omitempty"`
+	Key     string `json:"key"`
+	Val     string `json:"val"`
+	Comment string `json:"comment,omitempty"`
 }
 
 // LabelListMeta are key value pairs that may be used to scope and select individual resources.
