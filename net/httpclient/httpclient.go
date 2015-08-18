@@ -172,6 +172,13 @@ func (c *HttpClientRequest) Response() (*http.Response, error) {
 	return c.rsp, nil
 }
 
+// Close close the TCP connection, the caller MUST use Close when done reading from it.
+func (c *HttpClientRequest) Close() {
+	if c.rsp != nil && c.rsp.Body != nil {
+		c.rsp.Body.Close()
+	}
+}
+
 // timeoutDialer returns functions of connection dialer with timeout settings for http.Transport Dial field.
 func timeoutDialer(cTimeout, rwTimeout time.Duration) func(net, addr string) (c net.Conn, err error) {
 	return func(netw, addr string) (net.Conn, error) {
@@ -184,7 +191,7 @@ func timeoutDialer(cTimeout, rwTimeout time.Duration) func(net, addr string) (c 
 	}
 }
 
-// Bytes returns the body []byte in response.
+// ReplyBytes returns the body []byte in response.
 // it calls Response inner.
 func (c *HttpClientRequest) ReplyBytes() ([]byte, error) {
 	resp, err := c.Response()
@@ -203,7 +210,7 @@ func (c *HttpClientRequest) ReplyBytes() ([]byte, error) {
 	return data, nil
 }
 
-// String returns the body string in response.
+// ReplyString returns the body string in response.
 // it calls Response inner.
 func (c *HttpClientRequest) ReplyString() (string, error) {
 
