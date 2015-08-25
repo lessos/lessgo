@@ -31,5 +31,5 @@ func (s *Session) Get(key string) string {
 		return v.Value
 	}
 
-	return ""
+	return s.c.Params.Get(key)
 }
