@@ -121,7 +121,7 @@ func (s *Service) Start() error {
 	// If the port is zero, treat the address as a fully qualified local address.
 	// This address must be prefixed with the network type followed by a colon,
 	// e.g. unix:/tmp/app.socket or tcp6:::1 (equivalent to tcp6:0:0:0:0:0:0:0:1)
-	if s.Config.HttpPort == 0 {
+	if s.Config.HttpPort == 0 || strings.HasPrefix(s.Config.HttpAddr, "unix:") {
 		parts := strings.SplitN(s.Config.HttpAddr, ":", 2)
 		network = parts[0]
 		localAddress = parts[1]
