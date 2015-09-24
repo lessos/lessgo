@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"reflect"
@@ -48,6 +49,14 @@ func JsonEncode(rs interface{}) (str string, err error) {
 
 func JsonEncodeIndent(rs interface{}, indent string) ([]byte, error) {
 	return json.MarshalIndent(rs, "", indent)
+}
+
+func JsonIndent(src, indent string) ([]byte, error) {
+
+	var out bytes.Buffer
+	err := json.Indent(&out, []byte(src), "", indent)
+
+	return out.Bytes(), err
 }
 
 // Merge recursively merges the src and dst maps. Key conflicts are resolved by
