@@ -119,6 +119,20 @@ func (r *Reply) Hash() []Entry {
 	return hs
 }
 
+func (r *Reply) Map() map[string]string {
+	data := make(map[string]string)
+
+	if len(r.Data) < 2 {
+		return data
+	}
+
+	for i := 0; i < (len(r.Data) - 1); i += 2 {
+		data[r.Data[i]] = r.Data[i+1]
+	}
+
+	return data
+}
+
 // Json returns the map that marshals from the reply bytes as json in response .
 func (r *Reply) Json(v interface{}) error {
 	return utils.JsonDecode(r.String(), v)
