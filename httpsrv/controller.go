@@ -15,6 +15,7 @@
 package httpsrv
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"reflect"
@@ -160,8 +161,9 @@ func (c *Controller) RenderJson(obj interface{}) {
 	c.Response.Out.Header().Set("Access-Control-Allow-Origin", "*")
 	c.Response.Out.Header().Set("Content-type", "application/json")
 
-	if js, err := utils.JsonEncode(obj); err == nil {
-		io.WriteString(c.Response.Out, js)
+	if js, err := utils.JsonEncodeBytes(obj); err == nil {
+		c.Response.Out.Header().Set("Content-Length", fmt.Sprintf("%d", len(js)))
+		c.Response.Out.Write(js)
 	}
 }
 

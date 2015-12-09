@@ -47,6 +47,10 @@ func JsonEncode(rs interface{}) (str string, err error) {
 	return
 }
 
+func JsonEncodeBytes(rs interface{}) ([]byte, error) {
+	return json.Marshal(rs)
+}
+
 func JsonEncodeIndent(rs interface{}, indent string) ([]byte, error) {
 	return json.MarshalIndent(rs, "", indent)
 }
