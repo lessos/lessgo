@@ -172,6 +172,15 @@ func (c *HttpClientRequest) Response() (*http.Response, error) {
 	return c.rsp, nil
 }
 
+func (c *HttpClientRequest) Status() int {
+
+	if c.rsp != nil {
+		return c.rsp.StatusCode
+	}
+
+	return 0
+}
+
 // Close close the TCP connection, the caller MUST use Close when done reading from it.
 func (c *HttpClientRequest) Close() {
 	if c.rsp != nil && c.rsp.Body != nil {
