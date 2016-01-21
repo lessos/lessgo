@@ -28,6 +28,7 @@ type HttpClientRequest struct {
 	rsp             *http.Response
 	params          map[string]string
 	SignHandler     HttpClientSignHandler
+	redirect        func(req *http.Request, via []*http.Request) error
 }
 
 func NewHttpClientRequest(method, url string) *HttpClientRequest {
@@ -92,6 +93,10 @@ func Delete(url string) *HttpClientRequest {
 // Head returns *HttpClientRequest with HEAD method.
 func Head(url string) *HttpClientRequest {
 	return NewHttpClientRequest("HEAD", url)
+}
+
+func (c *HttpClientRequest) SetRedirectHandler(fn func(req *http.Request, via []*http.Request) error) {
+	c.redirect = fn
 }
 
 // Param adds query param in to request.
@@ -163,6 +168,9 @@ func (c *HttpClientRequest) Response() (*http.Response, error) {
 			TLSClientConfig: c.tlsClientConfig,
 			Dial:            timeoutDialer(c.timeout, c.timeout),
 		},
+	}
+	if c.redirect != nil {
+		client.CheckRedirect = c.redirect
 	}
 	c.rsp, err = client.Do(c.Req)
 	if err != nil {
@@ -242,4 +250,8 @@ func (c *HttpClientRequest) ReplyJson(v interface{}) error {
 		return err
 	}
 	return nil
+}
+
+func (c *HttpClientRequest) ReplyHeader(key string) string {
+	return c.rsp.Header.Get(key)
 }

@@ -129,7 +129,7 @@ type frameReaderFactory interface {
 
 // frameWriter is an interface to write a WebSocket frame.
 type frameWriter interface {
-	// Writer is to write playload of the frame.
+	// Writer is to write payload of the frame.
 	io.WriteCloser
 }
 
@@ -216,10 +216,11 @@ func (ws *Conn) Write(msg []byte) (n int, err error) {
 // Close implements the io.Closer interface.
 func (ws *Conn) Close() error {
 	err := ws.frameHandler.WriteClose(ws.defaultCloseStatus)
+	err1 := ws.rwc.Close()
 	if err != nil {
 		return err
 	}
-	return ws.rwc.Close()
+	return err1
 }
 
 func (ws *Conn) IsClientConn() bool { return ws.request == nil }

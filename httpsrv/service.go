@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"net/rpc"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -37,7 +38,13 @@ type Service struct {
 	modules        []Module
 	server         *http.Server
 	rpcRegs        map[string]*rpc.Server
+	handlers       []reg_handler
 	TemplateLoader *TemplateLoader
+}
+
+type reg_handler struct {
+	base    string
+	handler http.Handler
 }
 
 var (
@@ -62,13 +69,30 @@ func NewService() Service {
 
 		modules: []Module{},
 
-		rpcRegs: map[string]*rpc.Server{},
+		rpcRegs:  map[string]*rpc.Server{},
+		handlers: []reg_handler{},
 
 		TemplateLoader: &TemplateLoader{
 			templatePaths: map[string]string{},
 			templateSets:  map[string]*template.Template{},
 		},
 	}
+}
+
+func (s *Service) HandlerRegisterPrev(baseuri string, h http.Handler) {
+
+	baseuri = "/" + strings.Trim(filepath.Clean(baseuri), "/")
+
+	for _, v := range s.handlers {
+		if v.base == baseuri {
+			return
+		}
+	}
+
+	s.handlers = append(s.handlers, reg_handler{
+		base:    baseuri,
+		handler: h,
+	})
 }
 
 func (s *Service) ModuleRegister(baseuri string, mod Module) {
@@ -147,17 +171,25 @@ func (s *Service) Start() error {
 
 	//
 	srvmux := http.NewServeMux()
+
+	//
 	for rpcpath, rpcsrv := range s.rpcRegs {
 		srvmux.Handle(rpcpath, rpcsrv)
 	}
+
+	//
+	for _, v := range s.handlers {
+		srvmux.Handle(v.base, v.handler)
+	}
+
 	srvmux.HandleFunc("/", s.handle)
 
 	//
 	s.server = &http.Server{
-		Addr:           localAddress,
-		Handler:        srvmux,
-		ReadTimeout:    time.Duration(s.Config.HttpTimeout) * time.Second,
-		WriteTimeout:   time.Duration(s.Config.HttpTimeout) * time.Second,
+		Addr:    localAddress,
+		Handler: srvmux,
+		// ReadTimeout:    time.Duration(s.Config.HttpTimeout) * time.Second,
+		// WriteTimeout:   time.Duration(s.Config.HttpTimeout) * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
 
@@ -167,6 +199,10 @@ func (s *Service) Start() error {
 		logger.Printf("fatal", "lessgo/httpsrv: net.Listen error %v", err)
 		s.err = err
 		return nil
+	}
+
+	if network == "unix" {
+		os.Chmod(localAddress, 0770)
 	}
 
 	//
