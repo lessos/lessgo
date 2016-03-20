@@ -1,14 +1,12 @@
 package utilx
 
 import (
-	"strconv"
 	"time"
 )
 
 const (
 	timeFormatDate     = "2006-01-02"
 	timeFormatDateTime = "2006-01-02 15:04:05"
-	timeFormatMetaTime = "20060102150405.000"
 	timeFormatAtom     = time.RFC3339
 )
 
@@ -58,15 +56,4 @@ func TimeParse(timeString, format string) time.Time {
 	}
 
 	return tp
-}
-
-func TimeMetaNow() uint64 {
-
-	t := time.Now().UTC().Format(timeFormatMetaTime)
-
-	if u64, err := strconv.ParseUint(t[:14]+t[15:], 10, 64); err == nil {
-		return u64
-	}
-
-	return 0
 }
