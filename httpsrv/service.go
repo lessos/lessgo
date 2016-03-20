@@ -147,8 +147,12 @@ func (s *Service) Start() error {
 	// e.g. unix:/tmp/app.socket or tcp6:::1 (equivalent to tcp6:0:0:0:0:0:0:0:1)
 	if s.Config.HttpPort == 0 || strings.HasPrefix(s.Config.HttpAddr, "unix:") {
 		parts := strings.SplitN(s.Config.HttpAddr, ":", 2)
-		network = parts[0]
-		localAddress = parts[1]
+		if len(parts) > 0 {
+			network = parts[0]
+		}
+		if len(parts) > 1 {
+			localAddress = parts[1]
+		}
 	} else {
 		localAddress += fmt.Sprintf(":%d", s.Config.HttpPort)
 	}
