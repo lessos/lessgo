@@ -30,13 +30,13 @@ func _meta_time_set(t time.Time) MetaTime {
 		uint64(t.Nanosecond()/1e6))
 }
 
-func (mt MetaTime) AddMS(add int64) MetaTime {
-	return _meta_time_set(mt.time().Add(time.Duration(add * 1e6)))
+func (mt MetaTime) AddMillisecond(td int64) MetaTime {
+	return _meta_time_set(mt.Time().Add(time.Duration(td * 1e6)))
 }
 
-func (mt MetaTime) Add(stime string) MetaTime {
-	tadd, _ := time.ParseDuration(stime)
-	return _meta_time_set(mt.time().Add(tadd))
+func (mt MetaTime) Add(ts string) MetaTime {
+	td, _ := time.ParseDuration(ts)
+	return _meta_time_set(mt.Time().Add(td))
 }
 
 func (mt MetaTime) Format(fm string) string {
@@ -45,10 +45,10 @@ func (mt MetaTime) Format(fm string) string {
 		fm = time.RFC3339
 	}
 
-	return mt.time().Local().Format(fm)
+	return mt.Time().Local().Format(fm)
 }
 
-func (mt MetaTime) time() time.Time {
+func (mt MetaTime) Time() time.Time {
 
 	mtu := uint64(mt)
 
