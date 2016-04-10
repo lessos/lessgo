@@ -119,13 +119,3 @@ type ObjectMeta struct {
 	Created string `json:"created,omitempty"`
 	Updated string `json:"updated,omitempty"`
 }
-
-// LabelMeta is a key value . It implements Labels
-type LabelMeta struct {
-	Key     string `json:"key"`
-	Val     string `json:"val"`
-	Comment string `json:"comment,omitempty"`
-}
-
-// LabelListMeta are key value pairs that may be used to scope and select individual resources.
-type LabelListMeta []LabelMeta

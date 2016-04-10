@@ -14,6 +14,16 @@
 
 package types
 
+// LabelMeta is a key value . It implements Labels
+type LabelMeta struct {
+	Key     string `json:"key"`
+	Val     string `json:"val"`
+	Comment string `json:"comment,omitempty"`
+}
+
+// LabelListMeta are key value pairs that may be used to scope and select individual resources.
+type LabelListMeta []LabelMeta
+
 func (ls LabelListMeta) Insert(key, value string) LabelListMeta {
 
 	for i, prev := range ls {
