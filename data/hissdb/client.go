@@ -81,7 +81,7 @@ func (c *Client) send(args []interface{}) error {
 			continue
 		case uint, uint8, uint16, uint32, uint64, int, int8, int16, int32, int64:
 			s = fmt.Sprintf("%d", arg)
-		case float64:
+		case float32, float64:
 			s = fmt.Sprintf("%f", arg)
 		case bool:
 			if arg {
