@@ -3,8 +3,7 @@ package job
 import (
 	// "time"
 	"sync"
-
-	"github.com/lessos/lessgo/logger"
+	// "github.com/lessos/lessgo/logger"
 )
 
 var (
