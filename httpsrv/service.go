@@ -57,7 +57,6 @@ func NewService() Service {
 	return Service{
 
 		Config: Config{
-			InstanceID:       "",
 			HttpAddr:         "0.0.0.0",
 			HttpPort:         8080,
 			HttpTimeout:      30, // 30 seconds
