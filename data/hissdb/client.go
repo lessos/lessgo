@@ -1,3 +1,17 @@
+// Copyright 2013-2016 lessgo Author, All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package hissdb
 
 import (
@@ -13,17 +27,18 @@ type Client struct {
 }
 
 func Connect(ip string, port int) (*Client, error) {
+
 	addr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", ip, port))
 	if err != nil {
 		return nil, err
 	}
+
 	sock, err := net.DialTCP("tcp", nil, addr)
 	if err != nil {
 		return nil, err
 	}
-	var c Client
-	c.sock = sock
-	return &c, nil
+
+	return &Client{sock: sock}, nil
 }
 
 func (c *Client) Cmd(args ...interface{}) *Reply {
@@ -49,13 +64,12 @@ func (c *Client) Cmd(args ...interface{}) *Reply {
 	}
 
 	if r.State == ReplyOK {
+
 		for k, v := range resp {
 
-			if k == 0 {
-				continue
+			if k > 0 {
+				r.Data = append(r.Data, v)
 			}
-
-			r.Data = append(r.Data, v)
 		}
 	}
 
@@ -63,14 +77,21 @@ func (c *Client) Cmd(args ...interface{}) *Reply {
 }
 
 func (c *Client) send(args []interface{}) error {
+
 	var buf bytes.Buffer
+
 	for _, arg := range args {
+
 		var s string
+
 		switch arg := arg.(type) {
+
 		case string:
 			s = arg
+
 		case []byte:
 			s = string(arg)
+
 		case []string:
 			for _, s := range arg {
 				buf.WriteString(fmt.Sprintf("%d", len(s)))
@@ -79,65 +100,79 @@ func (c *Client) send(args []interface{}) error {
 				buf.WriteByte('\n')
 			}
 			continue
+
 		case uint, uint8, uint16, uint32, uint64, int, int8, int16, int32, int64:
 			s = fmt.Sprintf("%d", arg)
+
 		case float32, float64:
 			s = fmt.Sprintf("%f", arg)
+
 		case bool:
 			if arg {
 				s = "1"
 			} else {
 				s = "0"
 			}
+
 		case nil:
 			s = ""
+
 		default:
 			return fmt.Errorf("bad arguments")
 		}
+
 		buf.WriteString(fmt.Sprintf("%d", len(s)))
 		buf.WriteByte('\n')
 		buf.WriteString(s)
 		buf.WriteByte('\n')
 	}
+
 	buf.WriteByte('\n')
+
 	_, err := c.sock.Write(buf.Bytes())
-	if err != nil {
-		// TODO
-	}
+
 	return err
 }
 
 func (c *Client) recv() ([]string, error) {
-	var tmp [8192]byte
+
+	var buf [8192]byte
+
 	for {
-		n, err := c.sock.Read(tmp[0:])
+
+		n, err := c.sock.Read(buf[0:])
 		if err != nil {
 			return nil, err
 		}
-		c.recv_buf.Write(tmp[0:n])
-		resp := c.parse()
-		if resp == nil || len(resp) > 0 {
+
+		c.recv_buf.Write(buf[0:n])
+
+		if resp := c.parse(); resp == nil || len(resp) > 0 {
 			return resp, nil
 		}
 	}
 }
 
 func (c *Client) parse() []string {
-	resp := []string{}
-	buf := c.recv_buf.Bytes()
-	var idx, offset int
-	idx = 0
-	offset = 0
+
+	var (
+		resp   = []string{}
+		buf    = c.recv_buf.Bytes()
+		idx    = 0
+		offset = 0
+	)
 
 	for {
-		idx = bytes.IndexByte(buf[offset:], '\n')
-		if idx == -1 {
+
+		if idx = bytes.IndexByte(buf[offset:], '\n'); idx == -1 {
 			break
 		}
+
 		p := buf[offset : offset+idx]
 		offset += idx + 1
-		//fmt.Printf("> [%s]\n", p);
+
 		if len(p) == 0 || (len(p) == 1 && p[0] == '\r') {
+
 			if len(resp) == 0 {
 				continue
 			} else {
@@ -154,8 +189,7 @@ func (c *Client) parse() []string {
 			break
 		}
 
-		v := buf[offset : offset+size]
-		resp = append(resp, string(v))
+		resp = append(resp, string(buf[offset:offset+size]))
 		offset += size + 1
 	}
 
@@ -164,5 +198,10 @@ func (c *Client) parse() []string {
 
 // Close The Client Connection
 func (c *Client) Close() error {
+
+	if c.sock == nil {
+		return nil
+	}
+
 	return c.sock.Close()
 }

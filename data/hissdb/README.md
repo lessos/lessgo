@@ -15,10 +15,14 @@ hissdb is a minimalistic, connection pooling Go Client for SSDB (http://ssdb.io)
 		* hissdb.Reply.Bool() bool
 		* hissdb.Reply.Int() int
 		* hissdb.Reply.Int64() int64
+		* hissdb.Reply.Uint() uint
+		* hissdb.Reply.Uint64() uint64
 		* hissdb.Reply.Float64() float64
 		* hissdb.Reply.String() string
 		* hissdb.Reply.List() []string
-		* hissdb.Reply.Hash() []Entry{Key, Value string}
+		* hissdb.Reply.Hash() []Entry
+		* hissdb.Reply.JsonDecode(obj interface{}) error
+		* hissdb.Entry.JsonDecode(obj interface{}) error
 
 * Refer to [Official API documentation](http://ssdb.io/docs/) to checkout a complete list of all avilable commands.
 
@@ -28,7 +32,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/eryx/lessgo/data/hissdb"
+	"github.com/lessos/lessgo/data/hissdb"
 )
 
 func main() {
@@ -118,6 +122,23 @@ func main() {
 			fmt.Println("\t", k, v)
 		}
 	}
+
+	// hissdb.Reply.JsonDecode(obj interface{}) error
+	conn.Cmd("set", "json_key", "{\"name\": \"test obj.name\", \"value\": \"test obj.value\"}")
+	if rs := conn.Cmd("get", "json_key"); rs.State == "ok" {
+		var rs_obj struct {
+			Name  string `json:"name"`
+			Value string `json:"value"`
+		}
+		if err := rs.JsonDecode(&rs_obj); err == nil {
+			fmt.Println("JsonDecode OK")
+			fmt.Println("\tname :", rs_obj.Name)
+			fmt.Println("\tvalue:", rs_obj.Value)
+		} else {
+			fmt.Println("json_key ERR", err)
+		}
+	}
 }
+
 ```
 

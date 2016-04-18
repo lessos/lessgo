@@ -1,3 +1,17 @@
+// Copyright 2013-2016 lessgo Author, All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package main
 
 import (
@@ -90,6 +104,22 @@ func main() {
 		fmt.Println("qpop OK")
 		for k, v := range rs.List() {
 			fmt.Println("\t", k, v)
+		}
+	}
+
+	// hissdb.Reply.JsonDecode(obj interface{}) error
+	conn.Cmd("set", "json_key", "{\"name\": \"test obj.name\", \"value\": \"test obj.value\"}")
+	if rs := conn.Cmd("get", "json_key"); rs.State == "ok" {
+		var rs_obj struct {
+			Name  string `json:"name"`
+			Value string `json:"value"`
+		}
+		if err := rs.JsonDecode(&rs_obj); err == nil {
+			fmt.Println("JsonDecode OK")
+			fmt.Println("\tname :", rs_obj.Name)
+			fmt.Println("\tvalue:", rs_obj.Value)
+		} else {
+			fmt.Println("json_key ERR", err)
 		}
 	}
 }
