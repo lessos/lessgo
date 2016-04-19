@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pauth
+package phash
 
 import (
 	"crypto/md5"
@@ -30,9 +30,9 @@ const (
 	// Define the radix 64 encoding/decoding scheme,
 	alphabet = "jbzB3WM6uYrPd20plhngE1U45QZLTOcsCy8mVwHkq9RFI/SKGeAXJifNaxt7oD+v"
 	// Define the default hashing algorithm
-	AlgoDefault = "L001"
+	algoDefault = "L001"
 	// Define md5 hashing algorithm, Compatible with some old system
-	AlgoMd5 = "M501"
+	algoMD5 = "M501"
 )
 
 var (
@@ -40,12 +40,22 @@ var (
 	b64Encoding = base64.NewEncoding(alphabet)
 )
 
-// HashDefault derives a key from password
-func HashDefault(passwd string) (string, error) {
+func generateSalt(length int) ([]byte, error) {
 
-	u := make([]byte, 15) // 120-bit
-	if _, err := io.ReadFull(rand.Reader, u); err != nil {
-		return "", errors.New("Error: rand.Reader")
+	salt := make([]byte, length)
+	if _, err := io.ReadFull(rand.Reader, salt); err == nil {
+		return salt, nil
+	}
+
+	return salt, errors.New("Error: rand.Reader")
+}
+
+// Generate converts a plain text password to a hashed text
+func Generate(password string) (string, error) {
+
+	u, err := generateSalt(15) // 120-bit
+	if err != nil {
+		return "", err
 	}
 
 	salt := b64Encoding.EncodeToString(u)
@@ -53,7 +63,7 @@ func HashDefault(passwd string) (string, error) {
 		return "", errors.New("Error: base64.Encode")
 	}
 
-	hash, err := scrypt.Key([]byte(passwd), u, 1<<15, 8, 1, 36)
+	hash, err := scrypt.Key([]byte(password), u, 1<<15, 8, 1, 36)
 	if err != nil {
 		return "", err
 	}
@@ -64,35 +74,37 @@ func HashDefault(passwd string) (string, error) {
 	//  6,1   p     Parallelization parameter, 0-9a-z (0~35)
 	//  7,20  salt  120-bit salt, convert to base64
 	// 27,48  hash  288-bit derived key, convert to base64
-	return AlgoDefault +
+	return algoDefault +
 		"f81" +
 		salt +
 		b64Encoding.EncodeToString(hash), nil
 }
 
-// Check reports whether the given password and hashed key match
-func Check(passwd, hash string) bool {
+// Verify reports whether the given password and hashed text match
+func Verify(password, hashtxt string) bool {
 
-	if len(hash) < 36 {
+	if len(hashtxt) < 36 {
 		return false
 	}
 
-	if hash[:4] == AlgoDefault {
-		N, _ := strconv.ParseUint(hash[4:5], 36, 32)
-		r, _ := strconv.ParseUint(hash[5:6], 36, 32)
-		p, _ := strconv.ParseUint(hash[6:7], 36, 32)
-		salt, _ := b64Encoding.DecodeString(hash[7:27])
+	if hashtxt[:4] == algoDefault {
 
-		key, _ := scrypt.Key([]byte(passwd), salt, 1<<N, int(r), int(p), 36)
+		N, _ := strconv.ParseUint(hashtxt[4:5], 36, 32)
+		r, _ := strconv.ParseUint(hashtxt[5:6], 36, 32)
+		p, _ := strconv.ParseUint(hashtxt[6:7], 36, 32)
 
-		return hash[27:] == b64Encoding.EncodeToString(key)
+		salt, _ := b64Encoding.DecodeString(hashtxt[7:27])
 
-	} else if hash[:4] == AlgoMd5 {
+		key, _ := scrypt.Key([]byte(password), salt, 1<<N, int(r), int(p), 36)
+
+		return hashtxt[27:] == b64Encoding.EncodeToString(key)
+
+	} else if hashtxt[:4] == algoMD5 {
 
 		h := md5.New()
-		io.WriteString(h, passwd)
+		io.WriteString(h, password)
 
-		return hash[4:] == fmt.Sprintf("%x", h.Sum(nil))
+		return hashtxt[4:] == fmt.Sprintf("%x", h.Sum(nil))
 	}
 
 	return false

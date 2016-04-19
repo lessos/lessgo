@@ -1,5 +1,5 @@
 ## lessgo/logger
-lessgo/logger is a Simplified implementation of Leveled logs [ref: google glog](https://github.com/google/glog).
+lessgo/logger is a Simplified implementation of Leveled logs ([google glog](https://github.com/google/glog)).
 
 ## Example
 
@@ -19,10 +19,10 @@ func main() {
     flag.Parse()
 
     // API:Print
-    logger.Print("error", "the error code/message: ", 404, "/", "bad request")
+    logger.Print("error", "the error code/message: ", 400, "/", "bad request")
 
     // API::Printf
-    logger.Printf("error", "the error code/message: %d/%s", 404, "bad request")
+    logger.Printf("error", "the error code/message: %d/%s", 400, "bad request")
 
     select {}
 }

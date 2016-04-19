@@ -203,6 +203,7 @@ func (s *Service) Start() error {
 		s.err = err
 		return nil
 	}
+	fmt.Println("lessgo/httpsrv: Listening on", localAddress)
 
 	if network == "unix" {
 		os.Chmod(localAddress, 0770)
