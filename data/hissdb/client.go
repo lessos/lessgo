@@ -76,7 +76,7 @@ func (c *Client) Cmd(args ...interface{}) *Reply {
 	return r
 }
 
-func (c *Client) send(args []interface{}) error {
+func send_buf(args []interface{}) ([]byte, error) {
 
 	var buf bytes.Buffer
 
@@ -118,7 +118,7 @@ func (c *Client) send(args []interface{}) error {
 			s = ""
 
 		default:
-			return fmt.Errorf("bad arguments")
+			return []byte{}, fmt.Errorf("bad arguments")
 		}
 
 		buf.WriteString(fmt.Sprintf("%d", len(s)))
@@ -129,7 +129,17 @@ func (c *Client) send(args []interface{}) error {
 
 	buf.WriteByte('\n')
 
-	_, err := c.sock.Write(buf.Bytes())
+	return buf.Bytes(), nil
+}
+
+func (c *Client) send(args []interface{}) error {
+
+	buf, err := send_buf(args)
+	if err != nil {
+		return err
+	}
+
+	_, err = c.sock.Write(buf)
 
 	return err
 }
@@ -140,16 +150,16 @@ func (c *Client) recv() ([]string, error) {
 
 	for {
 
+		if resp := c.parse(); resp == nil || len(resp) > 0 {
+			return resp, nil
+		}
+
 		n, err := c.sock.Read(buf[0:])
 		if err != nil {
 			return nil, err
 		}
 
 		c.recv_buf.Write(buf[0:n])
-
-		if resp := c.parse(); resp == nil || len(resp) > 0 {
-			return resp, nil
-		}
 	}
 }
 
