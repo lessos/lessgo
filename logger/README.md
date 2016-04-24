@@ -47,3 +47,21 @@ the output file name will formated like this
 ```
 /var/log/{process name}.{hostname}.{current os username}.{date}.{pid}.log
 ```
+
+## log levels (in development)
+by default, the log levels ware defined as
+
+<table>
+<tr><td>Index</td><td>Level</td><td></td></tr>
+<tr><td>0</t><td>debug</td><td>Designates fine-grained informational events that are most useful to debug an application.</td></tr>
+<tr><td>1</t><td>info</td><td>Designates informational messages that highlight the progress of the application at coarse-grained level</td></tr>
+<tr><td>2</t><td>warn</td><td>Designates potentially harmful situations</td></tr>
+<tr><td>3</t><td>error</td><td>Designates error events that might still allow the application to continue running</td></tr>
+<tr><td>4</t><td>fatal</td><td>Designates very severe error events that will presumably lead the application to abort</td></tr>
+</table>
+
+You can also define your custom levels:
+```go
+logger.LevelConfig([]string{"warn", "error", "fatal")
+```
+
