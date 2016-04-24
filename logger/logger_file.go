@@ -31,6 +31,7 @@ var (
 	out          *os.File // destination for output // TODO
 	logDir       = flag.String("log_dir", "", "If non-empty, write log files in this directory")
 	logToStderr  = flag.Bool("logtostderr", false, "log to standard error instead of files")
+	minLogLevel  = flag.Int("minloglevel", 0, "Messages logged at a lower level than this don't actually get logged anywhere")
 
 	// file name format args
 	pid      = os.Getpid()

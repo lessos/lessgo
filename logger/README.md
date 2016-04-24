@@ -62,6 +62,6 @@ by default, the log levels ware defined as
 
 You can also define your custom levels:
 ```go
-logger.LevelConfig([]string{"warn", "error", "fatal")
+logger.LevelConfig([]string{"warn", "error", "fatal"})
 ```
 
