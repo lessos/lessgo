@@ -48,11 +48,6 @@ func (b *Batch) Exec() ([]*Reply, error) {
 		return rpls, errors.New("client error")
 	}
 
-	cn, _ := b.cr.pull()
-
-	cn.sock.SetReadDeadline(time.Now().Add(b.cr.ctimeout))
-	cn.sock.SetWriteDeadline(time.Now().Add(b.cr.ctimeout))
-
 	for _, args := range b.cmds {
 
 		if buf, err := send_buf(args); err == nil {
@@ -65,7 +60,17 @@ func (b *Batch) Exec() ([]*Reply, error) {
 		return rpls, errors.New("client error")
 	}
 
+	cn, _ := b.cr.pull()
+
+	cn.sock.SetReadDeadline(time.Now().Add(b.cr.ctimeout))
+	cn.sock.SetWriteDeadline(time.Now().Add(b.cr.ctimeout))
+
 	if _, err := cn.sock.Write(cmds); err != nil {
+
+		b.cr.push(cn)
+		b.cmds = [][]interface{}{}
+		b.cr = nil
+
 		return rpls, err
 	}
 
@@ -108,7 +113,6 @@ func (b *Batch) Exec() ([]*Reply, error) {
 	}
 
 	b.cr.push(cn)
-
 	b.cmds = [][]interface{}{}
 	b.cr = nil
 
