@@ -24,6 +24,7 @@ type Batch struct {
 	cr   *Connector
 }
 
+// Batch is in DEVELOPMENT PREVIEW, DO NOT USE IT IN PRODUCTION
 func (cr *Connector) Batch() *Batch {
 
 	return &Batch{
