@@ -27,6 +27,8 @@ var (
 	levels   = []string{"DEBUG", "INFO", "WARN", "ERROR", "FATAL"}
 	levelMap = map[string]int{}
 	bufs     = make(chan *entry, 100000)
+
+	minLogLevel = flag.Int("minloglevel", 1, "Messages logged at a lower level than this don't actually get logged anywhere")
 )
 
 const (
@@ -95,7 +97,8 @@ func (e *entry) line() string {
 func newEntry(ptype uint8, level, format string, a ...interface{}) {
 
 	level = strings.ToUpper(level)
-	if _, ok := levelMap[level]; !ok {
+
+	if level_idx, ok := levelMap[level]; !ok || level_idx < *minLogLevel {
 		return
 	}
 
