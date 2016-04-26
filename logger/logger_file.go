@@ -93,11 +93,17 @@ func fileOpenInit() {
 
 	if _, err := os.Stat(*logDir); err == nil {
 
-		logName, _ := logName(time.Now())
+		logName, link := logName(time.Now())
 
 		if out, err = os.OpenFile(*logDir+"/"+logName,
 			os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644); err != nil {
 			out = nil
+		} else {
+
+			symlink := filepath.Join(*logDir, link)
+
+			os.Remove(symlink)           // ignore err
+			os.Symlink(logName, symlink) // ignore err
 		}
 	}
 }

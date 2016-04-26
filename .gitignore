@@ -1,2 +1,4 @@
 data/sqlite3.db
 data/redis_bench
+*.go
+*.log

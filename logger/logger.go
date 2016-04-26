@@ -15,6 +15,7 @@
 package logger
 
 import (
+	"flag"
 	"fmt"
 	"runtime"
 	"strings"
