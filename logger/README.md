@@ -45,10 +45,10 @@ or run it and output the log into file
 the output file name will formated like this
 
 ```
-/var/log/{process name}.{hostname}.{current os username}.{date}.{pid}.log
+/var/log/{program name}.{hostname}.{user name}.log.{log level}.{date}-{time}.{pid}
 ```
 
-## log levels (in development)
+## log levels
 by default, the log levels ware defined as
 
 <table>

@@ -17,6 +17,7 @@ package logger
 import (
 	"flag"
 	"fmt"
+	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -24,12 +25,20 @@ import (
 )
 
 var (
-	locker   sync.Mutex
-	levels   = []string{"DEBUG", "INFO", "WARN", "ERROR", "FATAL"}
-	levelMap = map[string]int{}
-	bufs     = make(chan *entry, 100000)
+	locker    sync.Mutex
+	levels    = []string{"DEBUG", "INFO", "WARN", "ERROR", "FATAL"}
+	levelChar = "DIWEF"
+	levelMap  = map[string]int{}
+	levelOut  = map[string]int{}
+	bufs      = make(chan *entry, 100000)
+	onceCmd   sync.Once
+	log_ws    = map[int]*logFileWriter{}
 
-	minLogLevel = flag.Int("minloglevel", 1, "Messages logged at a lower level than this don't actually get logged anywhere")
+	logDir      = flag.String("log_dir", "", "If non-empty, write log files in this directory")
+	logToStderr = flag.Bool("logtostderr", false, "log to standard error instead of files")
+	minLogLevel = flag.Int("minloglevel", 1, "Messages logged at a lower level than this"+
+		" don't actually get logged anywhere")
+	logToLevels = flag.Bool("logtolevels", false, "Write log to multi level files")
 )
 
 const (
@@ -39,7 +48,7 @@ const (
 
 type entry struct {
 	ptype      uint8
-	level      string
+	level      int
 	format     string
 	fileName   string
 	lineNumber int
@@ -48,6 +57,11 @@ type entry struct {
 }
 
 func init() {
+
+	if !flag.Parsed() {
+		flag.Parse()
+	}
+
 	levelInit()
 }
 
@@ -70,36 +84,63 @@ func levelInit() {
 	locker.Lock()
 	defer locker.Unlock()
 
-	levelMap = map[string]int{}
-	for _, v := range levels {
-
-		if _, ok := levelMap[v]; ok {
-			continue
-		}
-
-		levelMap[v] = len(levelMap)
+	//
+	for _, wr := range log_ws {
+		wr.Close()
 	}
+	log_ws = map[int]*logFileWriter{}
+
+	//
+	levelMap = map[string]int{}
+	levelChar = ""
+	for _, tag := range levels {
+
+		if _, ok := levelMap[tag]; !ok {
+			levelMap[tag] = len(levelMap)
+			levelChar += tag[0:1]
+		}
+	}
+
+	if *minLogLevel < 0 {
+		*minLogLevel = 0
+	} else if *minLogLevel >= len(levelMap) {
+		*minLogLevel = len(levelMap) - 1
+	}
+
+	//
+	for tag, level := range levelMap {
+
+		//
+		if (*logToLevels == true && level >= *minLogLevel) ||
+			(*logToLevels == false && level == *minLogLevel) {
+
+			levelOut[tag] = level
+		}
+	}
+
+	onceCmd.Do(outputAction)
 }
 
 func (e *entry) line() string {
 
-	tfmt := e.ltime.Format("2006-01-02 15:04:05.000000")
-	logLine := fmt.Sprintf("%s %s:%d] %s", tfmt, e.fileName, e.lineNumber, e.level)
+	logLine := fmt.Sprintf("%s %s %s:%d] ", string(levelChar[e.level]),
+		e.ltime.Format("2006-01-02 15:04:05.000000"), e.fileName, e.lineNumber)
 
 	if e.ptype == printDefault {
-		logLine += " " + fmt.Sprint(e.args...)
+		logLine += fmt.Sprint(e.args...)
 	} else if e.ptype == printFormat {
-		logLine += " " + fmt.Sprintf(e.format, e.args...)
+		logLine += fmt.Sprintf(e.format, e.args...)
 	}
 
-	return logLine
+	return logLine + "\n"
 }
 
-func newEntry(ptype uint8, level, format string, a ...interface{}) {
+func newEntry(ptype uint8, level_tag, format string, a ...interface{}) {
 
-	level = strings.ToUpper(level)
+	level_tag = strings.ToUpper(level_tag)
 
-	if level_idx, ok := levelMap[level]; !ok || level_idx < *minLogLevel {
+	level, ok := levelMap[level_tag]
+	if !ok || level < *minLogLevel {
 		return
 	}
 
@@ -135,4 +176,41 @@ func Print(level string, a ...interface{}) {
 
 func Printf(level, format string, a ...interface{}) {
 	newEntry(printFormat, level, format, a...)
+}
+
+func outputAction() {
+
+	go func() {
+
+		for logEntry := range bufs {
+
+			bs := []byte(logEntry.line())
+
+			if *logToStderr {
+				os.Stderr.Write(bs)
+			}
+
+			if len(*logDir) > 0 {
+
+				for level_tag, level := range levelOut {
+
+					if logEntry.level < level {
+						continue
+					}
+
+					locker.Lock()
+					wr, _ := log_ws[level]
+
+					if wr == nil {
+						wr = newLogFileWriter(level_tag)
+						log_ws[level] = wr
+					}
+
+					locker.Unlock()
+
+					wr.Write(bs)
+				}
+			}
+		}
+	}()
 }
