@@ -84,31 +84,61 @@ func send_buf(args []interface{}) ([]byte, error) {
 
 		var s string
 
-		switch arg := arg.(type) {
+		switch argt := arg.(type) {
 
 		case string:
-			s = arg
+			s = argt
 
 		case []byte:
-			s = string(arg)
+			s = string(argt)
 
 		case []string:
-			for _, s := range arg {
-				buf.WriteString(fmt.Sprintf("%d", len(s)))
+			for _, s := range argt {
+				buf.WriteString(strconv.FormatInt(int64(len(s)), 10))
 				buf.WriteByte('\n')
 				buf.WriteString(s)
 				buf.WriteByte('\n')
 			}
 			continue
 
-		case uint, uint8, uint16, uint32, uint64, int, int8, int16, int32, int64:
-			s = fmt.Sprintf("%d", arg)
+		case int:
+			s = strconv.FormatInt(int64(argt), 10)
 
-		case float32, float64:
-			s = fmt.Sprintf("%f", arg)
+		case int8:
+			s = strconv.FormatInt(int64(argt), 10)
+
+		case int16:
+			s = strconv.FormatInt(int64(argt), 10)
+
+		case int32:
+			s = strconv.FormatInt(int64(argt), 10)
+
+		case int64:
+			s = strconv.FormatInt(argt, 10)
+
+		case uint:
+			s = strconv.FormatUint(uint64(argt), 10)
+
+		case uint8:
+			s = strconv.FormatUint(uint64(argt), 10)
+
+		case uint16:
+			s = strconv.FormatUint(uint64(argt), 10)
+
+		case uint32:
+			s = strconv.FormatUint(uint64(argt), 10)
+
+		case uint64:
+			s = strconv.FormatUint(argt, 10)
+
+		case float32:
+			s = strconv.FormatFloat(float64(argt), 'f', -1, 32)
+
+		case float64:
+			s = strconv.FormatFloat(argt, 'f', -1, 64)
 
 		case bool:
-			if arg {
+			if argt {
 				s = "1"
 			} else {
 				s = "0"
@@ -121,7 +151,7 @@ func send_buf(args []interface{}) ([]byte, error) {
 			return []byte{}, fmt.Errorf("bad arguments")
 		}
 
-		buf.WriteString(fmt.Sprintf("%d", len(s)))
+		buf.WriteString(strconv.FormatInt(int64(len(s)), 10))
 		buf.WriteByte('\n')
 		buf.WriteString(s)
 		buf.WriteByte('\n')
