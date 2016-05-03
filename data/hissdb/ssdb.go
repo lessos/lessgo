@@ -95,8 +95,7 @@ func (cr *Connector) Cmd(args ...interface{}) *Reply {
 
 	cn, _ := cr.pull()
 
-	cn.sock.SetReadDeadline(time.Now().Add(cr.ctimeout))
-	cn.sock.SetWriteDeadline(time.Now().Add(cr.ctimeout))
+	cn.sock.SetDeadline(time.Now().Add(cr.ctimeout))
 
 	var rpl *Reply
 
@@ -112,8 +111,7 @@ func (cr *Connector) Cmd(args ...interface{}) *Reply {
 		if cn0, err := dialTimeout(cr.ctype, cr.clink); err == nil {
 
 			cn = cn0
-			cn.sock.SetReadDeadline(time.Now().Add(cr.ctimeout))
-			cn.sock.SetWriteDeadline(time.Now().Add(cr.ctimeout))
+			cn.sock.SetDeadline(time.Now().Add(cr.ctimeout))
 
 			if cr.config.Auth != "" {
 				cn.Cmd("auth", cr.config.Auth)
