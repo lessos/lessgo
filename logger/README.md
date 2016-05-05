@@ -47,7 +47,7 @@ the output file name will formated like this
 ```
 
 ## log levels
-by default, the log levels ware defined as
+the default log levels are:
 
 <table>
 <tr>
@@ -105,7 +105,7 @@ The following flags are most commonly used:
 <tr>
     <td>log_dir</td>
     <td>string, default=""</td>
-    <td></td>
+    <td>If specified, logfiles are written into this directory; if not specified or the directory does not valid, the logger will not output messages to any logfiles</td>
 </tr>
 <tr>
     <td>logtostderr</td>
@@ -120,6 +120,6 @@ The following flags are most commonly used:
 <tr>
     <td>logtolevels</td>
     <td>bool, default=false</td>
-    <td>Output messages to multi leveled logfiles from minloglevel to the max, or output messages to the minloglevel logfile.</td>
+    <td>If output messages to multi leveled logfiles from minloglevel to the max; or output messages to the minloglevel logfile.</td>
 </tr>
 </table>
