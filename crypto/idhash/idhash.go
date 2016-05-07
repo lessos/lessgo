@@ -15,10 +15,7 @@
 package idhash
 
 import (
-	"crypto/md5"
 	"crypto/rand"
-	"encoding/hex"
-	"fmt"
 	"io"
 	mrand "math/rand"
 	"time"
@@ -54,22 +51,4 @@ func Rand(size int) []byte {
 	}
 
 	return bs
-}
-
-func RandToHexString(length int) string {
-	return hex.EncodeToString(Rand(length / 2))
-}
-
-func HashToHexString(str string, slen uint) string {
-
-	if slen < 1 {
-		slen = 1
-	} else if slen > 32 {
-		slen = 32
-	}
-
-	h := md5.New()
-	io.WriteString(h, str)
-
-	return fmt.Sprintf("%x", h.Sum(nil))[:slen]
 }

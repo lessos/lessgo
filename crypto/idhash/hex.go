@@ -15,32 +15,25 @@
 package idhash
 
 import (
-	"testing"
+	"crypto/md5"
+	"encoding/hex"
 )
 
-func TestMain(t *testing.T) {
+func RandHexString(length int) string {
+	return hex.EncodeToString(Rand(length / 2))
+}
 
-	if len(Rand(16)) != 16 {
-		t.Fatal("Failed on Rand")
+func HashToHexString(bs []byte, strlen int) string {
+
+	if strlen < 2 {
+		strlen = 1
+	} else if strlen > 32 {
+		strlen = 16
+	} else {
+		strlen = strlen / 2
 	}
 
-	if len(RandHexString(16)) != 16 {
-		t.Fatal("Failed on RandHexString")
-	}
+	bs_hash := md5.Sum(bs)
 
-	if HashToHexString([]byte("123456"), 16) != "e10adc3949ba59ab" {
-		t.Fatal("Failed on HashStringToHexString")
-	}
-
-	if len(RandBase64String(0)) != 4 {
-		t.Fatal("Failed on RandBase64String")
-	}
-
-	if len(RandBase64String(16)) != 16 {
-		t.Fatal("Failed on RandBase64String")
-	}
-
-	if len(RandUUID()) != 36 {
-		t.Fatal("Failed on RandUUID")
-	}
+	return hex.EncodeToString(bs_hash[:strlen])
 }

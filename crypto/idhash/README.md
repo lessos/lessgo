@@ -15,13 +15,13 @@ func main() {
 
     fmt.Println(idhash.Rand(16))
 
-    fmt.Println(idhash.RandToHexString(16))
+    fmt.Println(idhash.RandHexString(16))
 
-    fmt.Println(idhash.HashToHexString("123456", 16))
+    fmt.Println(idhash.HashToHexString([]byte("123456"), 16))
 
     fmt.Println(idhash.RandUUID())
 
-    fmt.Println(idhash.RandToBase64String(16))
+    fmt.Println(idhash.RandBase64String(16))
 }
 
 ```

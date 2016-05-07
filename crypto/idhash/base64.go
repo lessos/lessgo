@@ -18,7 +18,7 @@ import (
 	"encoding/base64"
 )
 
-func RandToBase64String(length int) string {
+func RandBase64String(length int) string {
 
 	if length < 4 {
 		length = 1

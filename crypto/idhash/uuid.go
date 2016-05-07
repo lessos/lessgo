@@ -15,7 +15,7 @@
 package idhash
 
 import (
-	"fmt"
+	"encoding/hex"
 )
 
 const (
@@ -32,5 +32,7 @@ func RandUUID() string {
 	bs[6] = uuid_version | (bs[6] & 15)
 	bs[8] = uuid_variant | (bs[8] & 15)
 
-	return fmt.Sprintf("%x-%x-%x-%x-%x", bs[0:4], bs[4:6], bs[6:8], bs[8:10], bs[10:])
+	uuid := hex.EncodeToString(bs)
+
+	return uuid[:8] + "-" + uuid[8:12] + "-" + uuid[12:16] + "-" + uuid[16:20] + "-" + uuid[20:]
 }
