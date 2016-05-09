@@ -16,7 +16,6 @@ package idhash
 
 import (
 	"crypto/rand"
-	"io"
 	mrand "math/rand"
 	"time"
 )
@@ -33,18 +32,22 @@ func Rand(size int) []byte {
 
 	if size < 1 {
 		size = 1
-	}
-
-	if size > rand_bytes_max {
+	} else if size > rand_bytes_max {
 		size = rand_bytes_max
 	}
 
 	bs := make([]byte, size)
 
-	// Reader is a global, shared instance of a cryptographically strong pseudo-random generator.
-	// On Unix-like systems, Reader reads from /dev/urandom.
-	// On Windows systems, Reader uses the CryptGenRandom API.
-	if _, err := io.ReadFull(rand.Reader, bs); err != nil {
+	// rand.Read() is a helper function that calls rand.Reader.Read using io.ReadFull.
+	// On return, n == len(b) if and only if err == nil.
+	//
+	// rand.Reader is a global, shared instance of a cryptographically
+	// strong pseudo-random generator.
+	//
+	// On Unix-like systems, rand.Reader reads from /dev/urandom.
+	// On Linux, rand.Reader uses getrandom(2) if available, /dev/urandom otherwise.
+	// On Windows systems, rand.Reader uses the CryptGenRandom API.
+	if _, err := rand.Read(bs); err != nil {
 		for i := range bs {
 			bs[i] = uint8(mrand.Intn(256))
 		}

@@ -19,9 +19,7 @@ import (
 )
 
 const (
-	uuid_version4      = 4 << 4
-	uuid_variant2      = 2 << 4
-	uuid_dash     byte = '-'
+	uuid_dash byte = '-'
 )
 
 // RandUUID generates a new UUID based on version 4.
@@ -29,8 +27,8 @@ func RandUUID() string {
 
 	bs := Rand(16)
 
-	bs[6] = uuid_version4 | (bs[6] & 15)
-	bs[8] = uuid_variant2 | (bs[8] & 15)
+	bs[6] = (bs[6] & 0x0F) | 0x40 // version 4
+	bs[8] = (bs[8] & 0x3F) | 0x80 // variant rfc4122
 
 	uuid := make([]byte, 36)
 
