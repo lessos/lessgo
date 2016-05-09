@@ -44,3 +44,33 @@ func TestMain(t *testing.T) {
 		t.Fatal("Failed on RandUUID")
 	}
 }
+
+func Benchmark_Rand(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		Rand(16)
+	}
+}
+
+func Benchmark_RandHexString(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		RandHexString(16)
+	}
+}
+
+func Benchmark_HashToHexString(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		HashToHexString([]byte("123456"), 16)
+	}
+}
+
+func Benchmark_RandBase64String(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		RandBase64String(16)
+	}
+}
+
+func Benchmark_RandUUID(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		RandUUID()
+	}
+}

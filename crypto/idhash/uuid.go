@@ -19,9 +19,9 @@ import (
 )
 
 const (
-	// Set version (4) and variant (2).
-	uuid_version = 4 << 4
-	uuid_variant = 2 << 4
+	uuid_version4      = 4 << 4
+	uuid_variant2      = 2 << 4
+	uuid_dash     byte = '-'
 )
 
 // RandUUID generates a new UUID based on version 4.
@@ -29,10 +29,24 @@ func RandUUID() string {
 
 	bs := Rand(16)
 
-	bs[6] = uuid_version | (bs[6] & 15)
-	bs[8] = uuid_variant | (bs[8] & 15)
+	bs[6] = uuid_version4 | (bs[6] & 15)
+	bs[8] = uuid_variant2 | (bs[8] & 15)
 
-	uuid := hex.EncodeToString(bs)
+	uuid := make([]byte, 36)
 
-	return uuid[:8] + "-" + uuid[8:12] + "-" + uuid[12:16] + "-" + uuid[16:20] + "-" + uuid[20:]
+	hex.Encode(uuid[0:8], bs[0:4])
+	uuid[8] = uuid_dash
+
+	hex.Encode(uuid[9:13], bs[4:6])
+	uuid[13] = uuid_dash
+
+	hex.Encode(uuid[14:18], bs[6:8])
+	uuid[18] = uuid_dash
+
+	hex.Encode(uuid[19:23], bs[8:10])
+	uuid[23] = uuid_dash
+
+	hex.Encode(uuid[24:], bs[10:])
+
+	return string(uuid)
 }
