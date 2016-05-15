@@ -5,4 +5,7 @@ for file in $files; do
     gofmt -s -w ${file}
 done
 
+#find . -type f -name "*.go"|xargs cat|wc -l
+find . -type f -name "*.go"|xargs wc -l| sort -n
+
 
