@@ -1,4 +1,4 @@
-// Copyright 2015 lessOS.com, All rights reserved.
+// Copyright 2013-2016 lessgo Author, All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,12 +18,12 @@ import (
 	"runtime"
 )
 
-type PermitPool struct {
+type Pool struct {
 	size uint16
-	free chan uint16
+	free chan bool
 }
 
-func NewPermitPool(size int) *PermitPool {
+func NewPool(size int) *Pool {
 
 	if size < 1 {
 		size = runtime.NumCPU()
@@ -33,22 +33,22 @@ func NewPermitPool(size int) *PermitPool {
 		size = 65535
 	}
 
-	p := &PermitPool{
+	p := &Pool{
 		size: uint16(size),
-		free: make(chan uint16, size),
+		free: make(chan bool, size),
 	}
 
 	for i := uint16(0); i < p.size; i++ {
-		p.free <- i
+		p.free <- true
 	}
 
 	return p
 }
 
-func (p *PermitPool) Pull() uint16 {
-	return <-p.free
+func (p *Pool) Lock() {
+	<-p.free
 }
 
-func (p *PermitPool) Push(num uint16) {
-	p.free <- num
+func (p *Pool) Unlock() {
+	p.free <- true
 }
