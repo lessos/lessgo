@@ -15,6 +15,7 @@
 package idhash
 
 import (
+	"crypto/md5"
 	"crypto/rand"
 	mrand "math/rand"
 	"time"
@@ -54,4 +55,17 @@ func Rand(size int) []byte {
 	}
 
 	return bs
+}
+
+func Hash(bs []byte, bytelen int) []byte {
+
+	if bytelen < 1 {
+		bytelen = 1
+	} else if bytelen > 16 {
+		bytelen = 16
+	}
+
+	bsh := md5.Sum(bs)
+
+	return bsh[0:bytelen]
 }
