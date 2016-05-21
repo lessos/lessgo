@@ -3,14 +3,13 @@ package httpclient
 import (
 	"bytes"
 	"crypto/tls"
+	"encoding/json"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
-
-	"github.com/lessos/lessgo/utils"
 )
 
 var (
@@ -241,15 +240,13 @@ func (c *HttpClientRequest) ReplyString() (string, error) {
 
 // ReplyJson returns the map that marshals from the body bytes as json in response .
 func (c *HttpClientRequest) ReplyJson(v interface{}) error {
+
 	data, err := c.ReplyBytes()
 	if err != nil {
 		return err
 	}
-	err = utils.JsonDecode(data, v)
-	if err != nil {
-		return err
-	}
-	return nil
+
+	return json.Unmarshal(data, &v)
 }
 
 func (c *HttpClientRequest) ReplyHeader(key string) string {

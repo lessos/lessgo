@@ -8,8 +8,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/lessos/lessgo/encoding/json"
 	"os"
+
+	"github.com/lessos/lessgo/encoding/json"
 )
 
 type Object struct {
