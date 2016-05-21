@@ -8,7 +8,7 @@ lessgo is a toolkit for building microservices in Go language.
 * **logger** [Simplified implementation of Leveled logs](<logger>)
 * **types** [Various generic types for common data processing, web-service, ...](<types>)
 * **crypto/phash** [High Security Password Hashing framework](<crypto/phash>)
-* **crypto/idhash** [ID hashing utils](<crypto/idhash>)
+* **crypto/idhash** [ID hashing toolkit](<crypto/idhash>)
 * **encoding/json** [encoding and decoding of JSON objects](<encoding/json>)
 * **locker** [lock toolkit to handle concurrent read/write, parallel processing or multi-tasking](<locker>)
 
@@ -16,6 +16,7 @@ lessgo is a toolkit for building microservices in Go language.
 ### web toolkit
 * **httpsrv** [Lightweight, Modular, High Performance MVC web framework](<httpsrv>)
 * **net/httpclient** [http client library for processing web-service communication](<net/httpclient>)
+* **net/portutil** [network port utils](<net/portutil>)
 
 
 ### database client toolkit
