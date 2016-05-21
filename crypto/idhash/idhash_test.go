@@ -15,6 +15,7 @@
 package idhash
 
 import (
+	"bytes"
 	"testing"
 )
 
@@ -22,6 +23,10 @@ func TestMain(t *testing.T) {
 
 	if len(Rand(16)) != 16 {
 		t.Fatal("Failed on Rand")
+	}
+
+	if bytes.Compare(Hash([]byte("123456"), 8), []byte{225, 10, 220, 57, 73, 186, 89, 171}) != 0 {
+		t.Fatal("Failed on Hash")
 	}
 
 	if len(RandHexString(16)) != 16 {
@@ -48,6 +53,12 @@ func TestMain(t *testing.T) {
 func Benchmark_Rand(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		Rand(16)
+	}
+}
+
+func Benchmark_Hash(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		Hash([]byte("123456"), 16)
 	}
 }
 

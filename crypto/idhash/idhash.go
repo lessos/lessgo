@@ -65,7 +65,7 @@ func Hash(bs []byte, bytelen int) []byte {
 		bytelen = 16
 	}
 
-	bsh := md5.Sum(bs)
+	bs_hash := md5.Sum(bs)
 
-	return bsh[0:bytelen]
+	return bs_hash[:bytelen]
 }
