@@ -19,8 +19,10 @@ iossdb is a minimalistic, connection pooling Go Client for SSDB (http://ssdb.io)
 		* iossdb.Reply.Uint64() uint64
 		* iossdb.Reply.Float64() float64
 		* iossdb.Reply.String() string
-		* iossdb.Reply.List() []string
-		* iossdb.Reply.Hash() []Entry
+		* iossdb.Reply.List() []types.Bytex
+		* iossdb.Reply.KvList() []Entry
+		* iossdb.Reply.KvEach(fn func(key, value types.Bytex)) int
+		* iossdb.Reply.KvLen() int
 		* iossdb.Reply.JsonDecode(obj interface{}) error
 		* iossdb.Entry.JsonDecode(obj interface{}) error
 

@@ -104,7 +104,7 @@ func (r *Reply) List() []types.Bytex {
 	return r.Data
 }
 
-func (r *Reply) Hash() []Entry {
+func (r *Reply) KvList() []Entry {
 
 	hs := []Entry{}
 
@@ -122,7 +122,11 @@ func (r *Reply) Hash() []Entry {
 	return hs
 }
 
-func (r *Reply) Each(fn func(key, value types.Bytex)) int {
+func (r *Reply) KvLen() int {
+	return len(r.Data) / 2
+}
+
+func (r *Reply) KvEach(fn func(key, value types.Bytex)) int {
 
 	if len(r.Data) < 2 {
 		return 0
@@ -132,7 +136,7 @@ func (r *Reply) Each(fn func(key, value types.Bytex)) int {
 		fn(r.Data[i], r.Data[i+1])
 	}
 
-	return len(r.Data) / 2
+	return r.KvLen()
 }
 
 // Json returns the map that marshals from the reply bytes as json in response .
