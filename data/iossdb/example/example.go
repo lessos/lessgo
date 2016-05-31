@@ -48,41 +48,37 @@ func main() {
 	if rs := conn.Cmd("get", "aa"); rs.State == "ok" {
 		fmt.Println("get OK\n\t", rs.String())
 	}
-	// API::Hash() []Entry
+	// API::KvEach()
 	if rs := conn.Cmd("multi_get", "aa", "bb"); rs.State == "ok" {
 		fmt.Println("multi_get OK")
-		for _, v := range rs.Hash() {
-			fmt.Println("\t", v.Key, v.Value)
-		}
+		rs.KvEach(func(key, value types.Bytex) {
+			fmt.Println("\t", key.String(), value.String())
+		})
 	}
-	// API::Each()
-	bkeys := [][]byte{[]byte("aa"), []byte("bb"), []byte("cc")}
+	// API::KvEach() bytes
+	bkeys := [][]byte{[]byte("aa"), []byte("bb")}
 	if rs := conn.Cmd("multi_get", bkeys); rs.State == "ok" {
-		fmt.Println("multi_get bytes each OK")
-		rs.Each(func(k, v types.Bytex) {
-			fmt.Println("\t", k, v)
+		fmt.Println("multi_get bytes OK")
+		rs.KvEach(func(key, value types.Bytex) {
+			fmt.Println("\t", key, value)
 		})
 	}
 
 	if rs := conn.Cmd("scan", "aa", "cc", 10); rs.State == "ok" {
 		fmt.Println("scan OK")
-		for _, v := range rs.Hash() {
-			fmt.Println("\t", v.Key, v.Value)
-		}
-		fmt.Println("scan each OK")
-		n := rs.Each(func(key, value types.Bytex) {
-			fmt.Println("\t", key, value)
+		n := rs.KvEach(func(key, value types.Bytex) {
+			fmt.Println("\t", key.String(), value.String())
 		})
-		fmt.Println("\tgot", n)
+		fmt.Println("\t got", n)
 	}
 
 	conn.Cmd("zset", "z", "a", 3)
 	conn.Cmd("multi_zset", "z", "b", -2, "c", 5, "d", 3)
 	if rs := conn.Cmd("zrscan", "z", "", "", "", 10); rs.State == "ok" {
 		fmt.Println("zrscan OK")
-		for _, v := range rs.Hash() {
-			fmt.Println("\t", v.Key, v.Value)
-		}
+		rs.KvEach(func(key, value types.Bytex) {
+			fmt.Println("\t", key.String(), value.Int())
+		})
 	}
 
 	conn.Cmd("set", "key", 10)
@@ -102,9 +98,9 @@ func main() {
 	}
 	if rs := conn.Cmd("multi_hget", "zone", "c1", "c2"); rs.State == "ok" {
 		fmt.Println("multi_hget OK")
-		for _, v := range rs.Hash() {
-			fmt.Println("\t", string(v.Key), v.Value)
-		}
+		rs.KvEach(func(key, value types.Bytex) {
+			fmt.Println("\t", key.String(), value.String())
+		})
 	}
 
 	// API::Float64() float64
@@ -113,13 +109,13 @@ func main() {
 		fmt.Println("float OK\n\t", rs)
 	}
 
-	// API::List() []string
+	// API::List()
 	conn.Cmd("qpush", "queue", "q-1111111111111")
 	conn.Cmd("qpush", "queue", "q-2222222222222")
 	if rs := conn.Cmd("qpop", "queue", 10); rs.State == "ok" {
-		fmt.Println("qpop OK")
-		for k, v := range rs.List() {
-			fmt.Println("\t", k, v)
+		fmt.Println("qpop list OK")
+		for i, value := range rs.List() {
+			fmt.Println("\t", i, value.String())
 		}
 	}
 
@@ -138,11 +134,4 @@ func main() {
 			fmt.Println("json_key ERR", err)
 		}
 	}
-
-	// bytes
-	key := []byte("bk-abc")
-	val := []byte("bv-aaa-bbb-ccc")
-	fmt.Println(conn.Cmd("set", key, val).State)
-	fmt.Println(conn.Cmd("get", key).Bytes(), conn.Cmd("get", key).String())
-
 }

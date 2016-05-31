@@ -21,11 +21,11 @@ import (
 )
 
 const (
-	ReplyOK          string = "ok"
-	ReplyNotFound    string = "not_found"
-	ReplyError       string = "error"
-	ReplyFail        string = "fail"
-	ReplyClientError string = "client_error"
+	ReplyOK          = "ok"
+	ReplyNotFound    = "not_found"
+	ReplyError       = "error"
+	ReplyFail        = "fail"
+	ReplyClientError = "client_error"
 )
 
 type Reply struct {
@@ -33,93 +33,77 @@ type Reply struct {
 	Data  []types.Bytex
 }
 
-type Entry struct {
-	Key   types.Bytex
-	Value types.Bytex
+func (r *Reply) bytex() *types.Bytex {
+
+	if len(r.Data) > 0 {
+		return &r.Data[0]
+	}
+
+	return &types.Bytex{}
 }
 
 func (r *Reply) Bytes() []byte {
-
-	if len(r.Data) == 0 {
-		return []byte{}
-	}
-
-	return r.Data[0].Bytes()
+	return r.bytex().Bytes()
 }
 
 func (r *Reply) String() string {
-
-	if len(r.Data) > 0 {
-		return r.Data[0].String()
-	}
-
-	return ""
+	return r.bytex().String()
 }
 
 func (r *Reply) Int() int {
-	return int(r.Int64())
+	return r.bytex().Int()
+}
+
+func (r *Reply) Int8() int8 {
+	return r.bytex().Int8()
+}
+
+func (r *Reply) Int16() int16 {
+	return r.bytex().Int16()
+}
+
+func (r *Reply) Int32() int32 {
+	return r.bytex().Int32()
 }
 
 func (r *Reply) Int64() int64 {
-
-	if len(r.Data) < 1 {
-		return 0
-	}
-
-	return r.Data[0].Int64()
+	return r.bytex().Int64()
 }
 
 func (r *Reply) Uint() uint {
-	return uint(r.Uint64())
+	return r.bytex().Uint()
+}
+
+func (r *Reply) Uint8() uint8 {
+	return r.bytex().Uint8()
+}
+
+func (r *Reply) Uint16() uint16 {
+	return r.bytex().Uint16()
+}
+
+func (r *Reply) Uint32() uint32 {
+	return r.bytex().Uint32()
 }
 
 func (r *Reply) Uint64() uint64 {
+	return r.bytex().Uint64()
+}
 
-	if len(r.Data) < 1 {
-		return 0
-	}
-
-	return r.Data[0].Uint64()
+func (r *Reply) Float32() float32 {
+	return r.bytex().Float32()
 }
 
 func (r *Reply) Float64() float64 {
-
-	if len(r.Data) < 1 {
-		return 0
-	}
-
-	return r.Data[0].Float64()
+	return r.bytex().Float64()
 }
 
 func (r *Reply) Bool() bool {
-
-	if len(r.Data) < 1 {
-		return false
-	}
-
-	return r.Data[0].Bool()
+	return r.bytex().Bool()
 }
 
 func (r *Reply) List() []types.Bytex {
 	return r.Data
-}
-
-func (r *Reply) KvList() []Entry {
-
-	hs := []Entry{}
-
-	if len(r.Data) < 2 {
-		return hs
-	}
-
-	for i := 0; i < (len(r.Data) - 1); i += 2 {
-		hs = append(hs, Entry{
-			Key:   r.Data[i],
-			Value: r.Data[i+1],
-		})
-	}
-
-	return hs
 }
 
 func (r *Reply) KvLen() int {
@@ -147,8 +131,4 @@ func (r *Reply) JsonDecode(v interface{}) error {
 	}
 
 	return r.Data[0].JsonDecode(&v)
-}
-
-func (r *Entry) JsonDecode(v interface{}) error {
-	return r.JsonDecode(&v)
 }

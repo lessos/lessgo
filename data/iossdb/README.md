@@ -12,29 +12,50 @@ iossdb is a minimalistic, connection pooling Go Client for SSDB (http://ssdb.io)
 	* State:  The element of iossdb.Reply.State is the response code, ```"ok"``` means the current command are valid results. The response code may be ```"not_found"``` if you are calling "get" on an non-exist key.
 
 	* Data: The element of iossdb.Reply.Data is the response data. You can also use the following method to get a dynamic data struct what you want to need.
+		* iossdb.Reply.String() string
 		* iossdb.Reply.Bool() bool
 		* iossdb.Reply.Int() int
+		* iossdb.Reply.Int8() int8
+		* iossdb.Reply.Int16() int16
+		* iossdb.Reply.Int32() int32
 		* iossdb.Reply.Int64() int64
 		* iossdb.Reply.Uint() uint
+		* iossdb.Reply.Uint8() uint8
+		* iossdb.Reply.Uint16() uint16
+		* iossdb.Reply.Uint32() uint32
 		* iossdb.Reply.Uint64() uint64
+		* iossdb.Reply.Float32() float32
 		* iossdb.Reply.Float64() float64
-		* iossdb.Reply.String() string
 		* iossdb.Reply.List() []types.Bytex
-		* iossdb.Reply.KvList() []Entry
 		* iossdb.Reply.KvEach(fn func(key, value types.Bytex)) int
 		* iossdb.Reply.KvLen() int
 		* iossdb.Reply.JsonDecode(obj interface{}) error
-		* iossdb.Entry.JsonDecode(obj interface{}) error
 
 * Refer to [Official API documentation](http://ssdb.io/docs/) to checkout a complete list of all avilable commands.
 
 ## Example
 ```go
+// Copyright 2013-2016 lessgo Author, All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package main
 
 import (
 	"fmt"
+
 	"github.com/lessos/lessgo/data/iossdb"
+	"github.com/lessos/lessgo/types"
 )
 
 func main() {
@@ -64,27 +85,37 @@ func main() {
 	if rs := conn.Cmd("get", "aa"); rs.State == "ok" {
 		fmt.Println("get OK\n\t", rs.String())
 	}
-	// API::Hash() []Entry
+	// API::KvEach()
 	if rs := conn.Cmd("multi_get", "aa", "bb"); rs.State == "ok" {
 		fmt.Println("multi_get OK")
-		for _, v := range rs.Hash() {
-			fmt.Println("\t", v.Key, v.Value)
-		}
+		rs.KvEach(func(key, value types.Bytex) {
+			fmt.Println("\t", key.String(), value.String())
+		})
 	}
+	// API::KvEach() bytes
+	bkeys := [][]byte{[]byte("aa"), []byte("bb")}
+	if rs := conn.Cmd("multi_get", bkeys); rs.State == "ok" {
+		fmt.Println("multi_get bytes OK")
+		rs.KvEach(func(key, value types.Bytex) {
+			fmt.Println("\t", key, value)
+		})
+	}
+
 	if rs := conn.Cmd("scan", "aa", "cc", 10); rs.State == "ok" {
 		fmt.Println("scan OK")
-		for _, v := range rs.Hash() {
-			fmt.Println("\t", v.Key, v.Value)
-		}
+		n := rs.KvEach(func(key, value types.Bytex) {
+			fmt.Println("\t", key.String(), value.String())
+		})
+		fmt.Println("\t got", n)
 	}
 
 	conn.Cmd("zset", "z", "a", 3)
 	conn.Cmd("multi_zset", "z", "b", -2, "c", 5, "d", 3)
 	if rs := conn.Cmd("zrscan", "z", "", "", "", 10); rs.State == "ok" {
 		fmt.Println("zrscan OK")
-		for _, v := range rs.Hash() {
-			fmt.Println("\t", v.Key, v.Value)
-		}
+		rs.KvEach(func(key, value types.Bytex) {
+			fmt.Println("\t", key.String(), value.Int())
+		})
 	}
 
 	conn.Cmd("set", "key", 10)
@@ -104,9 +135,9 @@ func main() {
 	}
 	if rs := conn.Cmd("multi_hget", "zone", "c1", "c2"); rs.State == "ok" {
 		fmt.Println("multi_hget OK")
-		for _, v := range rs.Hash() {
-			fmt.Println("\t", v.Key, v.Value)
-		}
+		rs.KvEach(func(key, value types.Bytex) {
+			fmt.Println("\t", key.String(), value.String())
+		})
 	}
 
 	// API::Float64() float64
@@ -115,13 +146,13 @@ func main() {
 		fmt.Println("float OK\n\t", rs)
 	}
 
-	// API::List() []string
+	// API::List()
 	conn.Cmd("qpush", "queue", "q-1111111111111")
 	conn.Cmd("qpush", "queue", "q-2222222222222")
 	if rs := conn.Cmd("qpop", "queue", 10); rs.State == "ok" {
-		fmt.Println("qpop OK")
-		for k, v := range rs.List() {
-			fmt.Println("\t", k, v)
+		fmt.Println("qpop list OK")
+		for i, value := range rs.List() {
+			fmt.Println("\t", i, value.String())
 		}
 	}
 
@@ -141,6 +172,5 @@ func main() {
 		}
 	}
 }
-
 ```
 
