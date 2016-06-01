@@ -21,6 +21,7 @@ lessgo is a toolkit for building microservices in Go language.
 
 ### database client toolkit
 * **data/hissdb** [Minimalistic, connection pooling Go Client for SSDB](<data/hissdb>)
+* **data/iossdb** [Bytes based, high performance of Go Client for SSDB](<data/iossdb>)
 * **data/redis** [Minimalistic, connection pooling Go Client for Redis](<data/redis>)
 * **data/rdo** [Simplified implementation of ORM-like client library for DBMS (mysql/sqlite)](<data/rdo>)
 
