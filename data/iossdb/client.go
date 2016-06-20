@@ -236,7 +236,7 @@ func (c *Client) parse() []types.Bytex {
 			break
 		}
 
-		resp = append(resp, types.Bytex(buf[offset:offset+size]))
+		resp = append(resp, types.Bytex(bytesClone(buf[offset:offset+size])))
 		offset += size + 1
 	}
 
@@ -251,4 +251,12 @@ func (c *Client) Close() error {
 	}
 
 	return c.sock.Close()
+}
+
+func bytesClone(src []byte) []byte {
+
+	dst := make([]byte, len(src))
+	copy(dst, src)
+
+	return dst
 }
