@@ -15,6 +15,7 @@
 package json
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
 )
@@ -24,6 +25,10 @@ func EncodeToFile(v interface{}, file, indent string) error {
 	bs, err := Encode(v, indent)
 	if err != nil {
 		return err
+	}
+
+	if len(bs) < 2 {
+		return errors.New("No Data Found")
 	}
 
 	fp, err := os.OpenFile(file, os.O_RDWR|os.O_CREATE, 0644)
