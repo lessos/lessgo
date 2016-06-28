@@ -110,17 +110,11 @@ func send_buf(args []interface{}) ([]byte, error) {
 			}
 			continue
 
-		case int, int8, int16, int32:
-			s = strconv.FormatInt(int64(argt), 10)
+		case int, int8, int16, int32, int64:
+			s = fmt.Sprint(argt)
 
-		case int64:
-			s = strconv.FormatInt(argt, 10)
-
-		case uint, uint8, uint16, uint32:
-			s = strconv.FormatUint(uint64(argt), 10)
-
-		case uint64:
-			s = strconv.FormatUint(argt, 10)
+		case uint, uint8, uint16, uint32, uint64:
+			s = fmt.Sprint(argt)
 
 		case float32:
 			s = strconv.FormatFloat(float64(argt), 'f', -1, 32)
