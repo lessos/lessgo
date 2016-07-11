@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -58,11 +59,71 @@ type entry struct {
 
 func init() {
 
-	if !flag.Parsed() {
-		flag.Parse()
+	if !flag.Parsed() && len(os.Args) > 1 {
+
+		for i := 1; i < len(os.Args); i++ {
+
+			if os.Args[i][0] != '-' {
+				continue
+			}
+
+			key, val, ok := args_parse(i)
+			if !ok {
+				continue
+			}
+
+			switch key {
+
+			case "log_dir":
+				*logDir = val
+
+			case "logtostderr":
+				if val == "true" {
+					*logToStderr = true
+				}
+
+			case "minLogLevel":
+				if v, err := strconv.Atoi(val); err == nil {
+					*minLogLevel = v
+				}
+
+			case "logtolevels":
+				if val == "true" {
+					*logToLevels = true
+				}
+			}
+		}
 	}
 
 	levelInit()
+}
+
+func args_parse(i int) (string, string, bool) {
+
+	key := strings.TrimLeft(os.Args[i], "-")
+
+	if si := strings.Index(key, "="); si > 0 {
+
+		if key[si+1:] != "" {
+			return key[:si], key[si+1:], true
+		}
+
+		key = key[:si]
+	}
+
+	if (i+2) > len(os.Args) || os.Args[i+1][0] == '-' {
+		return key, "", false
+	}
+
+	if val := strings.TrimLeft(os.Args[i+1], "="); val != "" {
+		return key, val, true
+	}
+
+	if (i+3) > len(os.Args) || os.Args[i+2][0] == '-' {
+		return key, "", false
+	}
+
+	return key, os.Args[i+2], true
 }
 
 func LevelConfig(ls []string) {
