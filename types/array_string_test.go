@@ -18,7 +18,7 @@ import (
 	"testing"
 )
 
-func TestArray(t *testing.T) {
+func TestArrayString(t *testing.T) {
 
 	ar := ArrayString([]string{"aa", "bb"})
 

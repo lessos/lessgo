@@ -21,22 +21,22 @@ import (
 type MetaTime uint64
 
 func MetaTimeNow() MetaTime {
-	return _meta_time_set(time.Now().UTC())
+	return MetaTimeSet(time.Now().UTC())
 }
 
-func _meta_time_set(t time.Time) MetaTime {
+func MetaTimeSet(t time.Time) MetaTime {
 	return MetaTime(uint64(t.Year())*1e13 + uint64(t.Month())*1e11 + uint64(t.Day())*1e9 +
 		uint64(t.Hour()*1e7+t.Minute()*1e5+t.Second()*1e3) +
 		uint64(t.Nanosecond()/1e6))
 }
 
 func (mt MetaTime) AddMillisecond(td int64) MetaTime {
-	return _meta_time_set(mt.Time().Add(time.Duration(td * 1e6)))
+	return MetaTimeSet(mt.Time().Add(time.Duration(td * 1e6)))
 }
 
 func (mt MetaTime) Add(ts string) MetaTime {
 	td, _ := time.ParseDuration(ts)
-	return _meta_time_set(mt.Time().Add(td))
+	return MetaTimeSet(mt.Time().Add(td))
 }
 
 func (mt MetaTime) Format(fm string) string {

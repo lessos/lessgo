@@ -14,54 +14,113 @@
 
 package types
 
-// LabelMeta is a key value . It implements Labels
-type LabelMeta struct {
-	Key     string `json:"key"`
-	Val     string `json:"val"`
-	Comment string `json:"comment,omitempty"`
+import (
+	"errors"
+	"fmt"
+	"regexp"
+)
+
+var (
+	labelPatName        = regexp.MustCompile("^[a-z]{1}[a-z0-9-._/]{2,100}$")
+	labelErrNameLength  = errors.New("Length of the label name must be between 5 and 100")
+	labelErrNameInvalid = errors.New("Invalid Label Name")
+)
+
+// Labels are name value pairs that may be used to scope and select individual items.
+type Labels []Label
+
+// Label is a name value . It implements Labels
+type Label struct {
+	Name  string `json:"name"`
+	Value string `json:"value,omitempty"`
 }
 
-// LabelListMeta are key value pairs that may be used to scope and select individual resources.
-type LabelListMeta []LabelMeta
+// Set create or update the label entry for "name" to "value".
+func (ls *Labels) Set(name string, value interface{}) error {
 
-func (ls LabelListMeta) Insert(key, value string) LabelListMeta {
+	if len(name) < 4 || len(name) > 100 {
+		return labelErrNameLength
+	}
 
-	for i, prev := range ls {
+	if !labelPatName.MatchString(name) {
+		return labelErrNameInvalid
+	}
 
-		if prev.Key == key {
+	svalue := fmt.Sprintf("%v", value)
 
-			if prev.Val != value {
-				ls[i].Val = value
+	for i, prev := range *ls {
+
+		if prev.Name == name {
+
+			if prev.Value != svalue {
+				(*ls)[i].Value = svalue
 			}
 
-			return ls
+			return nil
 		}
 	}
 
-	ls = append(ls, LabelMeta{Key: key, Val: value})
+	(*ls) = append(*ls, Label{
+		Name:  name,
+		Value: svalue,
+	})
 
-	return ls
+	return nil
 }
 
-func (ls LabelListMeta) Fetch(key string) (string, bool) {
+// Get fetch the label entry "value" (if any) for "name".
+func (ls Labels) Get(name string) (Bytex, bool) {
 
 	for _, prev := range ls {
 
-		if prev.Key == key {
-			return prev.Val, true
+		if prev.Name == name {
+			return Bytex(prev.Value), true
 		}
 	}
 
-	return "", false
+	return Bytex(""), false
 }
 
-func (ls LabelListMeta) Remove(key string) {
+// Del remove the label entry (if any) for "name".
+func (ls *Labels) Del(name string) {
 
-	for i, prev := range ls {
+	for i, prev := range *ls {
 
-		if prev.Key == key {
-			ls = append(ls[:i], ls[i:]...)
+		if prev.Name == name {
+			(*ls) = append((*ls)[:i], (*ls)[i+1:]...)
 			break
 		}
 	}
+}
+
+func (ls *Labels) Equal(items Labels) bool {
+
+	if len(*ls) != len(items) {
+		return false
+	}
+
+	for _, v := range *ls {
+
+		hit := false
+
+		for _, v2 := range items {
+
+			if v.Name != v2.Name {
+				continue
+			}
+
+			if v.Value != v2.Value {
+				return false
+			}
+
+			hit = true
+			break
+		}
+
+		if !hit {
+			return false
+		}
+	}
+
+	return true
 }
