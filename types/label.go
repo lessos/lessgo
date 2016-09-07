@@ -18,12 +18,14 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"sync"
 )
 
 var (
 	labelPatName        = regexp.MustCompile("^[a-z]{1}[a-z0-9-._/]{2,100}$")
 	labelErrNameLength  = errors.New("Length of the label name must be between 5 and 100")
 	labelErrNameInvalid = errors.New("Invalid Label Name")
+	label_mu            sync.Mutex
 )
 
 // Labels are name value pairs that may be used to scope and select individual items.
@@ -37,6 +39,9 @@ type Label struct {
 
 // Set create or update the label entry for "name" to "value".
 func (ls *Labels) Set(name string, value interface{}) error {
+
+	label_mu.Lock()
+	defer label_mu.Unlock()
 
 	if len(name) < 4 || len(name) > 100 {
 		return labelErrNameLength
@@ -83,6 +88,9 @@ func (ls Labels) Get(name string) (Bytex, bool) {
 
 // Del remove the label entry (if any) for "name".
 func (ls *Labels) Del(name string) {
+
+	label_mu.Lock()
+	defer label_mu.Unlock()
 
 	for i, prev := range *ls {
 

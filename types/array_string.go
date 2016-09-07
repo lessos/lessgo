@@ -14,11 +14,19 @@
 
 package types
 
+import (
+	"sync"
+)
+
+var (
+	ar_str_mu sync.Mutex
+)
+
 type ArrayString []string
 
-func (ar ArrayString) Contain(s string) bool {
+func (ar *ArrayString) Contain(s string) bool {
 
-	for _, v := range ar {
+	for _, v := range *ar {
 
 		if v == s {
 			return true
@@ -28,25 +36,25 @@ func (ar ArrayString) Contain(s string) bool {
 	return false
 }
 
-func (ar ArrayString) Equal(ar2 ArrayString) bool {
+func (ar *ArrayString) Equal(ar2 ArrayString) bool {
 
-	if len(ar) != len(ar2) {
+	if len(*ar) != len(ar2) {
 		return false
 	}
 
-	for _, v := range ar {
+	for _, v := range *ar {
 
-		eq := false
+		hit := false
 
 		for _, v2 := range ar2 {
 
 			if v == v2 {
-				eq = true
+				hit = true
 				break
 			}
 		}
 
-		if !eq {
+		if !hit {
 			return false
 		}
 	}
@@ -54,26 +62,31 @@ func (ar ArrayString) Equal(ar2 ArrayString) bool {
 	return true
 }
 
-func (ar ArrayString) Insert(s string) ArrayString {
+func (ar *ArrayString) Insert(s string) {
 
-	for _, v := range ar {
+	ar_str_mu.Lock()
+	defer ar_str_mu.Unlock()
+
+	for _, v := range *ar {
 
 		if v == s {
-			return ar
+			return
 		}
 	}
 
-	return append(ar, s)
+	*ar = append(*ar, s)
 }
 
-func (ar ArrayString) Remove(s string) ArrayString {
+func (ar *ArrayString) Remove(s string) {
 
-	for i, v := range ar {
+	ar_str_mu.Lock()
+	defer ar_str_mu.Unlock()
+
+	for i, v := range *ar {
 
 		if v == s {
-			return append(ar[0:i], ar[i+1:]...)
+			*ar = append((*ar)[:i], (*ar)[i+1:]...)
+			return
 		}
 	}
-
-	return ar
 }

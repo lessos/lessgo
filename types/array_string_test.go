@@ -27,13 +27,13 @@ func TestArrayString(t *testing.T) {
 		t.Fatal("Failed on Contain")
 	}
 
-	ar2 := ar.Insert("cc")
+	ar2 := ArrayString([]string{"aa", "bb", "cc"})
 	if ar2.Contain("cc") != true {
 		t.Fatal("Failed on Insert")
 	}
 
-	ar2 = ar2.Insert("dd")
-	ar2 = ar2.Insert("ee")
+	ar2.Insert("dd")
+	ar2.Insert("ee")
 
 	if ar.Equal(ar) != true {
 		t.Fatal("Failed on Equal")
@@ -43,17 +43,17 @@ func TestArrayString(t *testing.T) {
 		t.Fatal("Failed on Equal")
 	}
 
-	ar2 = ar2.Remove("aa")
+	ar2.Remove("aa")
 	if ar2.Equal(ArrayString([]string{"bb", "cc", "dd", "ee"})) != true {
 		t.Fatal("Failed on Remove")
 	}
 
-	ar2 = ar2.Remove("ee")
+	ar2.Remove("ee")
 	if ar2.Equal(ArrayString([]string{"bb", "cc", "dd"})) != true {
 		t.Fatal("Failed on Remove")
 	}
 
-	ar2 = ar2.Remove("cc")
+	ar2.Remove("cc")
 	if ar2.Equal(ArrayString([]string{"bb", "dd"})) != true {
 		t.Fatal("Failed on Remove")
 	}
