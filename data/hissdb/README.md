@@ -21,6 +21,7 @@ hissdb is a minimalistic, connection pooling Go Client for SSDB (http://ssdb.io)
 		* hissdb.Reply.String() string
 		* hissdb.Reply.List() []string
 		* hissdb.Reply.Hash() []Entry
+		* hissdb.Reply.HMap() (map[string]string, error)
 		* hissdb.Reply.JsonDecode(obj interface{}) error
 		* hissdb.Entry.JsonDecode(obj interface{}) error
 
