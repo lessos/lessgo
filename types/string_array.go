@@ -22,9 +22,10 @@ import (
 )
 
 var (
-	sarPatName        = regexp.MustCompile("^[a-z]{1}[a-z0-9-._]{4,50}$")
-	sarErrNameLength  = errors.New("Length of the name must be between 5 and 50")
-	sarErrNameInvalid = errors.New("Invalid Name")
+	sa_name_re2 = regexp.MustCompile("^[a-z]{1}[a-z0-9-._]{1,50}$")
+
+	saErrNameLength  = errors.New("length of the name must be between 1 and 50")
+	saErrNameInvalid = errors.New("invalid name string")
 )
 
 type StringArray string
@@ -37,12 +38,12 @@ func (sa *StringArray) Set(namei interface{}) error {
 
 	name := fmt.Sprintf("%v", namei)
 
-	if len(name) < 4 || len(name) > 50 {
-		return sarErrNameLength
+	if len(name) < 1 || len(name) > 50 {
+		return saErrNameLength
 	}
 
-	if !labelPatName.MatchString(name) {
-		return sarErrNameInvalid
+	if !sa_name_re2.MatchString(name) {
+		return saErrNameInvalid
 	}
 
 	if strings.Index(","+string(*sa)+",", ","+name+",") >= 0 {
@@ -82,6 +83,41 @@ func (sa *StringArray) Has(names ...interface{}) bool {
 		}
 
 		return false
+	}
+
+	return true
+}
+
+func (sa *StringArray) Equal(sa2 StringArray) bool {
+
+	if len(*sa) != len(sa2) {
+		return false
+	}
+
+	var (
+		saa  = strings.Split(string(*sa), ",")
+		saa2 = strings.Split(string(sa2), ",")
+	)
+
+	if len(saa) != len(saa2) {
+		return false
+	}
+
+	for _, v := range saa {
+
+		hit := false
+
+		for _, v2 := range saa2 {
+
+			if v == v2 {
+				hit = true
+				break
+			}
+		}
+
+		if !hit {
+			return false
+		}
 	}
 
 	return true

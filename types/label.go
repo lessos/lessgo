@@ -22,10 +22,12 @@ import (
 )
 
 var (
-	labelPatName        = regexp.MustCompile("^[a-z]{1}[a-z0-9-._/]{2,100}$")
-	labelErrNameLength  = errors.New("Length of the label name must be between 5 and 100")
-	labelErrNameInvalid = errors.New("Invalid Label Name")
-	label_mu            sync.Mutex
+	label_name_re2 = regexp.MustCompile("^[a-z]{1}[a-z0-9-._/]{0,99}$")
+	label_mu       sync.Mutex
+
+	labelErrNameEmpty   = errors.New("label name cannot be empty")
+	labelErrNameLength  = errors.New("length of the label name must be less than 100")
+	labelErrNameInvalid = errors.New("invalid label name")
 )
 
 // Labels are name value pairs that may be used to scope and select individual items.
@@ -43,11 +45,15 @@ func (ls *Labels) Set(name string, value interface{}) error {
 	label_mu.Lock()
 	defer label_mu.Unlock()
 
-	if len(name) < 4 || len(name) > 100 {
+	if len(name) < 1 {
+		return labelErrNameEmpty
+	}
+
+	if len(name) > 100 {
 		return labelErrNameLength
 	}
 
-	if !labelPatName.MatchString(name) {
+	if !label_name_re2.MatchString(name) {
 		return labelErrNameInvalid
 	}
 
@@ -65,7 +71,7 @@ func (ls *Labels) Set(name string, value interface{}) error {
 		}
 	}
 
-	(*ls) = append(*ls, Label{
+	*ls = append(*ls, Label{
 		Name:  name,
 		Value: svalue,
 	})
@@ -95,7 +101,7 @@ func (ls *Labels) Del(name string) {
 	for i, prev := range *ls {
 
 		if prev.Name == name {
-			(*ls) = append((*ls)[:i], (*ls)[i+1:]...)
+			*ls = append((*ls)[:i], (*ls)[i+1:]...)
 			break
 		}
 	}

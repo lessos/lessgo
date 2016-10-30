@@ -98,6 +98,10 @@ func init() {
 	levelInit()
 }
 
+func LogDirSet(path string) {
+	*logDir = path
+}
+
 func args_parse(i int) (string, string, bool) {
 
 	key := strings.TrimLeft(os.Args[i], "-")
