@@ -19,12 +19,26 @@ import (
 	"time"
 )
 
+const (
+	// ssdb-server total amount of the commands and arguments must be less than 10MB.
+	batch_cmds_max int64 = 4194304 // 4 MB
+)
+
 type Batch struct {
 	cmds [][]interface{}
 	cr   *Connector
 }
 
+type batch_cmds struct {
+	num int
+	req []byte
+}
+
 // Batch is in DEVELOPMENT PREVIEW, DO NOT USE IT IN PRODUCTION
+//
+// This feature is implemented in client side, the ssdb-server does not support
+// batch command execution. The server will execute each command as if they are
+// separated.
 func (cr *Connector) Batch() *Batch {
 
 	return &Batch{
@@ -40,9 +54,9 @@ func (b *Batch) Cmd(args ...interface{}) {
 func (b *Batch) Exec() ([]*Reply, error) {
 
 	var (
-		rpls = []*Reply{}
-		cmdn = 0
-		cmds = []byte{}
+		rpls            = []*Reply{}
+		cmds            = []batch_cmds{}
+		cmds_size int64 = 0
 	)
 
 	if len(b.cmds) < 1 || b.cr == nil {
@@ -52,64 +66,93 @@ func (b *Batch) Exec() ([]*Reply, error) {
 	for _, args := range b.cmds {
 
 		if buf, err := send_buf(args); err == nil {
-			cmds = append(cmds, buf...)
-			cmdn++
+
+			n := int64(len(buf))
+
+			if n > batch_cmds_max {
+				return rpls, errors.New("client error")
+			}
+
+			if len(cmds) < 1 || (cmds_size+n) > batch_cmds_max {
+				cmds = append(cmds, batch_cmds{
+					num: 0,
+					req: []byte{},
+				})
+				cmds_size = 0
+			}
+
+			cmds[len(cmds)-1].num++
+			cmds[len(cmds)-1].req = append(cmds[len(cmds)-1].req, buf...)
+
+			cmds_size += n
+
+		} else {
+			return rpls, errors.New("client error")
 		}
 	}
 
-	if cmdn < 1 {
+	if len(cmds) < 1 {
 		return rpls, errors.New("client error")
 	}
 
 	cn, _ := b.cr.pull()
 
-	cn.sock.SetReadDeadline(time.Now().Add(b.cr.ctimeout))
-	cn.sock.SetWriteDeadline(time.Now().Add(b.cr.ctimeout))
-
-	if _, err := cn.sock.Write(cmds); err != nil {
-
-		b.cr.push(cn)
-		b.cmds = [][]interface{}{}
-		b.cr = nil
-
-		return rpls, err
+	tto := b.cr.ctimeout * 10
+	if tto > (600 * time.Second) {
+		tto = 600 * time.Second
 	}
 
-	for i := 0; i < cmdn; i++ {
+	for _, bcmd := range cmds {
 
-		r := &Reply{
-			State: ReplyError,
+		tton := time.Now().Add(tto)
+		cn.sock.SetReadDeadline(tton)
+		cn.sock.SetWriteDeadline(tton)
+
+		if _, err := cn.sock.Write(bcmd.req); err != nil {
+
+			b.cr.push(cn)
+			b.cmds = [][]interface{}{}
+			b.cr = nil
+
+			return rpls, err
 		}
 
-		resp, err := cn.recv()
+		for i := 0; i < bcmd.num; i++ {
 
-		if err != nil {
-
-			r.State = err.Error()
-
-		} else if len(resp) < 1 {
-
-			r.State = ReplyFail
-
-		} else {
-
-			switch resp[0].String() {
-			case ReplyOK, ReplyNotFound, ReplyError, ReplyFail, ReplyClientError:
-				r.State = resp[0].String()
+			r := &Reply{
+				State: ReplyError,
 			}
 
-			if r.State == ReplyOK {
+			resp, err := cn.recv()
 
-				for k, v := range resp {
+			if err != nil {
 
-					if k > 0 {
-						r.Data = append(r.Data, v)
+				r.State = err.Error()
+
+			} else if len(resp) < 1 {
+
+				r.State = ReplyFail
+
+			} else {
+
+				switch resp[0].String() {
+				case ReplyOK, ReplyNotFound, ReplyError, ReplyFail, ReplyClientError:
+					r.State = resp[0].String()
+				}
+
+				if r.State == ReplyOK {
+
+					for k, v := range resp {
+
+						if k > 0 {
+							r.Data = append(r.Data, v)
+						}
 					}
 				}
 			}
-		}
 
-		rpls = append(rpls, r)
+			rpls = append(rpls, r)
+		}
 	}
 
 	b.cr.push(cn)

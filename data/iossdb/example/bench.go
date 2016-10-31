@@ -134,4 +134,16 @@ func main() {
 			fmt.Println("json_key ERR", err)
 		}
 	}
+
+	//
+	batch := conn.Batch()
+	for i := 0; i < 1000000; i++ {
+		batch.Cmd("setx", fmt.Sprintf("key.of.bench.batch.key.%d", i),
+			fmt.Sprintf("key.of.bench.batch.value.value.value.value.%d", i), 600)
+	}
+	if rs, err := batch.Exec(); err == nil {
+		fmt.Println("Batch OK", len(rs))
+	} else {
+		fmt.Println(err)
+	}
 }

@@ -134,4 +134,18 @@ func main() {
 			fmt.Println("json_key ERR", err)
 		}
 	}
+
+	// Batch()
+	batch := conn.Batch()
+	batch.Cmd("set", "batch.aaa", "batch.value.aaa")
+	batch.Cmd("set", "batch.bbb", "batch.value.bbb")
+	if rs, err := batch.Exec(); err == nil {
+		fmt.Println("Batch OK")
+		for _, bv := range rs {
+			fmt.Println("\t", bv.String())
+		}
+
+		fmt.Println("\t", conn.Cmd("get", "batch.aaa").String())
+		fmt.Println("\t", conn.Cmd("get", "batch.bbb").String())
+	}
 }

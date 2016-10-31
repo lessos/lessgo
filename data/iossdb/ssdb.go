@@ -47,16 +47,18 @@ func NewConnector(cfg Config) (*Connector, error) {
 		}
 	}
 
+	if cfg.Timeout < 3 {
+		cfg.Timeout = 3
+	} else if cfg.Timeout > 600 {
+		cfg.Timeout = 600
+	}
+
 	cr := &Connector{
 		ctype:    "tcp",
 		clink:    fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
 		ctimeout: time.Duration(cfg.Timeout) * time.Second,
 		conns:    make(chan *Client, cfg.MaxConn),
 		config:   cfg,
-	}
-
-	if cr.ctimeout < 1*time.Second {
-		cr.ctimeout = 10 * time.Second
 	}
 
 	for i := 0; i < cfg.MaxConn; i++ {
