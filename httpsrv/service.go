@@ -139,6 +139,10 @@ func (s *Service) Error() error {
 
 func (s *Service) Start() error {
 
+	//
+	s.Config.UrlBasePath = strings.Trim(filepath.Clean(s.Config.UrlBasePath), "/")
+
+	//
 	network, localAddress := "tcp", s.Config.HttpAddr
 
 	// If the port is zero, treat the address as a fully qualified local address.
