@@ -23,7 +23,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/lessos/lessgo/utils"
+	"github.com/lessos/lessgo/encoding/json"
 )
 
 type Request struct {
@@ -74,7 +74,7 @@ func (req *Request) JsonDecode(obj interface{}) error {
 		return fmt.Errorf("No Data Found")
 	}
 
-	return utils.JsonDecode(req.RawBody, obj)
+	return json.Decode(req.RawBody, obj)
 }
 
 // Get the content type.
