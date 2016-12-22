@@ -16,6 +16,7 @@ package iossdb
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net"
 	"strconv"
@@ -85,28 +86,18 @@ func send_buf(args []interface{}) ([]byte, error) {
 			s = argt
 
 		case []byte:
-
-			buf.WriteString(strconv.FormatInt(int64(len(argt)), 10))
-			buf.WriteByte('\n')
-			buf.Write(argt)
-			buf.WriteByte('\n')
+			send_buf_bs(&buf, argt)
 			continue
 
 		case [][]byte:
 			for _, bs := range argt {
-				buf.WriteString(strconv.FormatInt(int64(len(bs)), 10))
-				buf.WriteByte('\n')
-				buf.Write(bs)
-				buf.WriteByte('\n')
+				send_buf_bs(&buf, bs)
 			}
 			continue
 
 		case []string:
 			for _, s := range argt {
-				buf.WriteString(strconv.FormatInt(int64(len(s)), 10))
-				buf.WriteByte('\n')
-				buf.WriteString(s)
-				buf.WriteByte('\n')
+				send_buf_ss(&buf, &s)
 			}
 			continue
 
@@ -157,18 +148,29 @@ func send_buf(args []interface{}) ([]byte, error) {
 			s = ""
 
 		default:
-			return []byte{}, fmt.Errorf("bad arguments")
+			return []byte{}, errors.New("bad arguments")
 		}
 
-		buf.WriteString(strconv.FormatInt(int64(len(s)), 10))
-		buf.WriteByte('\n')
-		buf.WriteString(s)
-		buf.WriteByte('\n')
+		send_buf_ss(&buf, &s)
 	}
 
 	buf.WriteByte('\n')
 
 	return buf.Bytes(), nil
+}
+
+func send_buf_bs(buf *bytes.Buffer, data []byte) {
+	buf.WriteString(strconv.FormatInt(int64(len(data)), 10))
+	buf.WriteByte('\n')
+	buf.Write(data)
+	buf.WriteByte('\n')
+}
+
+func send_buf_ss(buf *bytes.Buffer, data *string) {
+	buf.WriteString(strconv.FormatInt(int64(len(*data)), 10))
+	buf.WriteByte('\n')
+	buf.WriteString(*data)
+	buf.WriteByte('\n')
 }
 
 func (c *Client) send(args []interface{}) error {
