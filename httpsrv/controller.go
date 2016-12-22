@@ -15,12 +15,14 @@
 package httpsrv
 
 import (
-	"fmt"
 	"io"
 	"net/http"
+	"path/filepath"
 	"reflect"
+	"strconv"
+	"strings"
 
-	"github.com/lessos/lessgo/utils"
+	"github.com/lessos/lessgo/encoding/json"
 )
 
 type Controller struct {
@@ -139,11 +141,49 @@ func (c *Controller) RenderError(status int, msg string) {
 	io.WriteString(c.Response.Out, msg)
 }
 
+func (c *Controller) UrlBase(path string) string {
+
+	url_base := ""
+	if c.Request.TLS != nil {
+		url_base = "https://" + c.Request.Host
+	} else {
+		url_base = "http://" + c.Request.Host
+	}
+
+	if c.service.Config.UrlBasePath != "" {
+		url_base += "/" + c.service.Config.UrlBasePath
+	}
+
+	if len(path) > 0 {
+		path = filepath.Clean(path)
+	}
+
+	if path != "" {
+		url_base += "/" + path
+	}
+
+	return url_base
+}
+
 func (c *Controller) Redirect(url string) {
 
 	c.AutoRender = false
 
-	c.Response.Out.Header().Set("Location", url)
+	if len(url) < 1 {
+		return
+	}
+
+	if url[0] != '/' && !strings.HasPrefix(url, "http") {
+
+		if c.service.Config.UrlBasePath != "" {
+			c.Response.Out.Header().Set("Location", "/"+c.service.Config.UrlBasePath+"/"+url)
+		} else {
+			c.Response.Out.Header().Set("Location", "/"+url)
+		}
+	} else {
+		c.Response.Out.Header().Set("Location", url)
+	}
+
 	c.Response.Out.WriteHeader(http.StatusFound)
 }
 
@@ -161,8 +201,8 @@ func (c *Controller) RenderJson(obj interface{}) {
 	c.Response.Out.Header().Set("Access-Control-Allow-Origin", "*")
 	c.Response.Out.Header().Set("Content-type", "application/json")
 
-	if js, err := utils.JsonEncodeBytes(obj); err == nil {
-		c.Response.Out.Header().Set("Content-Length", fmt.Sprintf("%d", len(js)))
+	if js, err := json.Encode(obj, ""); err == nil {
+		c.Response.Out.Header().Set("Content-Length", strconv.Itoa(len(js)))
 		c.Response.Out.Write(js)
 	}
 }
