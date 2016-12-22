@@ -140,7 +140,9 @@ func (s *Service) Error() error {
 func (s *Service) Start() error {
 
 	//
-	s.Config.UrlBasePath = strings.Trim(filepath.Clean(s.Config.UrlBasePath), "/")
+	if s.Config.UrlBasePath != "" {
+		s.Config.UrlBasePath = strings.Trim(filepath.Clean("/"+s.Config.UrlBasePath), "/")
+	}
 
 	//
 	network, localAddress := "tcp", s.Config.HttpAddr
