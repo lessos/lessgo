@@ -42,12 +42,18 @@ func main() {
 	}
 
 	conn.Cmd("set", "aa", "val-aaaaaaaaaaaaaaaaaa")
-	conn.Cmd("set", "bb", "val-bbbbbbbbbbbbbbbbbb")
-	conn.Cmd("set", "cc", "val-cccccccccccccccccc")
+	conn.Cmd("multi_set", []string{
+		"bb", "val-bbbbbbbbbbbbbbbbbb",
+		"cc", "val-cccccccccccccccccc",
+	})
 	// API::String() string
 	if rs := conn.Cmd("get", "aa"); rs.State == "ok" {
 		fmt.Println("get OK\n\t", rs.String())
 	}
+	if rs := conn.Cmd("get", []byte("aa")); rs.State == "ok" {
+		fmt.Println("get bytes OK\n\t", rs.String())
+	}
+
 	// API::KvEach()
 	if rs := conn.Cmd("multi_get", "aa", "bb"); rs.State == "ok" {
 		fmt.Println("multi_get OK")
@@ -66,6 +72,14 @@ func main() {
 
 	if rs := conn.Cmd("scan", "aa", "cc", 10); rs.State == "ok" {
 		fmt.Println("scan OK")
+		n := rs.KvEach(func(key, value types.Bytex) {
+			fmt.Println("\t", key.String(), value.String())
+		})
+		fmt.Println("\t got", n)
+	}
+
+	if rs := conn.Cmd("scan", []byte("aa"), []byte("cc"), 10); rs.State == "ok" {
+		fmt.Println("scan bytes OK")
 		n := rs.KvEach(func(key, value types.Bytex) {
 			fmt.Println("\t", key.String(), value.String())
 		})
