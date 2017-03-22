@@ -195,10 +195,10 @@ func (s *Service) Start() error {
 
 	//
 	s.server = &http.Server{
-		Addr:    localAddress,
-		Handler: srvmux,
-		// ReadTimeout:    time.Duration(s.Config.HttpTimeout) * time.Second,
-		// WriteTimeout:   time.Duration(s.Config.HttpTimeout) * time.Second,
+		Addr:           localAddress,
+		Handler:        srvmux,
+		ReadTimeout:    time.Duration(s.Config.HttpTimeout) * time.Second,
+		WriteTimeout:   time.Duration(s.Config.HttpTimeout) * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
 
