@@ -156,7 +156,8 @@ func RouterFilter(c *Controller) {
 			}
 		}
 
-		c.module = mod.name
+		c.mod_name = mod.name
+		c.mod_urlbase = mod.baseuri
 
 		ctrl, ok := mod.controllers[c.Name]
 		if !ok {
@@ -165,7 +166,7 @@ func RouterFilter(c *Controller) {
 
 			if ctrl, ok = mod.controllers[c.Name]; !ok {
 
-				c.module = "default"
+				c.mod_name = "default"
 
 				if ctrl, ok = mod.controllers[c.Name]; !ok {
 					return
@@ -183,7 +184,11 @@ func RouterFilter(c *Controller) {
 			appController.FieldByIndex(index).Set(cValue)
 		}
 
-		c.Request.RequestPath = urlpath
+		if mod.baseuri != "" {
+			c.Request.RequestPath = mod.baseuri + "/" + urlpath
+		} else {
+			c.Request.RequestPath = urlpath
+		}
 		c.appController = appControllerPtr.Interface()
 
 		break

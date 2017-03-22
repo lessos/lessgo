@@ -35,7 +35,8 @@ type Controller struct {
 	AutoRender    bool
 	Data          map[string]interface{}
 	appController interface{} // The controller that was instantiated.
-	module        string
+	mod_name      string
+	mod_urlbase   string
 	service       *Service
 }
 
@@ -96,13 +97,13 @@ func (c *Controller) Render(args ...interface{}) {
 
 	c.AutoRender = false
 
-	module, templatePath := c.module, c.Name+"/"+c.ActionName+".tpl"
+	mod_name, templatePath := c.mod_name, c.Name+"/"+c.ActionName+".tpl"
 
 	if len(args) == 2 &&
 		reflect.TypeOf(args[0]).Kind() == reflect.String &&
 		reflect.TypeOf(args[1]).Kind() == reflect.String {
 
-		module, templatePath = args[0].(string), args[1].(string)
+		mod_name, templatePath = args[0].(string), args[1].(string)
 
 	} else if len(args) == 1 &&
 		reflect.TypeOf(args[0]).Kind() == reflect.String {
@@ -117,7 +118,7 @@ func (c *Controller) Render(args ...interface{}) {
 		}
 	}()
 
-	template, err := c.service.TemplateLoader.Template(module, templatePath)
+	template, err := c.service.TemplateLoader.Template(mod_name, templatePath)
 	if err != nil {
 		return //c.RenderError(err)
 	}
@@ -163,6 +164,10 @@ func (c *Controller) UrlBase(path string) string {
 	}
 
 	return url_base
+}
+
+func (c *Controller) UrlModuleBase(path string) string {
+	return c.UrlBase(c.mod_urlbase + "/" + path)
 }
 
 func (c *Controller) Redirect(url string) {

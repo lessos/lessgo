@@ -21,7 +21,7 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/lessos/lessgo/httpsrv"
+	//. "github.com/lessos/lessgo/httpsrv"
 	"github.com/lessos/lessgo/net/httpclient"
 	"github.com/lessos/lessgo/utils"
 )
