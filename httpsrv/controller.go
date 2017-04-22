@@ -64,6 +64,10 @@ func NewController(srv *Service, req *Request, resp *Response) *Controller {
 	}
 }
 
+var (
+	gen_args = []reflect.Value{}
+)
+
 func ActionInvoker(c *Controller) {
 
 	//
@@ -71,7 +75,20 @@ func ActionInvoker(c *Controller) {
 		return
 	}
 
-	execController := reflect.ValueOf(c.appController).MethodByName(c.ActionName + "Action")
+	//
+	execController := reflect.ValueOf(c.appController).MethodByName("Init")
+	if execController.Kind() != reflect.Invalid {
+
+		if iv := execController.Call(gen_args)[0]; iv.Kind() == reflect.Int {
+
+			if iv.Int() != 0 {
+				return
+			}
+		}
+	}
+
+	//
+	execController = reflect.ValueOf(c.appController).MethodByName(c.ActionName + "Action")
 	if execController.Kind() == reflect.Invalid && c.ActionName != "Index" {
 
 		execController = reflect.ValueOf(c.appController).MethodByName("IndexAction")
@@ -81,11 +98,11 @@ func ActionInvoker(c *Controller) {
 		}
 	}
 
-	args := []reflect.Value{}
+	//
 	if execController.Type().IsVariadic() {
-		execController.CallSlice(args)
+		execController.CallSlice(gen_args)
 	} else {
-		execController.Call(args)
+		execController.Call(gen_args)
 	}
 
 	if c.AutoRender {
