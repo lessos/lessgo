@@ -23,7 +23,7 @@ import (
 
 var (
 	label_name_re2 = regexp.MustCompile("^[a-z]{1}[a-z0-9-._/]{0,99}$")
-	label_mu       sync.Mutex
+	label_mu       sync.RWMutex
 
 	labelErrNameEmpty   = errors.New("label name cannot be empty")
 	labelErrNameLength  = errors.New("length of the label name must be less than 100")
@@ -82,6 +82,9 @@ func (ls *Labels) Set(name string, value interface{}) error {
 // Get fetch the label entry "value" (if any) for "name".
 func (ls Labels) Get(name string) (Bytex, bool) {
 
+	label_mu.RLock()
+	defer label_mu.RUnlock()
+
 	for _, prev := range ls {
 
 		if prev.Name == name {
@@ -108,6 +111,9 @@ func (ls *Labels) Del(name string) {
 }
 
 func (ls *Labels) Equal(items Labels) bool {
+
+	label_mu.RLock()
+	defer label_mu.RUnlock()
 
 	if len(*ls) != len(items) {
 		return false
