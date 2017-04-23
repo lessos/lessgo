@@ -65,6 +65,13 @@ type ErrorMeta struct {
 	Message string `json:"message,omitempty"`
 }
 
+func NewErrorMeta(code, message string) *ErrorMeta {
+	return &ErrorMeta{
+		Code:    code,
+		Message: message,
+	}
+}
+
 // ListMeta describes metadata that synthetic resources must have, including lists and
 // various status objects. A resource may have only one of {ObjectMeta, ListMeta}.
 type ListMeta struct {
