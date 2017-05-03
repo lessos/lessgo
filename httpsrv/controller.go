@@ -217,13 +217,17 @@ func (c *Controller) RenderString(body string) {
 }
 
 func (c *Controller) RenderJson(obj interface{}) {
+	c.RenderJsonIndent(obj, "")
+}
+
+func (c *Controller) RenderJsonIndent(obj interface{}, indent string) {
 
 	c.AutoRender = false
 
 	c.Response.Out.Header().Set("Access-Control-Allow-Origin", "*")
 	c.Response.Out.Header().Set("Content-type", "application/json")
 
-	if js, err := json.Encode(obj, ""); err == nil {
+	if js, err := json.Encode(obj, indent); err == nil {
 		c.Response.Out.Header().Set("Content-Length", strconv.Itoa(len(js)))
 		c.Response.Out.Write(js)
 	}
