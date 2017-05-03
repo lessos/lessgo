@@ -55,6 +55,15 @@ type TypeMeta struct {
 	Error *ErrorMeta `json:"error,omitempty"`
 }
 
+func NewTypeErrorMeta(code, message string) TypeMeta {
+	return TypeMeta{
+		Error: &ErrorMeta{
+			Code:    code,
+			Message: message,
+		},
+	}
+}
+
 // ErrorMeta provides more information about an api failure.
 type ErrorMeta struct {
 	// A machine-readable description of the type of the error. If this value is
