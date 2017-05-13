@@ -19,12 +19,12 @@ import (
 )
 
 var (
-	ar_uint32_mu sync.Mutex
+	ar_uint16_mu sync.Mutex
 )
 
-type ArrayUint32 []uint32
+type ArrayUint16 []uint16
 
-func (ar *ArrayUint32) Has(ui uint32) bool {
+func (ar *ArrayUint16) Has(ui uint16) bool {
 
 	for _, v := range *ar {
 
@@ -36,10 +36,10 @@ func (ar *ArrayUint32) Has(ui uint32) bool {
 	return false
 }
 
-func (ar *ArrayUint32) Set(ui uint32) bool {
+func (ar *ArrayUint16) Set(ui uint16) bool {
 
-	ar_uint32_mu.Lock()
-	defer ar_uint32_mu.Unlock()
+	ar_uint16_mu.Lock()
+	defer ar_uint16_mu.Unlock()
 
 	for _, v := range *ar {
 
@@ -53,10 +53,10 @@ func (ar *ArrayUint32) Set(ui uint32) bool {
 	return true
 }
 
-func (ar *ArrayUint32) Del(ui uint32) {
+func (ar *ArrayUint16) Del(ui uint16) {
 
-	ar_uint32_mu.Lock()
-	defer ar_uint32_mu.Unlock()
+	ar_uint16_mu.Lock()
+	defer ar_uint16_mu.Unlock()
 
 	for i, v := range *ar {
 
@@ -67,7 +67,7 @@ func (ar *ArrayUint32) Del(ui uint32) {
 	}
 }
 
-func (ar *ArrayUint32) Equal(ar2 ArrayUint32) bool {
+func (ar *ArrayUint16) Equal(ar2 ArrayUint16) bool {
 
 	if len(*ar) != len(ar2) {
 		return false
@@ -93,7 +93,7 @@ func (ar *ArrayUint32) Equal(ar2 ArrayUint32) bool {
 	return true
 }
 
-func (ar *ArrayUint32) MatchAny(ar2 ArrayUint32) bool {
+func (ar *ArrayUint16) MatchAny(ar2 ArrayUint16) bool {
 
 	for _, v2 := range ar2 {
 
@@ -109,14 +109,14 @@ func (ar *ArrayUint32) MatchAny(ar2 ArrayUint32) bool {
 }
 
 // sort.Interface
-func (ar ArrayUint32) Len() int {
+func (ar ArrayUint16) Len() int {
 	return len(ar)
 }
 
-func (ar ArrayUint32) Less(i, j int) bool {
+func (ar ArrayUint16) Less(i, j int) bool {
 	return ar[i] < ar[j]
 }
 
-func (ar ArrayUint32) Swap(i, j int) {
+func (ar ArrayUint16) Swap(i, j int) {
 	ar[i], ar[j] = ar[j], ar[i]
 }

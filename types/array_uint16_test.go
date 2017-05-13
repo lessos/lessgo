@@ -19,16 +19,16 @@ import (
 	"testing"
 )
 
-func TestArrayUint32(t *testing.T) {
+func TestArrayUint16(t *testing.T) {
 
-	ar := ArrayUint32([]uint32{1, 2})
+	ar := ArrayUint16([]uint16{1, 2})
 
 	if ar.Has(1) == false ||
 		ar.Has(3) == true {
 		t.Fatal("Failed on Has")
 	}
 
-	ar2 := ArrayUint32([]uint32{1, 2, 3})
+	ar2 := ArrayUint16([]uint16{1, 2, 3})
 	if ar2.Has(3) != true {
 		t.Fatal("Failed on Set")
 	}
@@ -50,24 +50,24 @@ func TestArrayUint32(t *testing.T) {
 	}
 
 	ar2.Del(1)
-	if ar2.Equal(ArrayUint32([]uint32{2, 3, 4, 5})) != true {
+	if ar2.Equal(ArrayUint16([]uint16{2, 3, 4, 5})) != true {
 		t.Fatal("Failed on Del")
 	}
 
 	ar2.Del(5)
-	if ar2.Equal(ArrayUint32([]uint32{2, 3, 4})) != true {
+	if ar2.Equal(ArrayUint16([]uint16{2, 3, 4})) != true {
 		t.Fatal("Failed on Del")
 	}
 
 	ar2.Del(3)
-	if ar2.Equal(ArrayUint32([]uint32{2, 4})) != true {
+	if ar2.Equal(ArrayUint16([]uint16{2, 4})) != true {
 		t.Fatal("Failed on Del")
 	}
 }
 
-func TestArrayUint32Sort(t *testing.T) {
+func TestArrayUint16Sort(t *testing.T) {
 
-	ar := ArrayUint32([]uint32{1, 3, 2})
+	ar := ArrayUint16([]uint16{1, 3, 2})
 
 	sort.Sort(ar)
 
@@ -76,15 +76,15 @@ func TestArrayUint32Sort(t *testing.T) {
 	}
 }
 
-func TestArrayUint32MatchAny(t *testing.T) {
+func TestArrayUint16MatchAny(t *testing.T) {
 
-	ar := ArrayUint32([]uint32{1, 3, 2})
+	ar := ArrayUint16([]uint16{1, 3, 2})
 
-	if !ar.MatchAny(ArrayUint32([]uint32{2, 4})) {
+	if !ar.MatchAny(ArrayUint16([]uint16{2, 4})) {
 		t.Fatal("Failed on MatchAny")
 	}
 
-	if ar.MatchAny(ArrayUint32([]uint32{4, 5})) {
+	if ar.MatchAny(ArrayUint16([]uint16{4, 5})) {
 		t.Fatal("Failed on MatchAny")
 	}
 }
