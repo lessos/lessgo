@@ -134,6 +134,33 @@ func (r *Reply) Hash() []Entry {
 	return hs
 }
 
+// HMap returns a slice string reply  as a map[string]string or an error.
+// it must have an even number of elements,
+// they must be in a "key value key value..." order and
+// keys must all be set, cannot be set empty strings.
+// Nil values are returned as empty strings.
+// Useful for hash commands.
+func (r *Reply) HMap() (map[string]string, error) {
+	if r.State != ReplyOK {
+		return nil, errors.New(r.State)
+	}
+	if len(r.Data)%2 != 0 {
+		return nil, errors.New("reply has odd number of elements")
+	}
+	rmap := map[string]string{}
+	for i := 0; i < (len(r.Data) - 1); i += 2 {
+		if 0 == len(r.Data[i]) {
+			return nil, errors.New("reply map key has been set empty string")
+		}
+		if _, exist := rmap[r.Data[i]]; !exist {
+			rmap[r.Data[i]] = r.Data[i+1]
+		} else {
+			return nil, errors.New("reply map key repeated")
+		}
+	}
+	return rmap, nil
+}
+
 // to be remove
 func (r *Reply) Json(v interface{}) error {
 	return r.JsonDecode(v)

@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"fmt"
 	"net"
+	"reflect"
 	"strconv"
 )
 
@@ -94,10 +95,7 @@ func send_buf(args []interface{}) ([]byte, error) {
 
 		case []string:
 			for _, s := range argt {
-				buf.WriteString(strconv.FormatInt(int64(len(s)), 10))
-				buf.WriteByte('\n')
-				buf.WriteString(s)
-				buf.WriteByte('\n')
+				write_buf(&buf, s)
 			}
 			continue
 
@@ -148,18 +146,34 @@ func send_buf(args []interface{}) ([]byte, error) {
 			s = ""
 
 		default:
+			switch reflect.TypeOf(arg).Kind() {
+			case reflect.Map:
+				rm := reflect.ValueOf(argt)
+				keys := rm.MapKeys()
+				for _, k := range keys {
+					kv := fmt.Sprintf("%v", k.Interface())
+					vv := fmt.Sprintf("%v", rm.MapIndex(k).Interface())
+					write_buf(&buf, kv)
+					write_buf(&buf, vv)
+				}
+				continue
+			}
 			return []byte{}, fmt.Errorf("bad arguments")
 		}
 
-		buf.WriteString(strconv.FormatInt(int64(len(s)), 10))
-		buf.WriteByte('\n')
-		buf.WriteString(s)
-		buf.WriteByte('\n')
+		write_buf(&buf, s)
 	}
 
 	buf.WriteByte('\n')
 
 	return buf.Bytes(), nil
+}
+
+func write_buf(buf *bytes.Buffer, data string) {
+	buf.WriteString(strconv.FormatInt(int64(len(data)), 10))
+	buf.WriteByte('\n')
+	buf.WriteString(data)
+	buf.WriteByte('\n')
 }
 
 func (c *Client) send(args []interface{}) error {
