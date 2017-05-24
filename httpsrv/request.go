@@ -33,7 +33,7 @@ type Request struct {
 	Locale         string
 	RequestPath    string
 	RawBody        []byte
-	WebSocket      WebSocket
+	WebSocket      *WebSocket
 }
 
 func NewRequest(r *http.Request) *Request {

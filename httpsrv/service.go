@@ -43,8 +43,9 @@ type Service struct {
 }
 
 type reg_handler struct {
-	base    string
-	handler http.Handler
+	base         string
+	handler      *http.Handler
+	handler_func *http.HandlerFunc
 }
 
 var (
@@ -78,19 +79,30 @@ func NewService() Service {
 	}
 }
 
-func (s *Service) HandlerRegisterPrev(baseuri string, h http.Handler) {
+func (s *Service) handlerRegister(h reg_handler) {
 
-	baseuri = "/" + strings.Trim(filepath.Clean(baseuri), "/")
+	h.base = "/" + strings.Trim(filepath.Clean(h.base), "/")
 
 	for _, v := range s.handlers {
-		if v.base == baseuri {
+		if v.base == h.base {
 			return
 		}
 	}
 
-	s.handlers = append(s.handlers, reg_handler{
+	s.handlers = append(s.handlers, h)
+}
+
+func (s *Service) HandlerRegister(baseuri string, h http.Handler) {
+	s.handlerRegister(reg_handler{
 		base:    baseuri,
-		handler: h,
+		handler: &h,
+	})
+}
+
+func (s *Service) HandlerFuncRegister(baseuri string, h http.HandlerFunc) {
+	s.handlerRegister(reg_handler{
+		base:         baseuri,
+		handler_func: &h,
 	})
 }
 
@@ -188,9 +200,19 @@ func (s *Service) Start() error {
 
 	//
 	for _, v := range s.handlers {
-		srvmux.Handle(v.base, v.handler)
+
+		if v.handler != nil {
+			srvmux.Handle(v.base, *v.handler)
+			logger.Printf("info", "lessgo/httpsrv: reg handler on %s", v.base)
+		}
+
+		if v.handler_func != nil {
+			srvmux.HandleFunc(v.base, *v.handler_func)
+			logger.Printf("info", "lessgo/httpsrv: reg handler func on %s", v.base)
+		}
 	}
 
+	//
 	srvmux.HandleFunc("/", s.handle)
 
 	//
@@ -209,7 +231,7 @@ func (s *Service) Start() error {
 		s.err = err
 		return nil
 	}
-	fmt.Println("lessgo/httpsrv: Listening on", localAddress)
+	logger.Printf("info", "lessgo/httpsrv: listening on %s/%s", network, localAddress)
 
 	if network == "unix" {
 		os.Chmod(localAddress, 0770)
@@ -219,12 +241,9 @@ func (s *Service) Start() error {
 	if err := s.server.Serve(listener); err != nil {
 		logger.Printf("fatal", "lessgo/httpsrv: server.Serve error %v", err)
 		s.err = err
-	} else {
-		time.Sleep(100 * time.Millisecond)
-		logger.Printf("info", "lessgo/httpsrv: Listening on %s ...", localAddress)
 	}
 
-	return nil
+	return s.err
 }
 
 func (s *Service) Stop() error {
@@ -266,7 +285,7 @@ func (s *Service) handleInternal(w http.ResponseWriter, r *http.Request, ws *web
 	)
 
 	if ws != nil {
-		req.WebSocket = WebSocket{
+		req.WebSocket = &WebSocket{
 			conn: ws,
 		}
 	}
