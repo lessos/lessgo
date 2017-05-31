@@ -29,7 +29,7 @@ var (
 )
 
 // KvPairs are key value pairs that may be used to scope and select individual items.
-type KvPairs []KvPair
+type KvPairs []*KvPair
 
 // KvPair is a key value . It implements KvPairs
 type KvPair struct {
@@ -65,7 +65,7 @@ func (ls *KvPairs) Set(key string, value interface{}) error {
 		}
 	}
 
-	*ls = append(*ls, KvPair{
+	*ls = append(*ls, &KvPair{
 		Key:   key,
 		Value: svalue,
 	})
@@ -74,7 +74,7 @@ func (ls *KvPairs) Set(key string, value interface{}) error {
 }
 
 // Get fetch the key-value pair "value" (if any) for "key".
-func (ls KvPairs) Get(key string) (Bytex, bool) {
+func (ls KvPairs) Get(key string) Bytex {
 
 	kvp_mu.RLock()
 	defer kvp_mu.RUnlock()
@@ -82,11 +82,11 @@ func (ls KvPairs) Get(key string) (Bytex, bool) {
 	for _, prev := range ls {
 
 		if prev.Key == key {
-			return Bytex(prev.Value), true
+			return Bytex(prev.Value)
 		}
 	}
 
-	return Bytex(""), false
+	return nil
 }
 
 // Del remove the key-value pair (if any) for "key".
