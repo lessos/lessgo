@@ -64,9 +64,12 @@ func (p *Params) String(key string) string {
 	return p.Values.Get(key)
 }
 
+func (p *Params) Uint64(key string) uint64 {
+	ui64, _ := strconv.ParseUint(p.Values.Get(key), 10, 64)
+	return ui64
+}
+
 func (p *Params) Int64(key string) int64 {
-
 	i64, _ := strconv.ParseInt(p.Values.Get(key), 10, 64)
-
 	return i64
 }
