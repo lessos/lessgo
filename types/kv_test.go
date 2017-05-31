@@ -38,26 +38,26 @@ func TestKvPair(t *testing.T) {
 	ls.Set("dddd", "value dddd")
 	ls.Set("eeee", "value eeee")
 
-	if _, hit := ls.Get("aaaa"); !hit {
+	if v := ls.Get("aaaa"); v == nil {
 		t.Fatal("Failed on Get")
 	}
 
-	if _, hit := ls.Get("0000"); hit {
+	if v := ls.Get("0000"); v != nil {
 		t.Fatal("Failed on Get")
 	}
 
 	ls.Del("aaaa")
-	if _, hit := ls.Get("aaaa"); hit {
+	if v := ls.Get("aaaa"); v != nil {
 		t.Fatal("Failed on Get")
 	}
 
 	ls.Del("cccc")
-	if _, hit := ls.Get("cccc"); hit {
+	if v := ls.Get("cccc"); v != nil {
 		t.Fatal("Failed on Get")
 	}
 
 	ls.Del("eeee")
-	if _, hit := ls.Get("eeee"); hit {
+	if v := ls.Get("eeee"); v != nil {
 		t.Fatal("Failed on Get")
 	}
 
