@@ -168,3 +168,9 @@ type InnerObjectMeta struct {
 	// Human readable description of this object.
 	Title string `json:"title,omitempty"`
 }
+
+type ObjectList struct {
+	Kind  string        `json:"kind,omitempty"`
+	Error *ErrorMeta    `json:"error,omitempty"`
+	Items []interface{} `json:"items,omitempty"`
+}
