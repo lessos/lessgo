@@ -56,9 +56,25 @@ func Benchmark_Rand(b *testing.B) {
 	}
 }
 
-func Benchmark_Hash(b *testing.B) {
+var (
+	hs_in = []byte("c18f885e25f52617f3653bf4e7715b29")
+)
+
+func Benchmark_HashSum_md5(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		Hash([]byte("123456"), 16)
+		HashSum("md5", hs_in, 16)
+	}
+}
+
+func Benchmark_HashSum_sha256(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		HashSum("sha256", hs_in, 16)
+	}
+}
+
+func Benchmark_HashSum_sha1(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		HashSum("sha1", hs_in, 16)
 	}
 }
 
