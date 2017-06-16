@@ -24,7 +24,7 @@ var (
 
 type ArrayString []string
 
-func (ar *ArrayString) Contain(s string) bool {
+func (ar *ArrayString) Has(s string) bool {
 
 	for _, v := range *ar {
 
@@ -34,6 +34,35 @@ func (ar *ArrayString) Contain(s string) bool {
 	}
 
 	return false
+}
+
+func (ar *ArrayString) Set(s string) {
+
+	ar_str_mu.Lock()
+	defer ar_str_mu.Unlock()
+
+	for _, v := range *ar {
+
+		if v == s {
+			return
+		}
+	}
+
+	*ar = append(*ar, s)
+}
+
+func (ar *ArrayString) Del(s string) {
+
+	ar_str_mu.Lock()
+	defer ar_str_mu.Unlock()
+
+	for i, v := range *ar {
+
+		if v == s {
+			*ar = append((*ar)[:i], (*ar)[i+1:]...)
+			return
+		}
+	}
 }
 
 func (ar *ArrayString) Equal(ar2 ArrayString) bool {
@@ -62,31 +91,17 @@ func (ar *ArrayString) Equal(ar2 ArrayString) bool {
 	return true
 }
 
-func (ar *ArrayString) Insert(s string) {
-
-	ar_str_mu.Lock()
-	defer ar_str_mu.Unlock()
-
-	for _, v := range *ar {
-
-		if v == s {
-			return
-		}
-	}
-
-	*ar = append(*ar, s)
+// Deprecated
+func (ar *ArrayString) Contain(s string) bool {
+	return ar.Has(s)
 }
 
+// Deprecated
+func (ar *ArrayString) Insert(s string) {
+	ar.Set(s)
+}
+
+// Deprecated
 func (ar *ArrayString) Remove(s string) {
-
-	ar_str_mu.Lock()
-	defer ar_str_mu.Unlock()
-
-	for i, v := range *ar {
-
-		if v == s {
-			*ar = append((*ar)[:i], (*ar)[i+1:]...)
-			return
-		}
-	}
+	ar.Del(s)
 }
