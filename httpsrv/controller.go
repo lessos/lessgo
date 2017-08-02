@@ -147,7 +147,7 @@ func (c *Controller) Render(args ...interface{}) {
 
 	out := io.Writer(c.Response.Out)
 	if err = template.Render(out, c.Data); err != nil {
-		println(err)
+		// println(err)
 	}
 }
 

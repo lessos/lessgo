@@ -33,3 +33,18 @@ func (s *Session) Get(key string) string {
 
 	return s.c.Params.Get(key)
 }
+
+func (s *Session) AuthToken(key string) string {
+
+	if len(key) > 0 {
+		if tv := s.c.Params.Get(key); len(tv) > 10 {
+			return tv
+		}
+
+		if v, err := s.c.Request.Cookie(key); err == nil {
+			return v.Value
+		}
+	}
+
+	return s.c.Request.Header.Get("Authorization")
+}
