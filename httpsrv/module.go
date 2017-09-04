@@ -47,6 +47,19 @@ func NewModule(name string) Module {
 	}
 }
 
+func NewStaticModule(name, path string) Module {
+
+	m := NewModule(name)
+
+	m.RouteSet(Route{
+		Type:       RouteTypeStatic,
+		Path:       "",
+		StaticPath: path,
+	})
+
+	return m
+}
+
 func (m *Module) RouteSet(r Route) {
 
 	if r.Type == "" {
