@@ -74,6 +74,15 @@ type ErrorMeta struct {
 	Message string `json:"message,omitempty"`
 }
 
+const (
+	ErrCodeBadArgument  = "BadArgument"
+	ErrCodeUnavailable  = "Unavailable"
+	ErrCodeServerError  = "ServerError"
+	ErrCodeNotFound     = "NotFound"
+	ErrCodeAccessDenied = "AccessDenied"
+	ErrCodeUnauthorized = "Unauthorized"
+)
+
 func NewErrorMeta(code, message string) *ErrorMeta {
 	return &ErrorMeta{
 		Code:    code,

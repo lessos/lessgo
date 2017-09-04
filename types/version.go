@@ -14,7 +14,52 @@
 
 package types
 
+import (
+	"strings"
+)
+
 type Version string
+
+func version_is_w(v uint8) bool {
+	if (v >= 'a' && v <= 'z') ||
+		(v >= 'A' && v <= 'Z') ||
+		(v >= '0' && v <= '9') {
+		return true
+	}
+	return false
+}
+
+func version_is_a(v uint8) bool {
+	if v == '-' || v == '_' {
+		return true
+	}
+	return false
+}
+
+func (v *Version) Valid() bool {
+	if *v == "" {
+		return false
+	}
+
+	vs := strings.Split(string(*v), ".")
+	for _, vsv := range vs {
+		if vsv == "" {
+			return false
+		}
+
+		if !version_is_w(vsv[0]) {
+			return false
+		}
+
+		for i := 1; i < len(vsv); i++ {
+			if !version_is_w(vsv[i]) && !version_is_a(vsv[i]) {
+				return false
+			}
+		}
+	}
+
+	return true
+}
 
 // Compare compares this version to another version. This
 // returns -1, 0, or 1 if this version is smaller, equal,

@@ -18,6 +18,11 @@ import (
 	"testing"
 )
 
+type valid_entry struct {
+	v  string
+	ok bool
+}
+
 func TestVersion(t *testing.T) {
 
 	v1 := Version("2.0.12.1.aa")
@@ -30,5 +35,35 @@ func TestVersion(t *testing.T) {
 
 	if v1.String() != "2.0.12.1.aa" {
 		t.Fatal("Failed on String")
+	}
+
+	vs := []valid_entry{
+		{"1.0.0", true},
+		{"2.0.0.aa", true},
+		{"1", true},
+		{"100", true},
+		{"1.dev-beta", true},
+		{"1.dev_beta", true},
+		{"v1", true},
+		{"", false},
+		{"-", false},
+		{".", false},
+		{" ", false},
+		{"!", false},
+		{".0", false},
+		{".0.", false},
+	}
+	for _, v := range vs {
+		vv := Version(v.v)
+		if vv.Valid() != v.ok {
+			t.Fatal("Failed on Valid " + v.v)
+		}
+	}
+}
+
+func Benchmark_Version_Valid(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		v1 := Version("10.10.10.dev")
+		v1.Valid()
 	}
 }
