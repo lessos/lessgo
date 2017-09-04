@@ -21,6 +21,7 @@ import (
 	"net"
 	"strconv"
 
+	"github.com/lessos/lessgo/logger"
 	"github.com/lessos/lessgo/types"
 )
 
@@ -52,6 +53,7 @@ func (c *Client) Cmd(args ...interface{}) *Reply {
 
 	if err := c.send(args); err != nil {
 		r.State = ReplyFail
+		logger.Printf("error", "data/iossdb/client/Cmd error %s", err.Error())
 		return r
 	}
 

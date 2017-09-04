@@ -13,6 +13,7 @@ type Connector struct {
 	conns    chan *conn
 	locker   sync.Mutex     // TODO
 	stats    map[string]int // TODO
+	config   Config
 }
 
 type conn struct {
@@ -44,6 +45,7 @@ func NewConnector(cfg Config) (*Connector, error) {
 		clink:    cfg.Host + ":" + cfg.Port,
 		ctimeout: time.Duration(cfg.Timeout) * time.Second,
 		conns:    make(chan *conn, cfg.MaxConn),
+		config:   cfg,
 	}
 
 	if c.ctimeout < 1*time.Second {
@@ -83,6 +85,14 @@ func (c *Connector) Cmd(cmd string, args ...interface{}) *Reply {
 	}
 
 	return rs
+}
+
+func (cr *Connector) Close() {
+
+	for i := 0; i < cr.config.MaxConn; i++ {
+		cn, _ := cr.pull()
+		cn.client.Close()
+	}
 }
 
 func (c *Connector) push(cn *conn) {
