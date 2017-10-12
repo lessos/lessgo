@@ -60,6 +60,10 @@ func NewHttpClientRequest(method, req_url string) *HttpClientRequest {
 	}
 }
 
+func (c *HttpClientRequest) SetUrl(url string) {
+	c.url = url
+}
+
 // SetTimeout sets connect time out.
 func (c *HttpClientRequest) SetTimeout(timeout time.Duration) *HttpClientRequest {
 	c.timeout = timeout * time.Millisecond
