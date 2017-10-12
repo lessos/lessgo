@@ -62,19 +62,19 @@ var (
 
 func Benchmark_HashSum_md5(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		HashSum("md5", hs_in, 16)
+		HashSum(AlgMd5, hs_in, 16)
 	}
 }
 
 func Benchmark_HashSum_sha256(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		HashSum("sha256", hs_in, 16)
+		HashSum(AlgSha256, hs_in, 16)
 	}
 }
 
 func Benchmark_HashSum_sha1(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		HashSum("sha1", hs_in, 16)
+		HashSum(AlgSha1, hs_in, 16)
 	}
 }
 

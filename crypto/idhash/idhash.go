@@ -25,6 +25,9 @@ import (
 
 const (
 	rand_bytes_max = 1024 * 1024
+	AlgMd5         = 1
+	AlgSha1        = 2
+	AlgSha256      = 3
 )
 
 func init() {
@@ -60,10 +63,10 @@ func Rand(size int) []byte {
 }
 
 func Hash(bs []byte, bytelen int) []byte {
-	return HashSum("md5", bs, bytelen)
+	return HashSum(AlgMd5, bs, bytelen)
 }
 
-func HashSum(alg string, bs []byte, bytelen int) []byte {
+func HashSum(alg int, bs []byte, bytelen int) []byte {
 
 	if len(bs) == 0 {
 		return bs
@@ -74,21 +77,21 @@ func HashSum(alg string, bs []byte, bytelen int) []byte {
 	}
 
 	switch alg {
-	case "md5":
+	case AlgMd5:
 		if bytelen > 16 {
 			bytelen = 16
 		}
 		hs := md5.Sum(bs)
 		return hs[:bytelen]
 
-	case "sha256":
+	case AlgSha256:
 		if bytelen > 32 {
 			bytelen = 32
 		}
 		hs := sha256.Sum256(bs)
 		return hs[:bytelen]
 
-	case "sha1":
+	case AlgSha1:
 		if bytelen > 20 {
 			bytelen = 20
 		}

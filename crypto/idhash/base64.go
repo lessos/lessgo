@@ -30,3 +30,16 @@ func RandBase64String(length int) string {
 
 	return base64.RawStdEncoding.EncodeToString(Rand(3 * length))
 }
+
+func HashToBase64String(alg int, bs []byte, length int) string {
+
+	if length < 4 {
+		length = 1
+	} else if length%4 > 0 {
+		length = length/4 + 1
+	} else {
+		length = length / 4
+	}
+
+	return base64.RawStdEncoding.EncodeToString(HashSum(alg, bs, 3*length))
+}
