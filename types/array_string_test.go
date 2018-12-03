@@ -57,4 +57,9 @@ func TestArrayString(t *testing.T) {
 	if ar2.Equal(ArrayString([]string{"bb", "dd"})) != true {
 		t.Fatal("Failed on Remove")
 	}
+
+	ar2.Clean()
+	if len(ar2) > 0 {
+		t.Fatal("Failed on Clean")
+	}
 }

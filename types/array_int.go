@@ -19,16 +19,16 @@ import (
 )
 
 var (
-	ar_str_mu sync.Mutex
+	ar_int_mu sync.Mutex
 )
 
-type ArrayString []string
+type ArrayInt []int
 
-func (ar *ArrayString) Has(s string) bool {
+func (ar *ArrayInt) Has(ui int) bool {
 
 	for _, v := range *ar {
 
-		if v == s {
+		if v == ui {
 			return true
 		}
 	}
@@ -36,36 +36,38 @@ func (ar *ArrayString) Has(s string) bool {
 	return false
 }
 
-func (ar *ArrayString) Set(s string) {
+func (ar *ArrayInt) Set(ui int) bool {
 
-	ar_str_mu.Lock()
-	defer ar_str_mu.Unlock()
+	ar_int_mu.Lock()
+	defer ar_int_mu.Unlock()
 
 	for _, v := range *ar {
 
-		if v == s {
-			return
+		if v == ui {
+			return false
 		}
 	}
 
-	*ar = append(*ar, s)
+	*ar = append(*ar, ui)
+
+	return true
 }
 
-func (ar *ArrayString) Del(s string) {
+func (ar *ArrayInt) Del(ui int) {
 
-	ar_str_mu.Lock()
-	defer ar_str_mu.Unlock()
+	ar_int_mu.Lock()
+	defer ar_int_mu.Unlock()
 
 	for i, v := range *ar {
 
-		if v == s {
+		if v == ui {
 			*ar = append((*ar)[:i], (*ar)[i+1:]...)
 			return
 		}
 	}
 }
 
-func (ar *ArrayString) Equal(ar2 ArrayString) bool {
+func (ar *ArrayInt) Equal(ar2 ArrayInt) bool {
 
 	if len(*ar) != len(ar2) {
 		return false
@@ -91,21 +93,30 @@ func (ar *ArrayString) Equal(ar2 ArrayString) bool {
 	return true
 }
 
-func (ar *ArrayString) Clean() {
-	*ar = []string{}
+func (ar *ArrayInt) MatchAny(ar2 ArrayInt) bool {
+
+	for _, v2 := range ar2 {
+
+		for _, v := range *ar {
+
+			if v == v2 {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
-// Deprecated
-func (ar *ArrayString) Contain(s string) bool {
-	return ar.Has(s)
+// sort.Interface
+func (ar ArrayInt) Len() int {
+	return len(ar)
 }
 
-// Deprecated
-func (ar *ArrayString) Insert(s string) {
-	ar.Set(s)
+func (ar ArrayInt) Less(i, j int) bool {
+	return ar[i] < ar[j]
 }
 
-// Deprecated
-func (ar *ArrayString) Remove(s string) {
-	ar.Del(s)
+func (ar ArrayInt) Swap(i, j int) {
+	ar[i], ar[j] = ar[j], ar[i]
 }
