@@ -1,4 +1,4 @@
-// Copyright 2016 lessOS.com, All rights reserved.
+// Copyright 2015 Eryx <evorui аt gmаil dοt cοm>, All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,15 +15,17 @@
 package httpsrv
 
 import (
+	"errors"
 	"fmt"
+	"math/rand"
+	"net"
 	"runtime"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
 
-	//. "github.com/lessos/lessgo/httpsrv"
 	"github.com/lessos/lessgo/net/httpclient"
-	"github.com/lessos/lessgo/utils"
 )
 
 const (
@@ -48,9 +50,9 @@ func TestBench(t *testing.T) {
 	GlobalService.ModuleRegister("/", module)
 
 	//
-	err, port, _ := utils.NetFreePort(10000, 20000)
-	if err != nil {
-		t.Fatal(err)
+	port := net_free_port()
+	if port == 0 {
+		t.Fatal(errors.New("Listen failed"))
 	}
 	GlobalService.Config.HttpPort = uint16(port)
 	go GlobalService.Start()
@@ -119,9 +121,28 @@ func TestBench(t *testing.T) {
 	rps := float64(max_req) / duration.Seconds()
 
 	//
-	fmt.Printf("\tTime taken for tests:   %v\n", time.Since(start))
-	fmt.Printf("\tConcurrency Level:      %d\n", max_cli)
-	fmt.Printf("\tComplete requests:      %d\n", ok_no)
-	fmt.Printf("\tFailed requests:        %d\n", err_no)
-	fmt.Printf("\tRequests per second:    %.0f\n", rps)
+	t.Logf("\tTime taken for tests:   %v\n", time.Since(start))
+	t.Logf("\tConcurrency Level:      %d\n", max_cli)
+	t.Logf("\tComplete requests:      %d\n", ok_no)
+	t.Logf("\tFailed requests:        %d\n", err_no)
+	t.Logf("\tRequests per second:    %.0f\n", rps)
+}
+
+func net_free_port() int {
+
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	for i := 0; i < 100; i++ {
+
+		iport := 10000 + r.Intn(50000)
+
+		port := strconv.Itoa(iport)
+		ln, err := net.Listen("tcp", ":"+port)
+		if err == nil {
+			ln.Close()
+			return iport
+		}
+	}
+
+	return 0
 }
