@@ -36,6 +36,7 @@ type HttpClientSignHandler func(*http.Request)
 
 type HttpClientRequest struct {
 	Req             *http.Request
+	netUnix         string
 	url             string
 	timeout         time.Duration
 	tlsClientConfig *tls.Config
@@ -58,6 +59,10 @@ func NewHttpClientRequest(method, req_url string) *HttpClientRequest {
 		timeout: defaultTimeout,
 		params:  map[string]string{},
 	}
+}
+
+func (c *HttpClientRequest) SetUnixDomainSocket(v string) {
+	c.netUnix = v
 }
 
 func (c *HttpClientRequest) SetUrl(url string) {
@@ -171,12 +176,12 @@ func (c *HttpClientRequest) Response() (*http.Response, error) {
 		c.Body(paramBody)
 	}
 
-	url, err := url.Parse(c.url)
+	u, err := url.Parse(c.url)
 	if err != nil {
 		return nil, err
 	}
-	url.Path = filepath.Clean(url.Path)
-	c.Req.URL = url
+	u.Path = filepath.Clean(u.Path)
+	c.Req.URL = u
 
 	if c.SignHandler != nil {
 		c.SignHandler(c.Req)
@@ -185,9 +190,10 @@ func (c *HttpClientRequest) Response() (*http.Response, error) {
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: c.tlsClientConfig,
-			Dial:            timeoutDialer(c.timeout, c.timeout),
+			Dial:            timeoutDialer(c.netUnix, c.timeout, c.timeout),
 		},
 	}
+
 	if c.redirect != nil {
 		client.CheckRedirect = c.redirect
 	}
@@ -216,7 +222,14 @@ func (c *HttpClientRequest) Close() {
 }
 
 // timeoutDialer returns functions of connection dialer with timeout settings for http.Transport Dial field.
-func timeoutDialer(cTimeout, rwTimeout time.Duration) func(net, addr string) (c net.Conn, err error) {
+func timeoutDialer(unix string, cTimeout, rwTimeout time.Duration) func(netw, addr string) (c net.Conn, err error) {
+
+	if unix != "" {
+		return func(netw, addr string) (net.Conn, error) {
+			return net.Dial("unix", unix)
+		}
+	}
+
 	return func(netw, addr string) (net.Conn, error) {
 		conn, err := net.DialTimeout(netw, addr, cTimeout)
 		if err != nil {
