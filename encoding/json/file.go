@@ -40,7 +40,9 @@ func EncodeToFile(v interface{}, file, indent string) error {
 	fp.Seek(0, 0)
 	fp.Truncate(0)
 
-	_, err = fp.Write(bs)
+	if _, err = fp.Write(bs); err == nil {
+		err = fp.Sync()
+	}
 
 	return err
 }
