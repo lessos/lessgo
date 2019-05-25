@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	jsonTypelessFieldNameReg = regexp.MustCompile("^[a-zA-Z0-9_]{1,50}$")
+	jsonTypelessFieldNameReg = regexp.MustCompile("^[a-zA-Z0-9_-]{1,50}$")
 )
 
 type JsonTypelessItem []*JsonTypelessField
@@ -243,10 +243,14 @@ func (ls *JsonTypelessItem) Get(name string) *JsonTypelessField {
 }
 
 func (ls *JsonTypelessItem) Set(name string, value interface{}) {
-	*ls = append(*ls, &JsonTypelessField{
-		Name:  name,
-		Value: value,
-	})
+	if prev := ls.Get(name); prev == nil {
+		*ls = append(*ls, &JsonTypelessField{
+			Name:  name,
+			Value: value,
+		})
+	} else {
+		prev.Value = value
+	}
 }
 
 func (ls *JsonTypelessItem) ArraySet(name string, feed JsonTypelessItem) {
