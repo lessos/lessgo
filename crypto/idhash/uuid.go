@@ -24,8 +24,14 @@ const (
 
 // RandUUID generates a new UUID based on version 4.
 func RandUUID() string {
+	return uuid(Rand(16))
+}
 
-	bs := Rand(16)
+func HashUUID(bs []byte) string {
+	return uuid(HashSum(AlgSha1, bs, 16))
+}
+
+func uuid(bs []byte) string {
 
 	bs[6] = (bs[6] & 0x0F) | 0x40 // version 4
 	bs[8] = (bs[8] & 0x3F) | 0x80 // variant rfc4122
