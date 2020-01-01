@@ -14,13 +14,6 @@
 
 package types
 
-/**
-import (
-	"encoding/json"
-	"time"
-)
-*/
-
 // Common string formats
 // ---------------------
 // Many fields in this API have formatting requirements.  The commonly used
@@ -184,35 +177,6 @@ type InnerObjectMeta struct {
 	// Human readable description of this object.
 	Title string `json:"title,omitempty" toml:"title,omitempty"`
 }
-
-/**
-type upgradeInnerObjectMeta InnerObjectMeta
-
-func (it *InnerObjectMeta) UnmarshalJSON(bs []byte) error {
-
-	var it2 upgradeInnerObjectMeta
-	if err := json.Unmarshal(bs, &it2); err != nil {
-		return err
-	}
-
-	it2.Created = timeUpgrade(it2.Created)
-	it2.Updated = timeUpgrade(it2.Updated)
-
-	*it = InnerObjectMeta(it2)
-
-	return nil
-}
-
-func timeUpgrade(tn int64) int64 {
-	if tn < 20000101000000111 {
-		return tn
-	}
-	mtu := uint64(tn)
-	return time.Date(int(mtu/1e13), time.Month((mtu%1e13)/1e11), int((mtu%1e11)/1e9),
-		int((mtu%1e9)/1e7), int((mtu%1e7)/1e5), int((mtu%1e5)/1e3),
-		int(mtu%1e3)*1e6, time.UTC).UnixNano() / 1e6
-}
-*/
 
 type ObjectList struct {
 	Kind  string        `json:"kind,omitempty" toml:"kind,omitempty"`

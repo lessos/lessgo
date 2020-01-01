@@ -15,9 +15,62 @@
 package types
 
 import (
+	"strconv"
 	"time"
 )
 
+type MetaTime int64
+
+func MetaTimeNow() MetaTime {
+	return MetaTime(time.Now().UnixNano() / 1e6)
+}
+
+func MetaTimeSet(t time.Time) MetaTime {
+	return MetaTime(t.UnixNano() / 1e6)
+}
+
+func (mt MetaTime) AddMillisecond(td int64) MetaTime {
+	return MetaTime(int64(mt) + td)
+}
+
+func (mt MetaTime) Add(ts string) MetaTime {
+	td, _ := time.ParseDuration(ts)
+	return MetaTimeSet(mt.Time().Add(td))
+}
+
+func (mt MetaTime) Format(fm string) string {
+
+	if fm == "rfc3339" {
+		fm = time.RFC3339
+	}
+
+	return mt.Time().Local().Format(fm)
+}
+
+func (mt MetaTime) Time() time.Time {
+	return time.Unix(int64(mt)/1e3, (int64(mt)%1e3)*1e6)
+}
+
+func (it *MetaTime) UnmarshalJSON(bs []byte) error {
+
+	if i64, err := strconv.ParseInt(string(bs), 10, 64); err == nil {
+		*it = MetaTime(timeUpgrade(i64))
+	}
+
+	return nil
+}
+
+func timeUpgrade(tn int64) int64 {
+	if tn < 20000101000000111 {
+		return tn
+	}
+	mtu := uint64(tn)
+	return time.Date(int(mtu/1e13), time.Month((mtu%1e13)/1e11), int((mtu%1e11)/1e9),
+		int((mtu%1e9)/1e7), int((mtu%1e7)/1e5), int((mtu%1e5)/1e3),
+		int(mtu%1e3)*1e6, time.UTC).UnixNano() / 1e6
+}
+
+/**
 type MetaTime uint64
 
 func MetaTimeNow() MetaTime {
@@ -56,3 +109,4 @@ func (mt MetaTime) Time() time.Time {
 		int((mtu%1e9)/1e7), int((mtu%1e7)/1e5), int((mtu%1e5)/1e3),
 		int(mtu%1e3)*1e6, time.UTC)
 }
+*/
