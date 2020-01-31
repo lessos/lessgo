@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	ar_str_mu sync.Mutex
+	arStrMu sync.Mutex
 )
 
 type ArrayString []string
@@ -38,8 +38,8 @@ func (ar *ArrayString) Has(s string) bool {
 
 func (ar *ArrayString) Set(s string) {
 
-	ar_str_mu.Lock()
-	defer ar_str_mu.Unlock()
+	arStrMu.Lock()
+	defer arStrMu.Unlock()
 
 	for _, v := range *ar {
 
@@ -53,8 +53,8 @@ func (ar *ArrayString) Set(s string) {
 
 func (ar *ArrayString) Del(s string) {
 
-	ar_str_mu.Lock()
-	defer ar_str_mu.Unlock()
+	arStrMu.Lock()
+	defer arStrMu.Unlock()
 
 	for i, v := range *ar {
 
@@ -95,17 +95,39 @@ func (ar *ArrayString) Clean() {
 	*ar = []string{}
 }
 
-// Deprecated
-func (ar *ArrayString) Contain(s string) bool {
-	return ar.Has(s)
+func ArrayStringHas(ar []string, s string) bool {
+	for _, v := range ar {
+		if v == s {
+			return true
+		}
+	}
+	return false
 }
 
-// Deprecated
-func (ar *ArrayString) Insert(s string) {
-	ar.Set(s)
+func ArrayStringSet(ar []string, s string) ([]string, bool) {
+	for _, v := range ar {
+		if v == s {
+			return ar, false
+		}
+	}
+	return append(ar, s), true
 }
 
-// Deprecated
-func (ar *ArrayString) Remove(s string) {
-	ar.Del(s)
+func ArrayStringDel(ar []string, s string) ([]string, bool) {
+	for i, v := range ar {
+		if v == s {
+			return append(ar[:i], ar[i+1:]...), true
+		}
+	}
+	return ar, false
+}
+
+func ArrayStringHit(ar1, ar2 []string) int {
+	hit := 0
+	for _, v2 := range ar2 {
+		if ArrayStringHas(ar1, v2) {
+			hit += 1
+		}
+	}
+	return hit
 }
