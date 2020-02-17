@@ -33,8 +33,8 @@ type KvPairs []*KvPair
 
 // KvPair is a key value . It implements KvPairs
 type KvPair struct {
-	Key   string `json:"key"`
-	Value string `json:"value,omitempty"`
+	Key   string `json:"key" toml:"key"`
+	Value string `json:"value,omitempty" toml:"value,omitempty"`
 }
 
 // Set create or update the key-value pair entry for "key" to "value".

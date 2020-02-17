@@ -56,17 +56,17 @@ const (
 )
 
 type jsonRawTestSub struct {
-	A string `json:"a"`
-	B string `json:"b"`
+	A string `json:"a" toml:"a"`
+	B string `json:"b" toml:"b"`
 }
 
 type jsonRawTest struct {
-	AItem  jsonRawTestSub   `json:"a_item"`
-	BBool  bool             `json:"b_bool"`
-	BFloat float64          `json:"b_float"`
-	BInt   int              `json:"b_int"`
-	CStr   string           `json:"c_str"`
-	DItems []jsonRawTestSub `json:"d_items"`
+	AItem  jsonRawTestSub   `json:"a_item" toml:"a_item"`
+	BBool  bool             `json:"b_bool" toml:"b_bool"`
+	BFloat float64          `json:"b_float" toml:"b_float"`
+	BInt   int              `json:"b_int" toml:"b_int"`
+	CStr   string           `json:"c_str" toml:"c_str"`
+	DItems []jsonRawTestSub `json:"d_items" toml:"d_items"`
 }
 
 func TestJsonTypeless(t *testing.T) {

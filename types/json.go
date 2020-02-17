@@ -41,8 +41,8 @@ func JsonTypelessItemDecode(src []byte) (JsonTypelessItem, error) {
 }
 
 type JsonTypelessField struct {
-	Name  string      `json:"name"`
-	Value interface{} `json:"value,omitempty"`
+	Name  string      `json:"name" toml:"name"`
+	Value interface{} `json:"value,omitempty" toml:"value,omitempty"`
 }
 
 func (it *JsonTypelessField) val() ([]byte, string, int64, float64, bool) {

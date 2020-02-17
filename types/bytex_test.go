@@ -19,7 +19,7 @@ import (
 )
 
 type Object struct {
-	Name string `json:"name"`
+	Name string `json:"name" toml:"name"`
 }
 
 var (

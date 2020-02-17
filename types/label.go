@@ -35,8 +35,8 @@ type Labels []Label
 
 // Label is a name value . It implements Labels
 type Label struct {
-	Name  string `json:"name"`
-	Value string `json:"value,omitempty"`
+	Name  string `json:"name" toml:"name"`
+	Value string `json:"value,omitempty" toml:"value,omitempty"`
 }
 
 // Set create or update the label entry for "name" to "value".
