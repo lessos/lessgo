@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -181,6 +182,9 @@ func (c *HttpClientRequest) Response() (*http.Response, error) {
 		return nil, err
 	}
 	u.Path = filepath.Clean(u.Path)
+	if runntime.GOOS == "windows" {
+		u.Path = strings.Replace(u.Path, "\\", "/", -1)
+	}
 	c.Req.URL = u
 
 	if c.SignHandler != nil {
