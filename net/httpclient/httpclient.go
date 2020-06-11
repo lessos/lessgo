@@ -30,7 +30,7 @@ import (
 
 var (
 	defaultUserAgent = "lessgoHttpClient"
-	defaultTimeout   = 60000 * time.Millisecond
+	defaultTimeout   = int64(60000)
 )
 
 type HttpClientSignHandler func(*http.Request)
@@ -57,7 +57,7 @@ func NewHttpClientRequest(method, req_url string) *HttpClientRequest {
 	return &HttpClientRequest{
 		Req:     &req,
 		url:     req_url,
-		timeout: defaultTimeout,
+		timeout: time.Duration(defaultTimeout) * time.Millisecond,
 		params:  map[string]string{},
 	}
 }
@@ -71,8 +71,11 @@ func (c *HttpClientRequest) SetUrl(url string) {
 }
 
 // SetTimeout sets connect time out.
-func (c *HttpClientRequest) SetTimeout(timeout time.Duration) *HttpClientRequest {
-	c.timeout = timeout * time.Millisecond
+func (c *HttpClientRequest) SetTimeout(timeout int64) *HttpClientRequest {
+	if timeout < 100 {
+		timeout = 100
+	}
+	c.timeout = time.Duration(timeout) * time.Millisecond
 	return c
 }
 
