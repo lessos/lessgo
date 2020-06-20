@@ -39,9 +39,10 @@ type HttpClientRequest struct {
 	Req             *http.Request
 	netUnix         string
 	url             string
+	proxyUrl        *url.URL
 	timeout         time.Duration
 	tlsClientConfig *tls.Config
-	rsp             *http.Response
+	Rsp             *http.Response
 	params          map[string]string
 	SignHandler     HttpClientSignHandler
 	redirect        func(req *http.Request, via []*http.Request) error
@@ -76,6 +77,14 @@ func (c *HttpClientRequest) SetTimeout(timeout int64) *HttpClientRequest {
 		timeout = 100
 	}
 	c.timeout = time.Duration(timeout) * time.Millisecond
+	return c
+}
+
+// SetProxy sets proxy connection
+func (c *HttpClientRequest) SetProxy(v string) *HttpClientRequest {
+	if u, err := url.Parse(v); err == nil {
+		c.proxyUrl = u
+	}
 	return c
 }
 
@@ -152,8 +161,8 @@ func (c *HttpClientRequest) Body(data interface{}) *HttpClientRequest {
 // Response executes request client gets response mannually.
 func (c *HttpClientRequest) Response() (*http.Response, error) {
 
-	if c.rsp != nil {
-		return c.rsp, nil
+	if c.Rsp != nil {
+		return c.Rsp, nil
 	}
 
 	var paramBody string
@@ -194,28 +203,35 @@ func (c *HttpClientRequest) Response() (*http.Response, error) {
 		c.SignHandler(c.Req)
 	}
 
+	tp := &http.Transport{
+		TLSClientConfig: c.tlsClientConfig,
+	}
+
+	if c.proxyUrl != nil {
+		tp.Proxy = http.ProxyURL(c.proxyUrl)
+	} else {
+		tp.Dial = timeoutDialer(c.netUnix, c.timeout, c.timeout)
+	}
+
 	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: c.tlsClientConfig,
-			Dial:            timeoutDialer(c.netUnix, c.timeout, c.timeout),
-		},
+		Transport: tp,
 	}
 
 	if c.redirect != nil {
 		client.CheckRedirect = c.redirect
 	}
-	c.rsp, err = client.Do(c.Req)
+	c.Rsp, err = client.Do(c.Req)
 	if err != nil {
 		return nil, err
 	}
 
-	return c.rsp, nil
+	return c.Rsp, nil
 }
 
 func (c *HttpClientRequest) Status() int {
 
-	if c.rsp != nil {
-		return c.rsp.StatusCode
+	if c.Rsp != nil {
+		return c.Rsp.StatusCode
 	}
 
 	return 0
@@ -223,8 +239,8 @@ func (c *HttpClientRequest) Status() int {
 
 // Close close the TCP connection, the caller MUST use Close when done reading from it.
 func (c *HttpClientRequest) Close() {
-	if c.rsp != nil && c.rsp.Body != nil {
-		c.rsp.Body.Close()
+	if c.Rsp != nil && c.Rsp.Body != nil {
+		c.Rsp.Body.Close()
 	}
 }
 
@@ -290,5 +306,8 @@ func (c *HttpClientRequest) ReplyJson(v interface{}) error {
 }
 
 func (c *HttpClientRequest) ReplyHeader(key string) string {
-	return c.rsp.Header.Get(key)
+	if c.Rsp != nil {
+		return c.Rsp.Header.Get(key)
+	}
+	return ""
 }
