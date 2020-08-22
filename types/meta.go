@@ -183,3 +183,20 @@ type ObjectList struct {
 	Error *ErrorMeta    `json:"error,omitempty" toml:"error,omitempty"`
 	Items []interface{} `json:"items,omitempty" toml:"items,omitempty"`
 }
+
+type WebServiceResult struct {
+
+	// Kind is a string value representing the REST resource this object represents.
+	// Servers may infer this from the endpoint the client submits requests to.
+	Kind string `json:"kind,omitempty" toml:"kind,omitempty"`
+
+	// A human-readable description of the error message.
+	Message string `json:"message,omitempty" toml:"message,omitempty"`
+
+	// ErrorMeta provides more information about an api failure. If this value is
+	// nil there is no error available
+	Error *ErrorMeta `json:"error,omitempty" toml:"error,omitempty"`
+
+	Item  interface{}   `json:"item,omitempty" toml:"item,omitempty"`
+	Items []interface{} `json:"items,omitempty" toml:"items,omitempty"`
+}

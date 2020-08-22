@@ -48,7 +48,7 @@ func NewNameIdentifier(str string) NameIdentifier {
 }
 
 func (ni NameIdentifier) String() string {
-	return string(ni)
+	return string(ni.filter())
 }
 
 func (ni NameIdentifier) HashToString(length int) string {
@@ -71,9 +71,13 @@ func (ni NameIdentifier) IsHashed() bool {
 	return false
 }
 
+func (ni NameIdentifier) filter() string {
+	return strings.Trim(filepath.Clean(string(ni)), "/")
+}
+
 func (ni NameIdentifier) Valid() error {
 
-	nis := strings.Trim(filepath.Clean(string(ni)), "/")
+	nis := ni.filter()
 
 	if len(nis) < 1 {
 		return errors.New("NameIdentifier cannot be an empty string")

@@ -286,6 +286,7 @@ func (ls *JsonTypelessItem) UnmarshalJSON(b []byte) error {
 	}
 
 	for k, v := range items {
+		k = strings.Replace(k, ":", "_", 1)
 		if !jsonTypelessFieldNameReg.MatchString(k) {
 			return errors.New("invalid field name " + k)
 		}
