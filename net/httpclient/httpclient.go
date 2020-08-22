@@ -16,6 +16,7 @@ package httpclient
 
 import (
 	"bytes"
+	"compress/gzip"
 	"crypto/tls"
 	"encoding/json"
 	"io/ioutil"
@@ -43,6 +44,7 @@ type HttpClientRequest struct {
 	timeout         time.Duration
 	tlsClientConfig *tls.Config
 	Rsp             *http.Response
+	rspData         []byte
 	params          map[string]string
 	SignHandler     HttpClientSignHandler
 	redirect        func(req *http.Request, via []*http.Request) error
@@ -103,6 +105,12 @@ func (c *HttpClientRequest) Header(key, value string) *HttpClientRequest {
 // SetCookie add cookie into request.
 func (c *HttpClientRequest) SetCookie(cookie *http.Cookie) *HttpClientRequest {
 	c.Req.Header.Add("Cookie", cookie.String())
+	return c
+}
+
+// Enable gzip into request.
+func (c *HttpClientRequest) GzipEnable() *HttpClientRequest {
+	c.Header("Accept-Encoding", "gzip")
 	return c
 }
 
@@ -224,6 +232,22 @@ func (c *HttpClientRequest) Response() (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
+	if c.Rsp.Body != nil {
+		defer c.Rsp.Body.Close()
+	}
+
+	if c.Rsp.Header.Get("Content-Encoding") == "gzip" {
+		r, err := gzip.NewReader(c.Rsp.Body)
+		if err == nil {
+			c.rspData, err = ioutil.ReadAll(r)
+		}
+	} else {
+		c.rspData, err = ioutil.ReadAll(c.Rsp.Body)
+	}
+
+	if err != nil {
+		return nil, err
+	}
 
 	return c.Rsp, nil
 }
@@ -266,20 +290,14 @@ func timeoutDialer(unix string, cTimeout, rwTimeout time.Duration) func(netw, ad
 // ReplyBytes returns the body []byte in response.
 // it calls Response inner.
 func (c *HttpClientRequest) ReplyBytes() ([]byte, error) {
-	resp, err := c.Response()
-	if err != nil {
-		return nil, err
-	}
-	if resp.Body == nil {
-		return nil, nil
-	}
-	defer resp.Body.Close()
 
-	data, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
+	if c.rspData == nil {
+		if _, err := c.Response(); err != nil {
+			return nil, err
+		}
 	}
-	return data, nil
+
+	return c.rspData, nil
 }
 
 // ReplyString returns the body string in response.
