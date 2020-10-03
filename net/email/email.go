@@ -55,6 +55,16 @@ func (m Mailer) SendMail(to, subject, body string) error {
 	mailtype := "plain"
 	if len(body) > 20 && body[:5] == "<html" {
 		mailtype = "html"
+		if n := strings.Index(body, "<body"); n > 0 {
+			body = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+　<head>
+　　<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+　　<title>` + subject + `</title>
+　　<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+　</head>
+` + body[n:]
+		}
 	}
 
 	msg := "From: " + m.User + "<" + m.User + ">\r\n"
