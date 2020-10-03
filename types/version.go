@@ -36,12 +36,12 @@ func version_is_a(v uint8) bool {
 	return false
 }
 
-func (v *Version) Valid() bool {
-	if *v == "" {
+func (v Version) Valid() bool {
+	if v == "" {
 		return false
 	}
 
-	vs := strings.Split(string(*v), ".")
+	vs := strings.Split(string(v), ".")
 	for _, vsv := range vs {
 		if vsv == "" {
 			return false
@@ -64,9 +64,9 @@ func (v *Version) Valid() bool {
 // Compare compares this version to another version. This
 // returns -1, 0, or 1 if this version is smaller, equal,
 // or larger than the compared version, respectively.
-func (v *Version) Compare(other *Version) int {
+func (v Version) Compare(other Version) int {
 
-	if *v == *other {
+	if v == other {
 		return 0
 	}
 
@@ -94,18 +94,22 @@ func (v *Version) Compare(other *Version) int {
 	return 0
 }
 
-func (v *Version) String() string {
-	return string(*v)
+func VersionCompare(a, b string) int {
+	return Version(a).Compare(Version(b))
 }
 
-func (v *Version) parse() []int32 {
+func (v Version) String() string {
+	return string(v)
+}
+
+func (v Version) parse() []int32 {
 
 	var (
 		segments = []int32{}
 		num      = int32(-1)
 	)
 
-	for _, char := range *v {
+	for _, char := range string(v) {
 
 		if char >= '0' && char <= '9' {
 

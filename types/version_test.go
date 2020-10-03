@@ -29,7 +29,7 @@ func TestVersion(t *testing.T) {
 	v2 := Version("2.0.20.2,bb")
 	v3 := Version("2.0.20.2,bb")
 
-	if v1.Compare(&v2) != -1 || v2.Compare(&v3) != 0 || v2.Compare(&v1) != 1 {
+	if v1.Compare(v2) != -1 || v2.Compare(v3) != 0 || v2.Compare(v1) != 1 {
 		t.Fatal("Failed on Compare")
 	}
 
@@ -65,5 +65,11 @@ func Benchmark_Version_Valid(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		v1 := Version("10.10.10.dev")
 		v1.Valid()
+	}
+}
+
+func Benchmark_VersionCompare(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		VersionCompare("10.10.10", "10.10.10")
 	}
 }

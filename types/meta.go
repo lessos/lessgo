@@ -174,8 +174,11 @@ type InnerObjectMeta struct {
 	Created MetaTime `json:"created,omitempty" toml:"created,omitempty"`
 	Updated MetaTime `json:"updated,omitempty" toml:"updated,omitempty"`
 
-	// Human readable description of this object.
+	// Human readable title of this object.
 	Title string `json:"title,omitempty" toml:"title,omitempty"`
+
+	// Human readable subtitle of this object.
+	Subtitle string `json:"subtitle,omitempty" toml:"subtitle,omitempty"`
 }
 
 type ObjectList struct {

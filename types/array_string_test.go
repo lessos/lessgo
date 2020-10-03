@@ -22,18 +22,18 @@ func TestArrayString(t *testing.T) {
 
 	ar := ArrayString([]string{"aa", "bb"})
 
-	if ar.Contain("aa") == false ||
-		ar.Contain("cc") == true {
-		t.Fatal("Failed on Contain")
+	if ar.Has("aa") == false ||
+		ar.Has("cc") == true {
+		t.Fatal("Failed on Has")
 	}
 
 	ar2 := ArrayString([]string{"aa", "bb", "cc"})
-	if ar2.Contain("cc") != true {
-		t.Fatal("Failed on Insert")
+	if ar2.Has("cc") != true {
+		t.Fatal("Failed on Set")
 	}
 
-	ar2.Insert("dd")
-	ar2.Insert("ee")
+	ar2.Set("dd")
+	ar2.Set("ee")
 
 	if ar.Equal(ar) != true {
 		t.Fatal("Failed on Equal")
@@ -43,19 +43,19 @@ func TestArrayString(t *testing.T) {
 		t.Fatal("Failed on Equal")
 	}
 
-	ar2.Remove("aa")
+	ar2.Del("aa")
 	if ar2.Equal(ArrayString([]string{"bb", "cc", "dd", "ee"})) != true {
-		t.Fatal("Failed on Remove")
+		t.Fatal("Failed on Del")
 	}
 
-	ar2.Remove("ee")
+	ar2.Del("ee")
 	if ar2.Equal(ArrayString([]string{"bb", "cc", "dd"})) != true {
-		t.Fatal("Failed on Remove")
+		t.Fatal("Failed on Del")
 	}
 
-	ar2.Remove("cc")
+	ar2.Del("cc")
 	if ar2.Equal(ArrayString([]string{"bb", "dd"})) != true {
-		t.Fatal("Failed on Remove")
+		t.Fatal("Failed on Del")
 	}
 
 	ar2.Clean()
