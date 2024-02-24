@@ -3,3 +3,4 @@ data/redis_bench
 main
 t_*.go
 *.log
+go.sum
